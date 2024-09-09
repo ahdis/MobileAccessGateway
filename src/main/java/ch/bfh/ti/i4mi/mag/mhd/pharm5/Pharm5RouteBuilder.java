@@ -51,13 +51,11 @@ class Pharm5RouteBuilder extends RouteBuilder {
                 "?secure=%s", this.config.getPharm5HostUrl(), this.config.isHttps() ? "true" : "false")
                 +
                 "&audit=true" +
-                "&auditContext=#myAuditContext" +
-         //       "&sslContextParameters=#pixContext" +
                 "&inInterceptors=#soapResponseLogger" + 
                 "&inFaultInterceptors=#soapResponseLogger"+
                 "&outInterceptors=#soapRequestLogger" + 
                 "&outFaultInterceptors=#soapRequestLogger";
-        from("mhd-pharm5:translation?audit=true&auditContext=#myAuditContext").routeId("mdh-documentreference-findmedicationlist-adapter")
+        from("mhd-pharm5:translation?audit=true").routeId("mdh-documentreference-findmedicationlist-adapter")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 .process(AuthTokenConverter.addWsHeader())

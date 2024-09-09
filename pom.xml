@@ -382,6 +382,13 @@
 			<artifactId>spring-boot-starter-logging</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.openehealth.ipf.boot</groupId>
+			<artifactId>ipf-atna-spring-boot-starter</artifactId>
+			<version>${ipf-version}</version>
+		</dependency>
+
+
 		<!-- Servlet API -->
 		<dependency>
 			<groupId>javax.servlet</groupId>

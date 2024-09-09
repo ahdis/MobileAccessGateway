@@ -53,14 +53,12 @@ class Iti66RouteBuilder extends RouteBuilder {
           "?secure=%s", this.config.getIti18HostUrl(), this.config.isHttps() ? "true" : "false")
         +
                 "&audit=true" +
-                "&auditContext=#myAuditContext" +
-          //      "&sslContextParameters=#pixContext" +
                 "&inInterceptors=#soapResponseLogger" + 
                 "&inFaultInterceptors=#soapResponseLogger"+
                 "&outInterceptors=#soapRequestLogger" + 
                 "&outFaultInterceptors=#soapRequestLogger";
 
-        from("mhd-iti66-v401:translation?audit=true&auditContext=#myAuditContext").routeId("mdh-documentmanifest-adapter")
+        from("mhd-iti66-v401:translation?audit=true").routeId("mdh-documentmanifest-adapter")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 .process(AuthTokenConverter.addWsHeader()).choice()

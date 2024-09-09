@@ -59,14 +59,12 @@ class Iti93RouteBuilder extends RouteBuilder {
                 "?secure=%s", this.config.getIti44HostUrl(), this.config.isPixHttps() ? "true" : "false")
                 +
                 "&audit=true" +
-                "&auditContext=#myAuditContext" +
-              //  "&sslContextParameters=#pixContext" +
                 "&inInterceptors=#soapResponseLogger" + 
                 "&inFaultInterceptors=#soapResponseLogger"+
                 "&outInterceptors=#soapRequestLogger" + 
                 "&outFaultInterceptors=#soapRequestLogger";
         
-        from("pmir-iti93:stub?audit=true&auditContext=#myAuditContext").routeId("pmir-feed")
+        from("pmir-iti93:stub?audit=true").routeId("pmir-feed")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 .process(AuthTokenConverter.addWsHeader())

@@ -53,17 +53,14 @@ class Iti83RouteBuilder extends RouteBuilder {
 		log.debug("Iti83RouteBuilder configure");
 		
 		 final String xds45Endpoint = String.format("pixv3-iti45://%s" +
-	                "?secure=%s", this.config.getIti45HostUrl(), this.config.isPixHttps() ? "true" : "false")
-	                +
-	                //"&sslContextParameters=#pixContext" +
+	                "?secure=%s", this.config.getIti45HostUrl(), this.config.isPixHttps() ? "true" : "false") +
 	                "&audit=true" +
-	                "&auditContext=#myAuditContext" +
 	                "&inInterceptors=#soapResponseLogger" + 
 	                "&inFaultInterceptors=#soapResponseLogger"+
 	                "&outInterceptors=#soapRequestLogger" + 
 	                "&outFaultInterceptors=#soapRequestLogger";
 		
-		from("pixm-iti83:translation?audit=true&auditContext=#myAuditContext").routeId("pixm-adapter")
+		from("pixm-iti83:translation?audit=true").routeId("pixm-adapter")
 				// pass back errors to the endpoint
 				.errorHandler(noErrorHandler())
 				.process(AuthTokenConverter.addWsHeader())

@@ -25,12 +25,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 
+import javax.net.ssl.SSLContext;
 import javax.servlet.Filter;
 
 import ca.uhn.fhir.model.api.annotation.SimpleSetter;
 import ca.uhn.fhir.rest.server.*;
 import ch.bfh.ti.i4mi.mag.fhir.MagCapabilityStatementProvider;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.CamelContext;
 import org.apache.camel.support.jsse.KeyManagersParameters;
 import org.apache.camel.support.jsse.KeyStoreParameters;
 import org.apache.camel.support.jsse.SSLContextParameters;
@@ -43,6 +46,7 @@ import org.openehealth.ipf.commons.audit.TlsParameters;
 import org.openehealth.ipf.commons.audit.protocol.TCPSyslogSender;
 import org.openehealth.ipf.commons.ihe.ws.cxf.payload.InPayloadLoggerInterceptor;
 import org.openehealth.ipf.commons.ihe.ws.cxf.payload.OutPayloadLoggerInterceptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -299,6 +303,7 @@ public class Config {
         //return new SSLContextParameters();
     }
 
+
     public SSLContextParameters getAuditSSLContext() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
         KeyStoreParameters ksp = new KeyStoreParameters();
        
@@ -330,50 +335,41 @@ public class Config {
         return scp;
     }
 
-    @Bean(name = "myAuditContext")
-    @ConfigurationProperties(prefix = "mag.audit")
-    public AuditContext getAuditContext(
-            TlsParameters tlsParameters,
-            @Value("${mag.audit.audit-source-id}") String sourceId,
-            @Value("${mag.audit.audit-enterprise-site-id}") String enterpriseSiteId,
-            @Value("${mag.audit.audit-repository-host}") String repositoryHost,
-            @Value("${mag.audit.audit-repository-port}") Integer repositoryPort,
-            @Value("${mag.audit.audit-repository-transport}") String repositoryTransport) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
-
-        DefaultAuditContext context = new DefaultAuditContext();
-        context.setTlsParameters(tlsParameters);
-
-        context.setAuditTransmissionProtocol(new TCPSyslogSender());
-
-        context.setAuditSourceId(sourceId);
-        context.setAuditEnterpriseSiteId(enterpriseSiteId);
-        context.setAuditRepositoryHost(repositoryHost);
-        context.setAuditRepositoryPort(repositoryPort);
-        context.setAuditRepositoryTransport(repositoryTransport);
-
-        return context;
-    }
-
     @Bean
-    public TlsParameters tlsParameters(
-            @Value("${audit.audit-tls-enabled}") Boolean tlsEnabled,
-            @Value("${mag.client-ssl.key-store.path}") String keystorePath,
-            @Value("${mag.client-ssl.key-store.password}") String keystorePassword,
-            @Value("${mag.client-ssl.truststore.path}") String truststorePath,
-            @Value("${mag.client-ssl.truststore.password}") String truststorePassword) throws Exception {
+    public TlsParameters getTlsParametesFromSllContextParameters( CamelContext camelContext){
+        return new TlsParameters() {
 
-            if(tlsEnabled) {
-                CustomTlsParameters tlsParams = new CustomTlsParameters();
-                tlsParams.setKeyStoreFile(keystorePath);
-                tlsParams.setKeyStorePassword(keystorePassword);
-                tlsParams.setTrustStoreFile(truststorePath);
-                tlsParams.setTrustStorePassword(truststorePassword);
-
-                return tlsParams;
+            @SneakyThrows
+            @Override
+            public SSLContext getSSLContext(boolean b) {
+               return getAuditSSLContext().createSSLContext(camelContext);
             }
-
-            return null;
+        };
     }
+
+//    @Bean
+//    public TlsParameters tlsParameters(
+//            @Value("${mag.client-ssl.key-store.path}") String keystorePath,
+//            @Value("${mag.client-ssl.key-store.password}") String keystorePassword,
+//            @Value("${mag.client-ssl.key-store.base64}") String keystoreBase64,
+//            @Value("${mag.client-ssl.truststore.path}") String truststorePath,
+//            @Value("${mag.client-ssl.truststore.password}") String truststorePassword) throws Exception {
+//
+//
+//        CustomTlsParameters tlsParams = new CustomTlsParameters();
+//        if(keystoreBase64 != null && !keystoreBase64.trim().isEmpty()) {
+//
+//
+//        } else {
+//            tlsParams.setKeyStoreFile(keystorePath);
+//            tlsParams.setKeyStorePassword(keystorePassword);
+//        }
+//
+//        tlsParams.setTrustStoreFile(truststorePath);
+//        tlsParams.setTrustStorePassword(truststorePassword);
+//
+//        return tlsParams;
+//    }
 
     @Bean
     @ConditionalOnMissingBean(name = "corsFilterRegistration")

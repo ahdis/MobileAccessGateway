@@ -67,17 +67,14 @@ class Iti65RouteBuilder extends RouteBuilder {
         log.debug("Iti65RouteBuilder configure");
         
         final String xds41Endpoint = String.format("xds-iti41://%s" +
-                "?secure=%s", this.config.getIti41HostUrl(), this.config.isHttps() ? "true" : "false")
-              +
+                "?secure=%s", this.config.getIti41HostUrl(), this.config.isHttps() ? "true" : "false") +
                       "&audit=true" +
-                      "&auditContext=#myAuditContext" +
-                //      "&sslContextParameters=#pixContext" +
                       "&inInterceptors=#soapResponseLogger" + 
                       "&inFaultInterceptors=#soapResponseLogger"+
                       "&outInterceptors=#soapRequestLogger" + 
                       "&outFaultInterceptors=#soapRequestLogger";
         
-        from("mhd-iti65-v401:stub?audit=true&auditContext=#myAuditContext&fhirContext=#fhirContext").routeId("mhd-providedocumentbundle")
+        from("mhd-iti65-v401:stub?audit=true&fhirContext=#fhirContext").routeId("mhd-providedocumentbundle")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 //.process(itiRequestValidator())

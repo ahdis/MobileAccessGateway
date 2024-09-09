@@ -66,8 +66,6 @@ class Iti104RouteBuilder extends RouteBuilder {
                 "?secure=%s", this.config.getIti44HostUrl(), this.config.isPixHttps() ? "true" : "false")
                 +
                 "&audit=true" +
-                "&auditContext=#myAuditContext" +
-              //  "&sslContextParameters=#pixContext" +
                 "&inInterceptors=#soapResponseLogger" + 
                 "&inFaultInterceptors=#soapResponseLogger"+
                 "&outInterceptors=#soapRequestLogger" + 
@@ -76,16 +74,16 @@ class Iti104RouteBuilder extends RouteBuilder {
    	 final String xds47Endpoint = String.format("pdqv3-iti47://%s" +
              "?secure=%s", this.config.getIti47HostUrl(), this.config.isPixHttps() ? "true" : "false")
              +
-             //"&sslContextParameters=#pixContext" +
+
              "&audit=true" +
-             "&auditContext=#myAuditContext" +
+
              "&inInterceptors=#soapResponseLogger" + 
              "&inFaultInterceptors=#soapResponseLogger"+
              "&outInterceptors=#soapRequestLogger" + 
              "&outFaultInterceptors=#soapRequestLogger";
         
         
-        from("pmir-iti104:stub?audit=true&auditContext=#myAuditContext").routeId("iti104-feed")
+        from("pmir-iti104:stub?audit=true").routeId("iti104-feed")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 .process(AuthTokenConverter.addWsHeader())

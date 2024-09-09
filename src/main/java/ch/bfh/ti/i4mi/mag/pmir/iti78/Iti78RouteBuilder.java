@@ -60,13 +60,12 @@ public class Iti78RouteBuilder extends RouteBuilder {
 	                +
 	                //"&sslContextParameters=#pixContext" +
 	                "&audit=true" +
-	                "&auditContext=#myAuditContext" +
 	                "&inInterceptors=#soapResponseLogger" + 
 	                "&inFaultInterceptors=#soapResponseLogger"+
 	                "&outInterceptors=#soapRequestLogger" + 
 	                "&outFaultInterceptors=#soapRequestLogger";
 		
-		from("pdqm-iti78:translation?audit=true&auditContext=#myAuditContext").routeId("pdqm-adapter")
+		from("pdqm-iti78:translation?audit=true").routeId("pdqm-adapter")
 				// pass back errors to the endpoint
 				.errorHandler(noErrorHandler())
 				.process(AuthTokenConverter.addWsHeader())
