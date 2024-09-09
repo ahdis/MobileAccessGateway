@@ -65,7 +65,16 @@ public class BaseRequestConverter {
 		if (dateParam == null)
 			return null;
 		String dateString = dateParam.getValueAsString();
-		dateString = dateString.replaceAll("-", "");
+		// Remove all non-digit characters (hyphens, colons, 'T')
+		dateString = dateString.replaceAll("\\D", "");
+		// Ensure the string is no longer than 14 characters (YYYYMMDDhhmmss)
+		if (dateString.length() > 14) {
+			dateString = dateString.substring(0, 14);
+		}
+		// Pad with zeros if shorter than 14 characters
+		while (dateString.length() < 14) {
+			dateString += "0";
+		}
 		return Timestamp.fromHL7(dateString);
 	}
 
