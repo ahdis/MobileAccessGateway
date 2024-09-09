@@ -65,7 +65,8 @@ import ca.uhn.fhir.rest.server.provider.ServerCapabilityStatementProvider;
 import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import ch.bfh.ti.i4mi.mag.pmir.PatientReferenceCreator;
 import lombok.Data;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // TODO: max-header-size must be used for http also
 /**
@@ -77,8 +78,7 @@ import lombok.Data;
 @Configuration
 @Data
 public class Config {
-
-
+    private static final Logger logger = LoggerFactory.getLogger(Config.class);
     /**
      * Use HTTPS for XDS ?
      */
@@ -434,7 +434,10 @@ public class Config {
     @Bean
     public MagCapabilityStatementProvider serverConformanceProvider(
             final RestfulServer fhirServer,
-            @Value("${mag.baseurl}") final String baseUrl) {
+            @Value("${mag.baseurl}") final String baseUrl, IPagingProvider pagingProvider) {
+        logger.info("Configuring RestfulServer with NoPagingProvider");
+        fhirServer.setPagingProvider(pagingProvider);
+        logger.debug("RestfulServer configured with baseUrl: {}", baseUrl);
         return new MagCapabilityStatementProvider(fhirServer, baseUrl);
     }
 
@@ -446,6 +449,12 @@ public class Config {
         config.setServerBindings(new ArrayList<>());
         config.setServerAddressStrategy(new HardcodedServerAddressStrategy(getUriFhirEndpoint()));
         return config;
+    }
+
+    @Bean
+    public IPagingProvider noPagingProvider() {
+        logger.info("Initializing NoPagingProvider");
+        return new NoPagingProvider();
     }
 
     @Bean(name = "stsEndpoint")
