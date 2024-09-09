@@ -266,7 +266,7 @@ public class Config {
 
         KeyStoreParameters tsp = new KeyStoreParameters();
         // Keystore file may be found at src/main/resources
-        tsp.setResource(truststore);
+        tsp.setResource("file:"+truststore);
         tsp.setPassword(truststorePassword);
 
         TrustManagersParameters tmp = new TrustManagersParameters();
