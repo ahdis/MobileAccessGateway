@@ -27,6 +27,7 @@ import java.util.Base64;
 
 import javax.servlet.Filter;
 
+import ca.uhn.fhir.model.api.annotation.SimpleSetter;
 import ca.uhn.fhir.rest.server.*;
 import ch.bfh.ti.i4mi.mag.fhir.MagCapabilityStatementProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +37,9 @@ import org.apache.camel.support.jsse.SSLContextParameters;
 import org.apache.camel.support.jsse.TrustManagersParameters;
 import org.hl7.fhir.instance.model.api.IBaseConformance;
 import org.openehealth.ipf.commons.audit.AuditContext;
+import org.openehealth.ipf.commons.audit.CustomTlsParameters;
 import org.openehealth.ipf.commons.audit.DefaultAuditContext;
+import org.openehealth.ipf.commons.audit.TlsParameters;
 import org.openehealth.ipf.commons.audit.protocol.TCPSyslogSender;
 import org.openehealth.ipf.commons.ihe.ws.cxf.payload.InPayloadLoggerInterceptor;
 import org.openehealth.ipf.commons.ihe.ws.cxf.payload.OutPayloadLoggerInterceptor;
@@ -45,8 +48,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.system.SystemProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.filter.CorsFilter;
@@ -327,33 +332,47 @@ public class Config {
 
     @Bean(name = "myAuditContext")
     @ConfigurationProperties(prefix = "mag.audit")
-    public AuditContext getAuditContext() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+    public AuditContext getAuditContext(
+            TlsParameters tlsParameters,
+            @Value("${mag.audit.audit-source-id}") String sourceId,
+            @Value("${mag.audit.audit-enterprise-site-id}") String enterpriseSiteId,
+            @Value("${mag.audit.audit-repository-host}") String repositoryHost,
+            @Value("${mag.audit.audit-repository-port}") Integer repositoryPort,
+            @Value("${mag.audit.audit-repository-transport}") String repositoryTransport) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+
         DefaultAuditContext context = new DefaultAuditContext();
-        if (this.auditTlsEnabled) {
-            context.setTlsParameters(new TlsParameterTest(getAuditSSLContext()));
-        }
+        context.setTlsParameters(tlsParameters);
+
         context.setAuditTransmissionProtocol(new TCPSyslogSender());
-        //context.setAuditTransmissionProtocol(new TLSCloseSocket(context.getTlsParameters()));
-        //CustomTlsParameters p = new CustomTlsParameters();
 
-        //p.setKeyStoreFile("270.jks");
-        //p.setKeyStorePassword("a1b2c3");
-        //p.setCertAlias("gateway");
-
-
-        //context.setTlsParameters(p);
-    	/*context.setAuditEnabled(true);
-    	context.setAuditSourceId("CCC_BFH_MAG");
-        context.setAuditEnterpriseSiteId("BFH");
-
-        context.setAuditRepositoryHost("147.135.232.177");
-        context.setAuditRepositoryPort(3001);
-        context.setAuditRepositoryTransport("UDP");
-        */
-        //context.setAuditSource(AuditSource.of("code","system","display"));
-        //context.setSendingApplication("MobileAccessGateway");
+        context.setAuditSourceId(sourceId);
+        context.setAuditEnterpriseSiteId(enterpriseSiteId);
+        context.setAuditRepositoryHost(repositoryHost);
+        context.setAuditRepositoryPort(repositoryPort);
+        context.setAuditRepositoryTransport(repositoryTransport);
 
         return context;
+    }
+
+    @Bean
+    public TlsParameters tlsParameters(
+            @Value("${audit.audit-tls-enabled}") Boolean tlsEnabled,
+            @Value("${mag.client-ssl.key-store.path}") String keystorePath,
+            @Value("${mag.client-ssl.key-store.password}") String keystorePassword,
+            @Value("${mag.client-ssl.truststore.path}") String truststorePath,
+            @Value("${mag.client-ssl.truststore.password}") String truststorePassword) throws Exception {
+
+            if(tlsEnabled) {
+                CustomTlsParameters tlsParams = new CustomTlsParameters();
+                tlsParams.setKeyStoreFile(keystorePath);
+                tlsParams.setKeyStorePassword(keystorePassword);
+                tlsParams.setTrustStoreFile(truststorePath);
+                tlsParams.setTrustStorePassword(truststorePassword);
+
+                return tlsParams;
+            }
+
+            return null;
     }
 
     @Bean
