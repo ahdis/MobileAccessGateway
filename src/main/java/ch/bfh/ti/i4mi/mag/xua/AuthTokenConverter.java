@@ -34,6 +34,7 @@ import org.apache.cxf.binding.soap.SoapHeader;
 import org.apache.cxf.headers.Header;
 import org.apache.cxf.headers.Header.Direction;
 import org.apache.cxf.staxutils.StaxUtils;
+import org.openehealth.ipf.commons.ihe.fhir.Constants;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -46,7 +47,7 @@ import org.w3c.dom.NodeList;
  */
 public class AuthTokenConverter {
 
-	private static final String AUTHORIZATION_HEADER = "Authorization";
+	public static final String AUTHORIZATION_HEADER = "Authorization";
 
 	/**
 	 * This class is not instantiable.
@@ -88,12 +89,12 @@ public class AuthTokenConverter {
 		 final Node attr = lst.item(0).getAttributes().getNamedItem(attribute);
 		 return attr != null ? attr.getTextContent() : "";
 	}
-	
+
 	public static Processor addWsHeader() {
 		return exchange -> {
 
 			Map<String, List<String>> httpHeaders =
-					CastUtils.cast((Map<?, ?>) exchange.getMessage().getHeader("FhirHttpHeaders"));
+					CastUtils.cast((Map<?, ?>) exchange.getMessage().getHeader(Constants.HTTP_INCOMING_HEADERS));
 
 			String converted = null;
 
@@ -111,7 +112,7 @@ public class AuthTokenConverter {
 				}
 			}
 			if (converted != null) {				               
-			    if (converted.startsWith("<?xml")) {
+			    if (converted.trim().startsWith("<?xml")) {
 					converted = converted.substring(converted.indexOf(">") + 1);
 				}
 				converted = String.format("<wsse:Security xmlns:wsse=\"%s\">%s</wsse:Security>", OASIS_WSSECURITY_NS, converted);

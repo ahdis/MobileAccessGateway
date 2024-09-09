@@ -92,9 +92,6 @@ import net.ihe.gazelle.hl7v3transformer.HL7V3Transformer;
  */
 public class Iti78RequestConverter extends PMIRRequestConverter {
 
-	  @Autowired
-	  private Config config;
-	
 	  public IVXBTS transform(DateParam date) {
 		   DateTimeType dt = new DateTimeType(date.getValueAsString());
 		   return transform(dt);			

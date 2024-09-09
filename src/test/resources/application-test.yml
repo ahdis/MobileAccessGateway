@@ -12,6 +12,7 @@ mag:
       path: example-client-certificate.jks
       password: a1b2c3
     cert-alias: gateway
+
   xds:
     https: false
     iti-18:
@@ -25,6 +26,14 @@ mag:
     retrieve:
       url: http://localhost:9090/camel/xdsretrieve
       repositoryUniqueId: 1.1.4567332.1.2
+
+  xca:
+    https: false
+    iti-18:
+      url: localhost:9090/services/iti18EndpointInitiatingGateway
+    iti-43:
+      url: localhost:9090/services/iti43EndpointInitiatingGateway
+
   pix:
     https: false
     iti-45:

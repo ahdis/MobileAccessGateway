@@ -92,9 +92,6 @@ import net.ihe.gazelle.hl7v3transformer.HL7V3Transformer;
  */
 public class Iti93AddRequestConverter extends PMIRRequestConverter {
 
-	@Autowired
-	protected Config config;
-	
 	/**
 	 * add a new patient
 	 * @param header

@@ -83,17 +83,19 @@ public class Config {
     private String homeCommunity;
 
     /**
-     * URL of ITI-18 endpoint (
+     * URL of ITI-18 endpoint of the Document Registry
      */
     @Value("${mag.xds.iti-18.url:}")
     private String iti18HostUrl;// = "ehealthsuisse.ihe-europe.net:8280/xdstools7/sim/default__ahdis/reg/sq"; // http
+
     /**
-     * URL of ITI-18 endpoint (
+     * URL of PHARM-5 endpoint
      */
     @Value("${mag.xds.pharm-5.url:}")
     private String pharm5HostUrl;// = "ehealthsuisse.ihe-europe.net:8280/xdstools7/sim/default__ahdis/reg/sq"; // http
+
     /**
-     * URL of ITI-43 endpoint
+     * URL of ITI-43 endpoint of the Document Repository
      */
     @Value("${mag.xds.iti-43.url:}")
     private String iti43HostUrl;// = "ehealthsuisse.ihe-europe.net:8280/xdstools7/sim/default__ahdis/rep/ret"; // http
@@ -104,6 +106,17 @@ public class Config {
     @Value("${mag.xds.iti-41.url:}")
     private String iti41HostUrl;// = "ehealthsuisse.ihe-europe.net:8280/xdstools7/sim/default__ahdis/rep/prb"; // http
 
+    /**
+     * URL of ITI-18 endpoint of the XCA Initiating Gateway
+     */
+    @Value("${mag.xca.iti-18.url:}")
+    private String iti18HostUrlInitGw;
+
+    /**
+     * URL of ITI-43 endpoint of the XCA Initiating Gateway
+     */
+    @Value("${mag.xca.iti-43.url:}")
+    private String iti43HostUrlInitGw;
 
     @Value("${mag.xds.iti-57.url:}")
     private String iti57HostUrl;// = "ehealthsuisse.ihe-europe.net:8280/xdstools7/sim/default__ahdis/reg/sq"; // http

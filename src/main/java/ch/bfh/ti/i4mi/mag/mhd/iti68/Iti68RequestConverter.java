@@ -19,33 +19,36 @@ package ch.bfh.ti.i4mi.mag.mhd.iti68;
 import java.util.Map;
 
 import org.apache.camel.Headers;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.DocumentEntry;
+import org.apache.commons.lang3.StringUtils;
+import org.openehealth.ipf.commons.ihe.xds.core.requests.DocumentReference;
 import org.openehealth.ipf.commons.ihe.xds.core.requests.RetrieveDocumentSet;
 
 import ch.bfh.ti.i4mi.mag.BaseRequestConverter;
+import org.springframework.stereotype.Component;
 
 /**
  * ITI-68 to ITI-43 request converter
  * @author alexander kreutz
  *
  */
+@Component
 public class Iti68RequestConverter extends BaseRequestConverter {
 
+    public static final String HOME_COMMUNITY_ID_URL_PARAM      = "homeCommunityId";
+    public static final String REPOSITORY_UNIQUE_ID_URL_PARAM   = "repositoryUniqueId";
+    public static final String DOCUMENT_UNIQUE_ID_URL_PARAM     = "uniqueId";
 
-    public static RetrieveDocumentSet queryParameterToRetrieveDocumentSet(@Headers Map<String, Object> parameters) {
-            	           
-            RetrieveDocumentSet retrieveDocumentSet = new RetrieveDocumentSet();
-            DocumentEntry documentEntry = new DocumentEntry();
-            if (parameters.containsKey("repositoryUniqueId")) {
-                documentEntry.setRepositoryUniqueId(parameters.getOrDefault("repositoryUniqueId", "").toString());
-            }
-            if (parameters.containsKey("uniqueId")) {
-                documentEntry.setUniqueId(parameters.getOrDefault("uniqueId", "").toString());
-            }
-//            documentEntry.setHomeCommunityId("");
-            retrieveDocumentSet.addReferenceTo(documentEntry);
-            
-            return retrieveDocumentSet;        
+    public RetrieveDocumentSet queryParameterToRetrieveDocumentSet(@Headers Map<String, Object> parameters) {
+
+        RetrieveDocumentSet retrieveDocumentSet = new RetrieveDocumentSet();
+
+        String homeCommunityId = (String) parameters.get(HOME_COMMUNITY_ID_URL_PARAM);
+        retrieveDocumentSet.getDocuments().add(new DocumentReference(
+                (String) parameters.get(REPOSITORY_UNIQUE_ID_URL_PARAM),
+                (String) parameters.get(DOCUMENT_UNIQUE_ID_URL_PARAM),
+                (StringUtils.isBlank(homeCommunityId) || config.getHomeCommunity().equalsIgnoreCase(homeCommunityId)) ? null : homeCommunityId));
+
+        return retrieveDocumentSet;
     }
-    
+
 }

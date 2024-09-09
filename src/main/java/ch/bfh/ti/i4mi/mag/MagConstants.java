@@ -14,6 +14,7 @@ public class MagConstants {
         public static final String REPOSITORY_UNIQUE_ID   = MHD_PREFIX + "ihe-repositoryUniqueId";
         public static final String DOCUMENT_ENTRY_VERSION = MHD_PREFIX + "ihe-version";
         public static final String DOCUMENT_AVAILABILITY  = MHD_PREFIX + "ihe-documentAvailability";
+        public static final String HOME_COMMUNITY_ID      = MHD_PREFIX + "ihe-homeCommunityId";
 
         // Swiss EPR specific extensions
         public static final String CH_AUTHOR_ROLE     = CH_PREFIX + "ch-ext-author-authorrole";

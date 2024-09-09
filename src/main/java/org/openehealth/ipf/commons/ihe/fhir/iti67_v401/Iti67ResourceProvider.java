@@ -30,7 +30,6 @@ import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.openehealth.ipf.commons.ihe.fhir.AbstractPlainProvider;
-import org.openehealth.ipf.commons.ihe.fhir.iti67.Iti67SearchParameters;
 
 import ca.uhn.fhir.model.api.Include;
 import ca.uhn.fhir.rest.api.MethodOutcome;
@@ -91,6 +90,7 @@ public class Iti67ResourceProvider extends AbstractPlainProvider {
             @OptionalParam(name = STU3_RELATED_ID) TokenOrListParam relatedId,
             // Extension to ITI-67
             @OptionalParam(name = IAnyResource.SP_RES_ID) TokenParam resourceId,
+            @OptionalParam(name = "home") TokenParam home,
             @Sort SortSpec sortSpec,
             @IncludeParam Set<Include> includeSpec,
             RequestDetails requestDetails,
@@ -128,6 +128,7 @@ public class Iti67ResourceProvider extends AbstractPlainProvider {
                 .sortSpec(sortSpec)
                 .includeSpec(includeSpec)
                 .fhirContext(getFhirContext())
+                .home(home)
                 .build();
 
         searchParameters.setAuthor(author);

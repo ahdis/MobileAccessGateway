@@ -21,15 +21,20 @@ import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslat
 import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ch.bfh.ti.i4mi.mag.MagConstants;
-import org.apache.camel.builder.PredicateBuilder;
-import org.apache.camel.builder.RouteBuilder;
+import ch.bfh.ti.i4mi.mag.MagRouteBuilder;
+import ch.bfh.ti.i4mi.mag.mhd.XdsDispatchingUtils;
+import org.apache.camel.Message;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.openehealth.ipf.commons.ihe.fhir.Constants;
+import org.openehealth.ipf.commons.ihe.fhir.iti67_v401.Iti67SearchParameters;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.*;
+import org.openehealth.ipf.commons.ihe.xds.core.requests.QueryRegistry;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.QueryResponse;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.Response;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.Status;
 import org.openehealth.ipf.commons.ihe.xds.core.stub.ebrs30.lcm.SubmitObjectsRequest;
+import org.openehealth.ipf.commons.ihe.xds.core.stub.ebrs30.query.AdhocQueryResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -48,68 +53,123 @@ import java.util.List;
 @Slf4j
 @Component
 @ConditionalOnProperty({"mag.xds.iti-18.url", "mag.xds.iti-57.url"})
-class Iti67RouteBuilder extends RouteBuilder {
+class Iti67RouteBuilder extends MagRouteBuilder {
 
-    private final Config config;
+    private static final String PROP_TARGET = Iti67RouteBuilder.class.getName() + ".target";
+    private static final String PROP_DISPATCHING_UTILS = Iti67RouteBuilder.class.getName() + ".dispatching-utils";
+    private static final String PROP_DOCUMENT_ENTRY_LID = Iti67RouteBuilder.class.getName() + ".doc-entry-lid";
+
+    private final Iti67RequestConverter iti67RequestConverter;
     private final Iti67ResponseConverter iti67ResponseConverter;
     private final Iti67RequestUpdateConverter iti67RequestUpdateConverter;
     private final Iti67FromIti57ResponseConverter iti67FromIti57ResponseConverter;
 
-    public Iti67RouteBuilder(final Config config,
+    @Autowired
+    public Iti67RouteBuilder(Config config,
+                             Iti67RequestConverter iti67RequestConverter,
                              Iti67ResponseConverter iti67ResponseConverter,
                              Iti67RequestUpdateConverter iti67RequestUpdateConverter,
                              Iti67FromIti57ResponseConverter iti67FromIti57ResponseConverter)
     {
-        super();
+        super(config);
         log.debug("Iti67RouteBuilder initialized");
-        this.config = config;
+        this.iti67RequestConverter = iti67RequestConverter;
         this.iti67ResponseConverter = iti67ResponseConverter;
         this.iti67RequestUpdateConverter = iti67RequestUpdateConverter;
         this.iti67FromIti57ResponseConverter = iti67FromIti57ResponseConverter;
     }
 
-    private String createEndpointUri(String schema, String partialUrl) {
-        return schema + "://" + partialUrl +
-                "?secure=" + config.isHttps() +
-                "&audit=true" +
-                "&auditContext=#myAuditContext" +
-                "&inInterceptors=#soapResponseLogger" +
-                "&inFaultInterceptors=#soapResponseLogger"+
-                "&outInterceptors=#soapRequestLogger" +
-                "&outFaultInterceptors=#soapRequestLogger";
-    }
-
     @Override
     public void configure() throws Exception {
         log.debug("Iti67RouteBuilder configure");
-        final String metadataQueryEndpoint  = createEndpointUri("xds-iti18", this.config.getIti18HostUrl());
-        final String metadataUpdateEndpoint = createEndpointUri("xds-iti57", this.config.getIti57HostUrl());
+        final String metadataQueryEndpoint = createSoapEndpointUri("xds-iti18", this.config.getIti18HostUrl());
+        final String metadataQueryEndpointInitGw = createSoapEndpointUri("xds-iti18", this.config.getIti18HostUrlInitGw());
+        final String metadataUpdateEndpoint = createSoapEndpointUri("xds-iti57", this.config.getIti57HostUrl());
 
-        from("mhd-iti67-v401:translation?audit=true&auditContext=#myAuditContext").routeId("mdh-documentreference-adapter")
+        from("mhd-iti67-v401:translation?audit=true&auditContext=#myAuditContext")
+                .routeId("mdh-documentreference-adapter")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 .process(AuthTokenConverter.addWsHeader())
+                .process(exchange -> {
+                    Message m = exchange.getIn();
+                    String target;
+                    if (m.getHeader(Constants.FHIR_REQUEST_PARAMETERS) != null) {
+                        target = "search";
+                    } else if (m.getHeader(Constants.HTTP_URI) != null) {
+                        target = exchange.getIn().getHeader(Constants.HTTP_METHOD, String.class).toLowerCase();
+                    } else {
+                        throw new Exception("Have no idea what to do");
+                    }
+                    exchange.setProperty(PROP_TARGET, "direct:iti67-handle-" + target);
+                })
+                .recipientList().exchangeProperty(PROP_TARGET);
+
+
+        fromDirect("iti67-handle-search")
+                .process(exchange -> {
+                    Iti67SearchParameters iti67Parameters = Utils.searchParameterToBody(exchange.getIn().getHeaders());
+                    QueryRegistry iti18Request = iti67RequestConverter.searchParameterIti67ToFindDocumentsQuery(iti67Parameters);
+                    XdsDispatchingUtils dispatchingUtils = new XdsDispatchingUtils(config.getHomeCommunity());
+                    exchange.setProperty(PROP_DISPATCHING_UTILS, dispatchingUtils);
+                    dispatchingUtils.handleIti18Request(iti18Request);
+                })
                 .choice()
-                .when(header(Constants.FHIR_REQUEST_PARAMETERS).isNotNull())
-                .bean(Utils.class,"searchParameterToBody")
-                .bean(Iti67RequestConverter.class)
+                    .when(exchange -> exchange.getProperty(PROP_DISPATCHING_UTILS, XdsDispatchingUtils.class).getIti18RequestForDocumentRegistry() != null)
+                        .to("direct:send-iti18-request-to-registry")
+                    .otherwise()
+                        .to("direct:send-iti18-request-to-ig")
+                    .end()
+                .process(translateToFhir(iti67ResponseConverter, QueryResponse.class));
+
+
+        fromDirect("send-iti18-request-to-registry")
+                .process(exchange -> {
+                    exchange.getMessage().setBody(exchange.getProperty(PROP_DISPATCHING_UTILS, XdsDispatchingUtils.class).getIti18RequestForDocumentRegistry());
+                })
                 .to(metadataQueryEndpoint)
-                .process(translateToFhir(iti67ResponseConverter, QueryResponse.class))
-                .when(PredicateBuilder.and(header("FhirHttpUri").isNotNull(),header("FhirHttpMethod").isEqualTo("GET")))
+                .process(exchange -> {
+                    AdhocQueryResponse iti18Response = exchange.getIn().getMandatoryBody(AdhocQueryResponse.class);
+                    XdsDispatchingUtils dispatchingUtils = exchange.getProperty(PROP_DISPATCHING_UTILS, XdsDispatchingUtils.class);
+                    dispatchingUtils.handleDocumentRegistryIti18Response(iti18Response);
+                })
+                .choice()
+                    .when(exchange -> exchange.getProperty(PROP_DISPATCHING_UTILS, XdsDispatchingUtils.class).getIti18RequestForInitiatingGateway() != null)
+                        .to("direct:send-iti18-request-to-ig");
+
+
+        fromDirect("send-iti18-request-to-ig")
+                .process(exchange -> {
+                    exchange.getMessage().setBody(exchange.getProperty(PROP_DISPATCHING_UTILS, XdsDispatchingUtils.class).getIti18RequestForInitiatingGateway());
+                })
+                .to(metadataQueryEndpointInitGw)
+                .process(exchange -> {
+                    AdhocQueryResponse iti18Response = exchange.getIn().getMandatoryBody(AdhocQueryResponse.class);
+                    XdsDispatchingUtils dispatchingUtils = exchange.getProperty(PROP_DISPATCHING_UTILS, XdsDispatchingUtils.class);
+                    dispatchingUtils.handleInitiatingGatewayIti18Response(iti18Response);
+                    exchange.getMessage().setBody(dispatchingUtils.getAggregatedIti18Response());
+                });
+
+
+        fromDirect("iti67-handle-get")
                 .bean(IdRequestConverter.class)
                 .to(metadataQueryEndpoint)
-                .process(translateToFhir(iti67ResponseConverter, QueryResponse.class))
-                .when(PredicateBuilder.and(header("FhirHttpUri").isNotNull(),header("FhirHttpMethod").isEqualTo("PUT")))
+                .process(translateToFhir(iti67ResponseConverter, QueryResponse.class));
+
+
+        fromDirect("iti67-handle-put")
                 .process(exchange -> {
                     DocumentReference documentReference = exchange.getIn().getMandatoryBody(DocumentReference.class);
                     SubmitObjectsRequest submitObjectsRequest = iti67RequestUpdateConverter.createMetadataUpdateRequest(documentReference);
                     exchange.getMessage().setBody(submitObjectsRequest);
                 })
                 .to(metadataUpdateEndpoint)
-                .process(translateToFhir(iti67FromIti57ResponseConverter, Response.class))
-                .when(PredicateBuilder.and(header("FhirHttpUri").isNotNull(),header("FhirHttpMethod").isEqualTo("DELETE")))
+                .process(translateToFhir(iti67FromIti57ResponseConverter, Response.class));
+
+
+        fromDirect("iti67-handle-delete")
                 .process(exchange -> {
-                    exchange.setProperty("DOCUMENT_ENTRY_LOGICAL_ID", IdRequestConverter.extractId(exchange.getIn().getHeader("FhirHttpUri", String.class)));
+                    exchange.setProperty(PROP_DOCUMENT_ENTRY_LID, IdRequestConverter.extractId(exchange.getIn().getHeader(Constants.HTTP_URI, String.class)));
                 })
                 .bean(IdRequestConverter.class)
                 .to(metadataQueryEndpoint)
@@ -119,10 +179,10 @@ class Iti67RouteBuilder extends RouteBuilder {
                         iti67FromIti57ResponseConverter.processError(queryResponse);
                     }
                     if (queryResponse.getDocumentEntries().isEmpty()) {
-                        throw new ResourceNotFoundException(exchange.getProperty("DOCUMENT_ENTRY_LOGICAL_ID", String.class));
+                        throw new ResourceNotFoundException(exchange.getProperty(PROP_DOCUMENT_ENTRY_LID, String.class));
                     }
                     if (queryResponse.getDocumentEntries().size() > 1) {
-                        throw new InternalErrorException("Expected at most one Document Entry, got " + queryResponse.getDocumentEntries().size());
+                        throw new InternalErrorException("Expected at most one DocumentEntry, got " + queryResponse.getDocumentEntries().size());
                     }
 
                     DocumentEntry documentEntry = queryResponse.getDocumentEntries().get(0);
@@ -143,11 +203,8 @@ class Iti67RouteBuilder extends RouteBuilder {
                     exchange.getMessage().setBody(updateRequest);
                     log.info("Prepared document metadata update request");
                 })
-                .choice()
-                .when(exchange -> exchange.getIn().getBody() instanceof SubmitObjectsRequest)
                 .to(metadataUpdateEndpoint)
-                .process(translateToFhir(new Iti67FromIti57ResponseConverter(config), Response.class))
-                .end()
-                .end();
+                .process(translateToFhir(new Iti67FromIti57ResponseConverter(config), Response.class));
+
     }
 }

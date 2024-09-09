@@ -22,7 +22,7 @@ import java.util.List;
 
 import ca.uhn.fhir.rest.param.*;
 import org.apache.camel.Body;
-import org.openehealth.ipf.commons.ihe.fhir.iti67.Iti67SearchParameters;
+import org.openehealth.ipf.commons.ihe.fhir.iti67_v401.Iti67SearchParameters;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.AssigningAuthority;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.AvailabilityStatus;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Code;
@@ -41,12 +41,14 @@ import org.openehealth.ipf.commons.ihe.xds.core.requests.query.QueryReturnType;
 
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ch.bfh.ti.i4mi.mag.BaseRequestConverter;
+import org.springframework.stereotype.Component;
 
 /**
  * ITI-67 to ITI-18 request converter
  * @author alexander kreutz
  *
  */
+@Component
 public class Iti67RequestConverter extends BaseRequestConverter {
 
 	/**
@@ -67,12 +69,15 @@ public class Iti67RequestConverter extends BaseRequestConverter {
 	   	        	 if (val.startsWith("urn:oid:")) {
 	   	        		 query.setUniqueIds(Collections.singletonList(val.substring("urn:oid:".length())));
 	   	        	 } else if (val.startsWith("urn:uuid:")) {
-	   	        		 query.setUuids(Collections.singletonList(val.substring("urn:uuid:".length())));
+	   	        		 query.setLogicalUuid(Collections.singletonList(val.substring("urn:uuid:".length())));
 	   	        	 }
            	    } else {
            		     //query.setUuids(Collections.singletonList(searchParameter.get_id().getValue()));
 					query.getLogicalUuid().add(searchParameter.get_id().getValue());
-           	    }            	            	
+           	    }
+				if (searchParameter.getHome() != null) {
+					query.setHomeCommunityId(searchParameter.getHome().getValue());
+				}
             	searchQuery = query;
             } else {
             	FindDocumentsQuery query;
@@ -103,7 +108,9 @@ public class Iti67RequestConverter extends BaseRequestConverter {
 		            	else if (tokenValue.equals("superseded")) availabilites.add(AvailabilityStatus.DEPRECATED);
 		            }            
 		            query.setStatus(availabilites);
-	            }
+	            } else {
+					query.setStatus(List.of(AvailabilityStatus.APPROVED));
+				}
 	
 	            // patient or patient.identifier  -->  $XDSDocumentEntryPatientId
 	            TokenParam tokenIdentifier = searchParameter.getPatientIdentifier();

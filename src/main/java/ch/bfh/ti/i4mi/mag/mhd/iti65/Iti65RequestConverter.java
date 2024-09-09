@@ -101,9 +101,6 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.impl.GenericClient;
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ch.bfh.ti.i4mi.mag.BaseRequestConverter;
-import ch.bfh.ti.i4mi.mag.Config;
-import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
-import ch.bfh.ti.i4mi.mag.pmir.PatientReferenceCreator;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -113,21 +110,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class Iti65RequestConverter extends BaseRequestConverter {
-
-	private SchemeMapper schemeMapper;
-
-	@Autowired
-	@Setter
-	private Config config;
-
-	@Autowired
-	public void setSchemeMapper(SchemeMapper schemeMapper) {
-		this.schemeMapper = schemeMapper;
-	}
-
-	@Autowired
-	@Setter
-	private PatientReferenceCreator patientRefCreator;
 
 	/**
 	 * convert ITI-65 to ITI-41 request
@@ -454,7 +436,7 @@ public class Iti65RequestConverter extends BaseRequestConverter {
 				}
 			}
 
-			Identifiable result = patientRefCreator.resolvePatientReference(reference.getReference());
+			Identifiable result = patientReferenceCreator.resolvePatientReference(reference.getReference());
 			if (result != null) return result;
 
 			MultiValueMap<String, String> vals = UriComponentsBuilder.fromUriString(targetRef).build().getQueryParams();

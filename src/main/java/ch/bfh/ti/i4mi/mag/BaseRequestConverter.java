@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Setter;
 import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.Extension;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.AssigningAuthority;
@@ -45,10 +46,16 @@ import net.ihe.gazelle.hl7v3.datatypes.ST;
 public class BaseRequestConverter {
 
 	@Autowired
-	private SchemeMapper schemeMapper;// = new SchemeMapper();
+	@Setter
+	protected Config config;
+
+	@Autowired
+	@Setter
+	protected SchemeMapper schemeMapper;// = new SchemeMapper();
 	
 	@Autowired
-	private PatientReferenceCreator patientReferenceCreator;
+	@Setter
+	protected PatientReferenceCreator patientReferenceCreator;
 
 	public String getScheme(String system) {
 		return schemeMapper.getScheme(system);

@@ -64,9 +64,6 @@ import net.ihe.gazelle.hl7v3transformer.HL7V3Transformer;
 @Slf4j
 public class Iti83RequestConverter extends BaseRequestConverter {
 
-	@Autowired
-	private Config config;
-	
 	public String iti83ToIti45Converter(Parameters parameters) throws JAXBException {
 		List<Parameters.ParametersParameterComponent> targetSystemList = parameters.getParameters("targetSystem");
 		Identifier sourceIdentifier = (Identifier) parameters.getParameter("sourceIdentifier").getValue();

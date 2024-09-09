@@ -19,7 +19,6 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.UUID;
 
-import ch.bfh.ti.i4mi.mag.Config;
 import ch.bfh.ti.i4mi.mag.MagConstants;
 import org.hl7.fhir.r4.model.*;
 import org.openehealth.ipf.commons.core.URN;
@@ -30,7 +29,6 @@ import org.openehealth.ipf.platform.camel.ihe.xds.core.converters.EbXML30Convert
 
 import ch.bfh.ti.i4mi.mag.mhd.iti65.Iti65RequestConverter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,13 +40,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class Iti67RequestUpdateConverter extends Iti65RequestConverter {
-
-    private final Config config;
-
-    @Autowired
-    public Iti67RequestUpdateConverter(Config config) {
-        this.config = config;
-    }
 
     /**
      * ITI-67 Response to ITI-57 request converter

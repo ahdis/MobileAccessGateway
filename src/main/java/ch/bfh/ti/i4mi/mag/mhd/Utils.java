@@ -67,10 +67,8 @@ public class Utils {
 
 	public static final String KEPT_BODY = "KeptBody"; 
 	
-    public static FhirSearchParameters searchParameterToBody(@Headers Map<String, Object> parameters) {        
-            FhirSearchParameters searchParameter = (FhirSearchParameters) parameters
-                    .get(Constants.FHIR_REQUEST_PARAMETERS);
-            return searchParameter;        
+    public static <T extends FhirSearchParameters> T searchParameterToBody(@Headers Map<String, Object> parameters) {
+        return (T) parameters.get(Constants.FHIR_REQUEST_PARAMETERS);
     }
     
     /**
