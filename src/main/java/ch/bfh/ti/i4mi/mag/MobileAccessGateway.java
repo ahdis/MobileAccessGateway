@@ -60,6 +60,12 @@ public class MobileAccessGateway {
         log.info("PayloadLoggerBase.DISABLED: {}", System.getProperty("org.openehealth.ipf.commons.ihe.core.payload.PayloadLoggerBase.DISABLED"));
         log.info("PayloadLoggerBase.CONSOLE: {}", System.getProperty("org.openehealth.ipf.commons.ihe.core.payload.PayloadLoggerBase.CONSOLE"));
 
+        System.setProperty("org.openehealth.ipf.commons.ihe.core.payload.PayloadLoggerBase.DISABLED", "true");
+        System.setProperty("org.openehealth.ipf.commons.ihe.core.payload.PayloadLoggerBase.CONSOLE", "true");
+
+        log.info("PayloadLoggerBase.DISABLED: {}", System.getProperty("org.openehealth.ipf.commons.ihe.core.payload.PayloadLoggerBase.DISABLED"));
+        log.info("PayloadLoggerBase.CONSOLE: {}", System.getProperty("org.openehealth.ipf.commons.ihe.core.payload.PayloadLoggerBase.CONSOLE"));
+
         final SpringApplication application = new SpringApplication(MobileAccessGateway.class);
         addApplicationStartupHook(application);
         application.run(args);
