@@ -86,7 +86,7 @@ class Iti67RouteBuilder extends MagRouteBuilder {
         final String metadataQueryEndpointInitGw = createSoapEndpointUri("xds-iti18", this.config.getIti18HostUrlInitGw());
         final String metadataUpdateEndpoint = createSoapEndpointUri("xds-iti57", this.config.getIti57HostUrl());
 
-        from("mhd-iti67-v401:translation?audit=true&auditContext=#myAuditContext")
+        from("mhd-iti67-v401:translation?audit=true")
                 .routeId("mdh-documentreference-adapter")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())

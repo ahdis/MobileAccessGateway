@@ -54,7 +54,7 @@ class Iti68RouteBuilder extends MagRouteBuilder {
         final String xds43Endpoint = createSoapEndpointUri("xds-iti43", this.config.getIti43HostUrl());
         final String xds43EndpointInitGw = createSoapEndpointUri("xds-iti43", this.config.getIti43HostUrlInitGw());
 
-        from("mhd-iti68:camel/xdsretrieve?audit=true&auditContext=#myAuditContext").routeId("ddh-retrievedoc-adapter")
+        from("mhd-iti68:camel/xdsretrieve?audit=true").routeId("ddh-retrievedoc-adapter")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 .process(AuthTokenConverter.addWsHeader())

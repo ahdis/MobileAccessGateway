@@ -30,7 +30,6 @@ abstract public class MagRouteBuilder extends RouteBuilder {
         return schema + "://" + partialUrl +
                 "?secure=" + config.isHttps() +
                 "&audit=true" +
-                "&auditContext=#myAuditContext" +
                 "&inInterceptors=#soapResponseLogger" +
                 "&inFaultInterceptors=#soapResponseLogger"+
                 "&outInterceptors=#soapRequestLogger" +
