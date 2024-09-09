@@ -26,7 +26,7 @@ mag:
       url: http://localhost:9090/camel/xdsretrieve
       repositoryUniqueId: 1.1.4567332.1.2
   pix:
-    https: true
+    https: false
     iti-45:
       url: ehealthsuisse.ihe-europe.net:10443/PAMSimulator-ejb/PIXManager_Service/PIXManager_PortType
     iti-44:

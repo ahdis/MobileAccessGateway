@@ -34,6 +34,39 @@ jobs:
       run: mvn -B package --file pom.xml
     - run: mkdir staging && cp target/*.jar staging
 
+      # Below we need to temporarily disable
+    - name: Generate the Jacoco report
+      run: mvn jacoco:report
+
+    - name: Generate JaCoCo Badge
+      id: jacoco
+      uses: cicirello/jacoco-badge-generator@v2.11.0
+    - name: Log coverage percentage
+      run: |
+       echo "coverage = ${{ steps.jacoco.outputs.coverage }}"
+       echo "branch coverage = ${{ steps.jacoco.outputs.branches }}"
+
+    - name: Upload JaCoCo coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: jacoco-report
+        path: target/site/jacoco/
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: target/surefire-reports
+
+    - name: Publish test report
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Unit Test Report
+        path: target/surefire-reports/TEST-*.xml
+        reporter: java-junit
+        fail-on-error: false
+
     - name: Cache SonarCloud packages
       uses: actions/cache@v4
       with:
@@ -50,7 +83,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} ## This needs to be configured
-      run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=swisspost_mobile-access-gateway
+      run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=swisspost_mobile-access-gateway -Pcoverage
 
     - uses: actions/upload-artifact@v4
       with:
@@ -94,25 +127,9 @@ jobs:
         asset_path: ./mag-${{ env.RELEASE_VERSION }}.zip
         asset_name: mag-${{ env.RELEASE_VERSION }}.zip
         asset_content_type: application/zip
-    # Below we need to temporarily disable
-    #- name: Generate the Jacoco report
-    #  run: mvn jacoco:report
-    
-    #- name: Generate JaCoCo Badge
-    #  id: jacoco
-    #  uses: cicirello/jacoco-badge-generator@v2.11.0
-    #- name: Log coverage percentage
-    #  run: |
-    #    echo "coverage = ${{ steps.jacoco.outputs.coverage }}"
-    #    echo "branch coverage = ${{ steps.jacoco.outputs.branches }}"
-    
-    #- name: Upload JaCoCo coverage report
-     # uses: actions/upload-artifact@v4
-     # with:
-     #     name: jacoco-report
-     #     path: target/site/jacoco/
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     # Also needs to be disable due to failures in the current repository
-    #- name: Update dependency graph
-    #  uses: advanced-security/maven-dependency-submission-action@v3
+    - name: Update dependency graph
+      uses: advanced-security/maven-dependency-submission-action@v4
+
