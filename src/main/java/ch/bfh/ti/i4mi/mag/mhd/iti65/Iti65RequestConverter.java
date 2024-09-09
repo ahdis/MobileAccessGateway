@@ -323,6 +323,7 @@ public class Iti65RequestConverter extends BaseRequestConverter {
 	 */
 	public  Code transform(Coding coding) {
 		if (coding==null) return null;
+        
 		String displayName = StringUtils.isEmpty(coding.getDisplay()) ? coding.getCode() : coding.getDisplay();
 		return new Code(coding.getCode(), localizedString(displayName), schemeMapper.getScheme(coding.getSystem()));
 	}
