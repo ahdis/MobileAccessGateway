@@ -1,5 +1,14 @@
 package ch.bfh.ti.i4mi.mag.pmir;
 
+import net.ihe.gazelle.hl7v3.datatypes.*;
+import net.ihe.gazelle.hl7v3.mccimt000100UV01.MCCIMT000100UV01Device;
+import net.ihe.gazelle.hl7v3.mccimt000100UV01.MCCIMT000100UV01Receiver;
+import net.ihe.gazelle.hl7v3.mccimt000100UV01.MCCIMT000100UV01Sender;
+import net.ihe.gazelle.hl7v3.prpain201305UV02.PRPAIN201305UV02QUQIMT021001UV01ControlActProcess;
+import net.ihe.gazelle.hl7v3.prpain201305UV02.PRPAIN201305UV02Type;
+import net.ihe.gazelle.hl7v3.prpamt201306UV02.PRPAMT201306UV02ParameterList;
+import net.ihe.gazelle.hl7v3.prpamt201306UV02.PRPAMT201306UV02QueryByParameter;
+import net.ihe.gazelle.hl7v3.voc.*;
 import org.hl7.fhir.r4.model.Address;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
@@ -13,24 +22,9 @@ import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.StringType;
 
 import ch.bfh.ti.i4mi.mag.BaseRequestConverter;
-import net.ihe.gazelle.hl7v3.datatypes.AD;
-import net.ihe.gazelle.hl7v3.datatypes.AdxpCity;
-import net.ihe.gazelle.hl7v3.datatypes.AdxpCountry;
-import net.ihe.gazelle.hl7v3.datatypes.AdxpCounty;
-import net.ihe.gazelle.hl7v3.datatypes.AdxpPostalCode;
-import net.ihe.gazelle.hl7v3.datatypes.AdxpState;
-import net.ihe.gazelle.hl7v3.datatypes.AdxpStreetAddressLine;
-import net.ihe.gazelle.hl7v3.datatypes.CE;
-import net.ihe.gazelle.hl7v3.datatypes.ENXP;
-import net.ihe.gazelle.hl7v3.datatypes.EnFamily;
-import net.ihe.gazelle.hl7v3.datatypes.EnGiven;
-import net.ihe.gazelle.hl7v3.datatypes.EnPrefix;
-import net.ihe.gazelle.hl7v3.datatypes.EnSuffix;
-import net.ihe.gazelle.hl7v3.datatypes.IVLTS;
-import net.ihe.gazelle.hl7v3.datatypes.IVXBTS;
-import net.ihe.gazelle.hl7v3.datatypes.PN;
-import net.ihe.gazelle.hl7v3.datatypes.TEL;
-import net.ihe.gazelle.hl7v3.datatypes.TS;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.Timestamp;
+
+import java.util.Collections;
 
 /**
  * base class for PMIR/PIX request converters
@@ -151,4 +145,55 @@ public class PMIRRequestConverter extends BaseRequestConverter {
 		Coding coding = cc.getCodingFirstRep();
 		return new CE(coding.getCode(), coding.getDisplay(), coding.getSystem());
 	}
+
+    protected PRPAIN201305UV02Type initiateIti47Request(final String senderOid,
+                                                        final String receiverOid) {
+        final var request = new PRPAIN201305UV02Type();
+        request.setITSVersion("XML_1.0");
+
+        request.setId(new II(senderOid, uniqueId()));
+        request.setCreationTime(new TS(Timestamp.now().toHL7())); // Now
+        request.setProcessingCode(new CS("T", null ,null));
+        request.setProcessingModeCode(new CS("T", null, null));
+        request.setInteractionId(new II("2.16.840.1.113883.1.6", "PRPA_IN201305UV02"));
+        request.setAcceptAckCode(new CS("AL", null, null));
+
+        final var receiver = new MCCIMT000100UV01Receiver();
+        request.addReceiver(receiver);
+        receiver.setTypeCode(CommunicationFunctionType.RCV);
+
+        final var receiverDevice = new MCCIMT000100UV01Device();
+        receiver.setDevice(receiverDevice );
+        receiverDevice.setClassCode(EntityClassDevice.DEV);
+        receiverDevice.setDeterminerCode(EntityDeterminer.INSTANCE);
+        receiverDevice.setId(Collections.singletonList(new II(receiverOid, null)));
+
+        final var sender = new MCCIMT000100UV01Sender();
+        request.setSender(sender);
+        sender.setTypeCode(CommunicationFunctionType.SND);
+
+        final var senderDevice = new MCCIMT000100UV01Device();
+        sender.setDevice(senderDevice);
+        senderDevice.setClassCode(EntityClassDevice.DEV);
+        senderDevice.setDeterminerCode(EntityDeterminer.INSTANCE);
+        senderDevice.setId(Collections.singletonList(new II(senderOid, null)));
+
+        final var controlActProcess = new PRPAIN201305UV02QUQIMT021001UV01ControlActProcess();
+        request.setControlActProcess(controlActProcess );
+        controlActProcess.setClassCode(ActClassControlAct.CACT);
+        controlActProcess.setMoodCode(XActMoodIntentEvent.EVN);
+        controlActProcess.setCode(new CD("PRPA_TE201305UV02","2.16.840.1.113883.1.6", null));
+
+        final var queryByParameter = new PRPAMT201306UV02QueryByParameter();
+        controlActProcess.setQueryByParameter(queryByParameter );
+        queryByParameter.setQueryId(new II(senderOid, uniqueId()));
+        queryByParameter.setStatusCode(new CS("new", null, null));
+        queryByParameter.setResponsePriorityCode(new CS("I", null, null));
+        queryByParameter.setResponseModalityCode(new CS("R", null, null));
+
+        final var parameterList = new PRPAMT201306UV02ParameterList();
+        queryByParameter.setParameterList(parameterList);
+
+        return request;
+    }
 }

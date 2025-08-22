@@ -42,6 +42,7 @@ import org.hl7.fhir.r4.model.Patient.PatientCommunicationComponent;
 import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
+import org.openehealth.ipf.commons.ihe.fhir.iti119.PdqmMatchInputPatient;
 import org.openehealth.ipf.commons.ihe.fhir.translation.ToFhirTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -425,7 +426,7 @@ public class Iti78ResponseConverter extends BasePMIRResponseConverter implements
 		    			EN name = holder.getName().get(0);
 		    			if (!name.getFamily().isEmpty()) {
 		    				String familyName = val(name.getFamily());
-		    				result.addExtension("http://hl7.org/fhir/StructureDefinition/patient-mothersMaidenName", new StringType(familyName));
+		    				result.addExtension(PdqmMatchInputPatient.MOTHERS_MAIDEN_NAME_EXT, new StringType(familyName));
 		    			}
 		    		}
 		    	}
