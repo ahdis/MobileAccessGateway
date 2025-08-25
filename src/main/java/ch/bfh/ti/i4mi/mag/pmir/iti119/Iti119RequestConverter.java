@@ -7,13 +7,9 @@ import net.ihe.gazelle.hl7v3.datatypes.IVLTS;
 import net.ihe.gazelle.hl7v3.prpain201305UV02.PRPAIN201305UV02Type;
 import net.ihe.gazelle.hl7v3.prpamt201306UV02.PRPAMT201306UV02LivingSubjectId;
 import org.apache.camel.Body;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.StringType;
 import org.openehealth.ipf.commons.ihe.fhir.iti119.PdqmMatchInputPatient;
 
 import javax.xml.bind.JAXBException;
-import java.util.Optional;
 
 public class Iti119RequestConverter extends Iti78RequestConverter {
 
@@ -21,14 +17,7 @@ public class Iti119RequestConverter extends Iti78RequestConverter {
         this.config = config;
     }
 
-    public PRPAIN201305UV02Type convert(@Body final Parameters parameters) throws JAXBException {
-        // Extract the Patient resource from the Parameters
-        final var patient = Optional.ofNullable(parameters.getParameter("resource"))
-                .map(Parameters.ParametersParameterComponent::getResource)
-                .filter(Patient.class::isInstance)
-                .map(Patient.class::cast)
-                .orElseThrow(() -> new IllegalArgumentException("Parameters must contain a Patient resource"));
-
+    public PRPAIN201305UV02Type convert(@Body final PdqmMatchInputPatient patient) throws JAXBException {
         // Create an ITI-47 request
         final PRPAIN201305UV02Type request = initiateIti47Request(config.getPixMySenderOid(),
                                                                   config.getPixReceiverOid());
@@ -67,12 +56,8 @@ public class Iti119RequestConverter extends Iti78RequestConverter {
         }
 
         // 6. Maiden name (not required)
-        if (patient.hasExtension(PdqmMatchInputPatient.MOTHERS_MAIDEN_NAME_EXT)) {
-            final var ext = patient.getExtensionByUrl(PdqmMatchInputPatient.MOTHERS_MAIDEN_NAME_EXT);
-            if (ext.getValue() instanceof StringType) {
-                final var value = (StringType) ext.getValue();
-                parameterList.addMothersMaidenName(createMothersMaidenName(value.getValue()));
-            }
+        if (patient.hasMothersMaidenName()) {
+            parameterList.addMothersMaidenName(createMothersMaidenName(patient.getMothersMaidenName().getValue()));
         }
 
         return request;
