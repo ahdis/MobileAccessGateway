@@ -91,10 +91,6 @@ server:
   error:
     whitelabel:
       enabled: false
-    jetty:
-        accesslog:
-            enabled: true
-            use-slf4j: true
 
 logging:
   pattern:
@@ -106,12 +102,8 @@ logging:
     ch.bfh.ti.i4mi: debug
     org.eclipse.jetty.server.RequestLog: debug
     org.springframework.web.servlet.DispatcherServlet: debug
-    org.springframework.cloud.sleuth: debug
     org.springframework.web: debug
     org.springframework.http: debug
-    io.micrometer.tracing: debug
-    ch.bfh.ti.i4mi.mag.LoggingSpanHandler: debug
-    brave: debug
   appender:
     console:
       enabled: true
@@ -127,22 +119,3 @@ camel:
 spring:
   application:
     name: mobile-access-gateway
-  # W3C Trace-Id and related recommendations
-  # https://www.w3.org/TR/trace-context/
-  sleuth:
-    enabled: false
-  tracing:
-    sampling:
-      probability: 1.0
-      baggage:
-        correlation:
-          enabled: true
-      propagation:
-        type: W3C
-    enabled: true
-  log:
-    slf4j:
-      whitelisted-mdc-keys:
-        - traceId
-        - spanId
-        - parentId
