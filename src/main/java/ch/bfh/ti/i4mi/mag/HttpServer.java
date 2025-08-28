@@ -16,10 +16,8 @@
 
 package ch.bfh.ti.i4mi.mag;
 
-import org.eclipse.jetty.server.ConnectionFactory;
-import org.eclipse.jetty.server.HttpConfiguration;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.ee10.servlet.ErrorHandler;
+import org.eclipse.jetty.server.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.embedded.jetty.JettyServerCustomizer;
 import org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory;
@@ -33,14 +31,24 @@ import org.springframework.context.annotation.Configuration;
  *
  */
 @Configuration
-public class HttpServer {
+public class HttpServer implements WebServerFactoryCustomizer<JettyServletWebServerFactory> {
 
     @Value("${server.http.port:0}")
     private int httpPort;
     
     @Value("${server.max-http-header-size:0}")
     private int maxHttpHeaderSize;
-    
+
+    @Override
+    public void customize(final JettyServletWebServerFactory factory) {
+        final JettyServerCustomizer customizer = server -> {
+            final var errorHandler = new ErrorHandler();
+            errorHandler.setShowStacks(false); // Disable stacktraces
+            server.setErrorHandler(errorHandler);
+        };
+        factory.addServerCustomizers(customizer);
+    }
+
     @Bean
     public WebServerFactoryCustomizer<JettyServletWebServerFactory> webServerFactoryCustomizer() {
     	//JettyComponent jettyComponent = getContext().getComponent("jetty", JettyComponent.class);
@@ -50,18 +58,18 @@ public class HttpServer {
 
             @Override
             public void customize(JettyServletWebServerFactory factory) {
-            	            
+
                 if (httpPort > 0) {
 	                factory.addServerCustomizers(new JettyServerCustomizer() {
-	
+
 	                    @Override
 	                    public void customize(Server server) {
-	
-	                        ServerConnector httpConnector = new ServerConnector(server);	   	                       
+
+	                        ServerConnector httpConnector = new ServerConnector(server);
 	                        httpConnector.setPort(httpPort);
 	                        server.addConnector(httpConnector);
-	                        
-	                      
+
+
 	                        if (maxHttpHeaderSize > 0) {
 		                        for (ConnectionFactory factory : httpConnector.getConnectionFactories()) {
 		                        	if (factory instanceof HttpConfiguration.ConnectionFactory) {
@@ -70,8 +78,8 @@ public class HttpServer {
 		                			}
 		                        }
 	                        }
-	                       
-	                        	                        	                      
+
+
 	                    }
 	                });
                 }
