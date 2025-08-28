@@ -20,7 +20,7 @@ public class TraceparentHandler {
     public static void saveHeader(final Exchange exchange) {
         final var incomingTraceparent = FhirExchanges.readRequestHttpHeader(TRACEPARENT_HEADER, exchange, true);
         if (incomingTraceparent == null) {
-            log.info("No traceparent header found (saveHeader)");
+            log.debug("No traceparent header found (saveHeader)");
             return;
         }
         final Traceparent parsedTraceparent;
@@ -38,7 +38,7 @@ public class TraceparentHandler {
         return exchange -> {
             final var traceparent = exchange.getMessage().getHeader(TRACEPARENT_CAMEL_HEADER, Traceparent.class);
             if (traceparent == null) {
-                log.info("No traceparent header found (updateHeaderForSoap)");
+                log.debug("No traceparent header found (updateHeaderForSoap)");
                 return;
             }
 
@@ -54,7 +54,7 @@ public class TraceparentHandler {
         return exchange -> {
             final var traceparent = exchange.getMessage().getHeader(TRACEPARENT_CAMEL_HEADER, Traceparent.class);
             if (traceparent == null) {
-                log.info("No traceparent header found (updateHeaderForFhir)");
+                log.debug("No traceparent header found (updateHeaderForFhir)");
                 return;
             }
 

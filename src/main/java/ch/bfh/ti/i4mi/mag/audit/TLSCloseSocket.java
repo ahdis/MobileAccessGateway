@@ -13,7 +13,7 @@ public class TLSCloseSocket extends TLSSyslogSenderImpl {
 	
 	@Override
 	public void send(AuditContext auditContext, AuditMetadataProvider auditMetadataProvider, String auditMessage) throws Exception {
-		log.info("Auditing: "+auditMessage);		
+		log.trace("Auditing: "+auditMessage);
 		super.send(auditContext, auditMetadataProvider, auditMessage);
 		shutdown();
 	}

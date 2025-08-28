@@ -266,7 +266,7 @@ public class Config {
             
         // https://www.baeldung.com/java-keystore
         KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-        log.info("keystore base64 valued: " + (keystoreBase64 != null && !keystoreBase64.trim().isEmpty()));
+        log.trace("keystore base64 valued: " + (keystoreBase64 != null && !keystoreBase64.trim().isEmpty()));
         if (keystoreBase64 != null && !keystoreBase64.trim().isEmpty()) {
           ks.load(ReadCertificateStream(), keystorePassword.toCharArray());        
           ksp.setKeyStore(ks);
@@ -302,7 +302,7 @@ public class Config {
        
         // https://www.baeldung.com/java-keystore
         KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-        log.info("keystore base64 valued: " + (keystoreBase64 != null && !keystoreBase64.trim().isEmpty()));
+        log.trace("keystore base64 valued: " + (keystoreBase64 != null && !keystoreBase64.trim().isEmpty()));
         if (keystoreBase64 != null && !keystoreBase64.trim().isEmpty()) {
           ks.load(ReadCertificateStream(), keystorePassword.toCharArray());        
           ksp.setKeyStore(ks);

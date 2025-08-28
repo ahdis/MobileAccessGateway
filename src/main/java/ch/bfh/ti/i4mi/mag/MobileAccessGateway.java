@@ -44,7 +44,7 @@ public class MobileAccessGateway {
      * @param args The list of CLI parameters.
      */
     public static void main(final String[] args) {
-        log.info("Configuring Mobile Access Gateway");
+        log.debug("Configuring Mobile Access Gateway");
 
         final SpringApplication application = new SpringApplication(MobileAccessGateway.class);
         addApplicationStartupHook(application);

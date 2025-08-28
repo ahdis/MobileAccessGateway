@@ -115,7 +115,8 @@ public class Iti67ResponseConverter extends BaseQueryResponseConverter {
             if (deletionStatuses != null) {
                 for (String deletionStatus : deletionStatuses) {
                     if (MagConstants.DeletionStatuses.REQUESTED.equals(deletionStatus)) {
-                        log.info("Skip DocumentEntry with entryUUID='{}' because its deletion flag is set", documentEntry.getEntryUuid());
+                        log.warn("Skip DocumentEntry with entryUUID='{}' because its deletion flag is set",
+                              documentEntry.getEntryUuid());
                         return null;
                     }
                     documentReference.addExtension(

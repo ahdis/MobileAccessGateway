@@ -146,7 +146,7 @@ class Iti67RouteBuilder extends RouteBuilder {
                         SubmissionSet submissionSet = iti67RequestUpdateConverter.createSubmissionSet();
                         SubmitObjectsRequest updateRequest = iti67RequestUpdateConverter.createMetadataUpdateRequest(submissionSet, documentEntry);
                         exchange.getMessage().setBody(updateRequest);
-                        log.info("Prepared document metadata update request");
+                        log.debug("Prepared document metadata update request");
                     })
                     .choice()
                         .when(exchange -> exchange.getIn().getBody() instanceof SubmitObjectsRequest)

@@ -49,14 +49,14 @@ public class Ppq5RouteBuilder extends PpqmRouteBuilder {
                     String ppq5Request = exchange.getMessage().getHeader(Constants.HTTP_QUERY, String.class);
                     XACMLPolicyQueryType ppq2Request = fhirToXacmlTranslator.translatePpq5To2Request(ppq5Request);
                     exchange.getMessage().setBody(ppq2Request);
-                    log.info("Received PPQ-5 request and converted to PPQ-2");
+                    log.debug("Received PPQ-5 request and converted to PPQ-2");
                 })
                 .to("ch-ppq2://" + config.getPpq2HostUrl())
                 .process(exchange -> {
                     ResponseType ppq2Response = exchange.getMessage().getMandatoryBody(ResponseType.class);
                     List<Consent> ppq5Response = XacmlToFhirTranslator.translatePpq2To5Response(ppq2Response);
                     exchange.getMessage().setBody(ppq5Response);
-                    log.info("Received PPQ-2 response and converted to PPQ-5");
+                    log.debug("Received PPQ-2 response and converted to PPQ-5");
                 })
                 .process(TraceparentHandler.updateHeaderForFhir())
                 .setHeader(FhirCamelValidators.VALIDATION_MODE, constant(FhirCamelValidators.MODEL))

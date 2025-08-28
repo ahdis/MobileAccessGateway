@@ -295,7 +295,7 @@ public class Iti78ResponseConverter extends BasePMIRResponseConverter implements
 					if (config.getOidMpiPid().equals(patientId.getRoot()) || config.OID_EPRSPID.equals(patientId.getRoot())) {
 						result.addIdentifier().setSystem(getSystem(patientId.getRoot())).setValue(patientId.getExtension());
 					} else {
-						log.info("Ignoring patient identifier "+patientId.getRoot());
+						log.warn("Ignoring patient identifier "+patientId.getRoot());
 					}
 				} else	{							
 					result.addIdentifier().setSystem(getSystem(patientId.getRoot())).setValue(patientId.getExtension());
@@ -315,7 +315,7 @@ public class Iti78ResponseConverter extends BasePMIRResponseConverter implements
 						if (config.getOidMpiPid().equals(patientId.getRoot()) || config.OID_EPRSPID.equals(patientId.getRoot())) {
 							result.addIdentifier().setSystem(getSystem(patientId.getRoot())).setValue(patientId.getExtension());
 						} else {
-							log.info("Ignoring patient identifier "+patientId.getRoot());
+							log.warn("Ignoring patient identifier "+patientId.getRoot());
 						}
 					} else	{							
 						result.addIdentifier().setSystem(getSystem(patientId.getRoot())).setValue(patientId.getExtension());

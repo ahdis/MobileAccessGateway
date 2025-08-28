@@ -84,7 +84,7 @@ public class TCPSyslogSender  extends RFC5425Protocol implements AuditTransmissi
                 }
             } catch (SocketException | SocketTimeoutException e) {
                 try {
-                    LOG.info("Failed to use existing TCP socket. Will create a new connection and retry.");
+                    LOG.debug("Failed to use existing TCP socket. Will create a new connection and retry.");
                     closeSocket(socket.get());
                     socket.set(null);
                     doSend(auditContext, msgBytes);

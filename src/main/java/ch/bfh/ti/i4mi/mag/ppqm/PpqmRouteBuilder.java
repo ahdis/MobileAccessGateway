@@ -34,7 +34,7 @@ abstract public class PpqmRouteBuilder extends RouteBuilder {
                 .handled(true)
                 .maximumRedeliveries(0)
                 .process(exchange -> {
-                    log.info("Received SOAP Fault, translate to FHIR");
+                    log.debug("Received SOAP Fault, translate to FHIR");
                     Exception e = Exchanges.extractException(exchange);
                     SoapFault soapFault = (SoapFault) e.getCause();
                     XacmlToFhirTranslator.translateSoapFault(soapFault);
@@ -45,7 +45,7 @@ abstract public class PpqmRouteBuilder extends RouteBuilder {
                 .handled(true)
                 .maximumRedeliveries(0)
                 .process(exchange -> {
-                    log.info("Received UnknownPolicySetIdFault, translate to FHIR");
+                    log.debug("Received UnknownPolicySetIdFault, translate to FHIR");
                     UnknownPolicySetIdFaultMessage fault = (UnknownPolicySetIdFaultMessage) Exchanges.extractException(exchange);
                     XacmlToFhirTranslator.translateUnknownPolicySetIdFault(fault);
                 })

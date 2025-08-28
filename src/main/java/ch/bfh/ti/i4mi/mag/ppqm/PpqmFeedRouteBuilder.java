@@ -92,7 +92,8 @@ abstract public class PpqmFeedRouteBuilder extends PpqmRouteBuilder {
                 .process(exchange -> {
                     Object body = exchange.getMessage().getBody();
                     String method = extractHttpMethod(exchange);
-                    log.info("Received {} request of type {} with method {}", getUriSchema(), body.getClass().getSimpleName(), method);
+                    log.trace("Received {} request of type {} with method {}", getUriSchema(),
+                          body.getClass().getSimpleName(), method);
                     exchange.setProperty(PROP_FHIR_REQUEST, body);
                     exchange.setProperty(PROP_FHIR_METHOD, method);
                 })
@@ -106,12 +107,12 @@ abstract public class PpqmFeedRouteBuilder extends PpqmRouteBuilder {
                             exchange.getProperty(PROP_FHIR_METHOD, String.class));
                     exchange.getMessage().setBody(ppqRequest);
                     exchange.setProperty(PROP_XACML_REQUEST, ppqRequest);
-                    log.info("Created PPQ-1 {}", ppqRequest.getClass().getSimpleName());
+                    log.debug("Created PPQ-1 {}", ppqRequest.getClass().getSimpleName());
                 })
                 .to("ch-ppq1://" + config.getPpq1HostUrl())
                 .process(TraceparentHandler.updateHeaderForFhir())
                 .process(exchange -> {
-                    log.info("Received PPQ-1 response, convert it to PPQm");
+                    log.debug("Received PPQ-1 response, convert it to PPQm");
                     exchange.getMessage().setBody(createPpqmResponse(
                             exchange.getProperty(PROP_FHIR_REQUEST),
                             exchange.getProperty(PROP_XACML_REQUEST, AssertionBasedRequestType.class),
@@ -127,21 +128,21 @@ abstract public class PpqmFeedRouteBuilder extends PpqmRouteBuilder {
                     List<String> policySetIds = extractPolicySetIds(exchange.getProperty(PROP_FHIR_REQUEST));
                     exchange.setProperty(PROP_POLICY_COUNT, policySetIds.size());
                     exchange.getMessage().setBody(ppqMessageCreator.createPolicyQuery(policySetIds));
-                    log.info("Created PPQ-2 request for {} policy set(s)", policySetIds.size());
+                    log.debug("Created PPQ-2 request for {} policy set(s)", policySetIds.size());
                 })
 				.process(RequestHeadersForwarder.checkAuthorization(config.isChPpqmConstraints()))
                 .process(RequestHeadersForwarder.forward())
                 .to("ch-ppq2://" + config.getPpq2HostUrl())
                 .process(TraceparentHandler.updateHeaderForFhir())
                 .process(exchange -> {
-                    log.info("Received PPQ-2 response");
+                    log.debug("Received PPQ-2 response");
                     ResponseType ppq2Response = exchange.getMessage().getMandatoryBody(ResponseType.class);
                     int presentPolicyCount = extractPresentPolicyCount(ppq2Response);
                     int fedPolicyCount = exchange.getProperty(PROP_POLICY_COUNT, Integer.class);
                     if (presentPolicyCount == fedPolicyCount) {
-                        log.info("All policy sets being fed already exist in the Policy Repository, keep HTTP method PUT");
+                        log.debug("All policy sets being fed already exist in the Policy Repository, keep HTTP method PUT");
                     } else if (presentPolicyCount == 0) {
-                        log.info("None of the policy sets being fed exists in the Policy Repository, switch HTTP method from PUT to POST");
+                        log.debug("None of the policy sets being fed exists in the Policy Repository, switch HTTP method from PUT to POST");
                         exchange.setProperty(PROP_FHIR_METHOD, "POST");
                         setHttpMethodPost(exchange.getProperty(PROP_FHIR_REQUEST));
                     } else {
@@ -160,7 +161,7 @@ abstract public class PpqmFeedRouteBuilder extends PpqmRouteBuilder {
             XACMLPolicyStatementType statement = (XACMLPolicyStatementType) assertion.getStatementOrAuthnStatementOrAuthzDecisionStatement().get(0);
             return statement.getPolicyOrPolicySet().size();
         }
-        log.info("PPQ-2 response is negative");
+        log.debug("PPQ-2 response is negative");
         return 0;
     }
 

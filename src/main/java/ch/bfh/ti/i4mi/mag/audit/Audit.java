@@ -32,7 +32,7 @@ public class Audit implements ApplicationListener<ApplicationReadyEvent> {
 	
 	@PreDestroy
 	public void onStop() {
-		log.info("Adding Application Stop Audit message");
+		log.debug("Adding Application Stop Audit message");
 		myAuditContext.audit(
 			    new ApplicationActivityBuilder.ApplicationStop(EventOutcomeIndicator.Success)
 			        .setAuditSource(myAuditContext)
@@ -48,7 +48,7 @@ public class Audit implements ApplicationListener<ApplicationReadyEvent> {
 
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
-		log.info("Adding Application Start Audit message");
+		log.debug("Adding Application Start Audit message");
 		
 		// Fix Problem: "TCP socket timeout reached, message may not have been completely received or socket has not been closed"
 		// Force implementation that closes Socket after each message		
