@@ -48,10 +48,10 @@ public class FhirExchanges {
     public static void writeResponseHttpHeader(final String headerName,
                                                final String headerValue,
                                                final Exchange exchange) {
-        final Map<String, String> outgoingHttpHeaders =
+        final Map<String, List<String>> outgoingHttpHeaders =
                 CastUtils.cast(exchange.getMessage().getHeader(Constants.HTTP_OUTGOING_HEADERS,
                                                                HashMap::new, Map.class));
-        outgoingHttpHeaders.put(headerName, headerValue);
+        outgoingHttpHeaders.put(headerName, List.of(headerValue));
         exchange.getMessage().setHeader(Constants.HTTP_OUTGOING_HEADERS, outgoingHttpHeaders);
         // TODO: the FHIR consumer does not set the HTTP response headers
     }
