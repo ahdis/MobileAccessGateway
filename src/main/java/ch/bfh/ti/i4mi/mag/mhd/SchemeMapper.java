@@ -29,8 +29,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class SchemeMapper {
 
-	Map<String, String> schemeToSystem = new HashMap<String, String>();
-	Map<String, String> systemToScheme = new HashMap<String, String>();
+	Map<String, String> schemeToSystem = new HashMap<>();
+	Map<String, String> systemToScheme = new HashMap<>();
 	
 	public SchemeMapper() {
 		registerSchemeToSystem("2.16.840.1.113883.6.96", "http://snomed.info/sct");

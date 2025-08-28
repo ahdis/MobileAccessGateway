@@ -119,3 +119,11 @@ camel:
 spring:
   application:
     name: mobile-access-gateway
+  web:
+    resources:
+      add-mappings: false
+org:
+  eclipse:
+    jetty:
+      server:
+        showStacks: false

@@ -5,7 +5,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.cxf.binding.soap.SoapFault;
 import org.openehealth.ipf.commons.ihe.fhir.chppqm.translation.FhirToXacmlTranslator;
 import org.openehealth.ipf.commons.ihe.fhir.chppqm.translation.XacmlToFhirTranslator;
-import org.openehealth.ipf.commons.ihe.xacml20.ChPpqMessageCreator;
+import org.openehealth.ipf.commons.ihe.xacml20.chppq.ChPpqMessageCreator;
 import org.openehealth.ipf.commons.ihe.xacml20.stub.UnknownPolicySetIdFaultMessage;
 import org.openehealth.ipf.platform.camel.core.util.Exchanges;
 

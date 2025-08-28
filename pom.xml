@@ -4,20 +4,19 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>ch.bfh</groupId>
+	<groupId>ch.ahdis</groupId>
 	<artifactId>mobile-access-gateway</artifactId>
-	<version>1.0.0</version>
-	<description>FHIR Gateway supporting the PMIR and MHD server actors and uses XDS/PIXV3 to communicate with an XDS Affinity Domain</description>
+	<version>2.0.0</version>
+	<description>FHIR Gateway supporting the PIXm/PDQm and MHD server actors and uses XDS/PIXv3/PDQv3 to communicate
+        with the Swiss EPR</description>
 	<packaging>jar</packaging>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-		<maven.compiler.source>1.11</maven.compiler.source>
-		<maven.compiler.target>1.11</maven.compiler.target>
+		<maven.compiler.source>21</maven.compiler.source>
+		<maven.compiler.target>21</maven.compiler.target>
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
-
-		<java.version>11</java.version>
+		<java.version>21</java.version>
 
 		<!-- plugins -->
 		<compiler-plugin-version>3.10.1</compiler-plugin-version>
@@ -26,19 +25,14 @@
 		<spring-boot-plugin-version>2.6.7</spring-boot-plugin-version>
 
 		<!-- libraries -->
-		<camel-version>3.21.4</camel-version>
+        <ipf-version>5.1.0</ipf-version>
+		<camel-version>4.10.6</camel-version>
 		<hibernate-version>5.2.5.Final</hibernate-version>
-		<hl7v3-code-jar-version>1.3.7</hl7v3-code-jar-version>
-		<ipf-version>4.8.0</ipf-version>
 		<opensaml-version>2.6.6</opensaml-version>
-		<spring-security-saml2-core-version>1.0.10.RELEASE</spring-security-saml2-core-version>
-		<velocity-version>2.3</velocity-version>
-		<spring-cloud.version>2021.0.5</spring-cloud.version>
-
+		<velocity-version>2.4.1</velocity-version>
 
 		<start-class>ch.bfh.ti.i4mi.mag.MobileAccessGateway</start-class>
 	</properties>
-
 
 	<repositories>
 		<repository>
@@ -70,69 +64,134 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
-			<!-- W3C TraceId -->
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>${spring-cloud.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>		
 		</dependencies>
 	</dependencyManagement>
 
 	<dependencies>
+        <!-- Spring Boot -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-expression</artifactId>
+            <scope>runtime</scope>
+            <!-- TODO for what is this needed? -->
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jetty</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-autoconfigure</artifactId>
-		</dependency>
+        <!-- IPF -->
+        <dependency>
+            <groupId>org.openehealth.ipf.boot</groupId>
+            <artifactId>ipf-fhir-r4-spring-boot-starter</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.ogce</groupId>
+                    <artifactId>xpp3</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.openehealth.ipf.boot</groupId>
+            <artifactId>ipf-xacml20-spring-boot-starter</artifactId>
+            <version>${ipf-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openehealth.ipf.platform-camel</groupId>
+            <artifactId>ipf-platform-camel-ihe-fhir-r4-chppqm</artifactId>
+            <version>${ipf-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openehealth.ipf.platform-camel</groupId>
+            <artifactId>ipf-platform-camel-ihe-fhir-r4-pixpdq</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openehealth.ipf.platform-camel</groupId>
+            <artifactId>ipf-platform-camel-ihe-fhir-r4-mhd</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openehealth.ipf.platform-camel</groupId>
+            <artifactId>ipf-platform-camel-ihe-xds</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openehealth.ipf.platform-camel</groupId>
+            <artifactId>ipf-platform-camel-ihe-hl7v3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openehealth.ipf.platform-camel</groupId>
+            <artifactId>ipf-platform-camel-ihe-hl7v3model</artifactId>
+            <version>${ipf-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openehealth.ipf.commons</groupId>
+            <artifactId>ipf-commons-ihe-ws</artifactId>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-expression</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<!-- Compile -->
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter-tomcat</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+        <!-- Development tools -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
+        <!-- Tests -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openehealth.ipf.commons</groupId>
+            <artifactId>ipf-commons-ihe-xds</artifactId>
+            <version>${ipf-version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>io.micrometer</groupId>
-			<artifactId>micrometer-registry-prometheus</artifactId>
-			<scope>runtime</scope>
-		</dependency>
 
-		<!-- <dependency>
-		  <groupId>org.apache.camel.springboot</groupId>
-		  <artifactId>camel-rest-starter</artifactId>
-		</dependency>  -->
 
-		<!-- IPF -->
-		<dependency>
-			<groupId>org.openehealth.ipf.boot</groupId>
-			<artifactId>ipf-fhir-r4-spring-boot-starter</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.ogce</groupId>
-					<artifactId>xpp3</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+        <!-- Servlet API
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
@@ -141,101 +200,17 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.openehealth.ipf.boot</groupId>
-			<artifactId>ipf-xacml20-spring-boot-starter</artifactId>
-			<version>${ipf-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.openehealth.ipf.platform-camel</groupId>
-			<artifactId>ipf-platform-camel-ihe-fhir-r4-chppqm</artifactId>
-			<version>${ipf-version}</version>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.velocity</groupId>
 			<artifactId>velocity-engine-core</artifactId>
 			<version>${velocity-version}</version>
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-jetty</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-servlets</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-util</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-server</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.camel.springboot</groupId>
-			<artifactId>camel-servlet-starter</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.openehealth.ipf.platform-camel</groupId>
-			<artifactId>ipf-platform-camel-ihe-fhir-r4-pixpdq</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.openehealth.ipf.platform-camel</groupId>
-			<artifactId>ipf-platform-camel-ihe-fhir-r4-mhd</artifactId>
-		</dependency>
-
-		<dependency>
-           <groupId>org.openehealth.ipf.platform-camel</groupId>
-           <artifactId>ipf-platform-camel-ihe-fhir-stu3-pixpdq</artifactId>
-        </dependency>
-
-		<dependency>
-			<groupId>org.openehealth.ipf.platform-camel</groupId>
-			<artifactId>ipf-platform-camel-ihe-xds</artifactId>
-		</dependency>
-
-		<dependency>
-            <groupId>org.openehealth.ipf.platform-camel</groupId>
-            <artifactId>ipf-platform-camel-ihe-hl7v3</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.openehealth.ipf.commons</groupId>
-            <artifactId>ipf-commons-ihe-xua</artifactId>
-        </dependency>
-
-		<dependency>
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-cxf-spring-soap</artifactId>
 			<version>${camel-version}</version>
 		</dependency>
-		<!-- nsatisfied dependency expressed through field 'config'; nested exception
-			is org.springframework.boot.context.properties.ConfigurationPropertiesBindException:
-			Error creating bean with name 'ipf.fhir-org.openehealth.ipf.boot.fhir.IpfFhirConfigurationProperties':
-			Could not bind properties to 'IpfFhirConfigurationProperties' : prefix=ipf.fhir,
-			ignoreInvalidFields=false, ignoreUnknownFields=true; nested exception is
-			javax.validation.NoProviderFoundException: Unable to create a Configuration,
-			because no Jakarta Bean Validation provider could be found. Add a provider
-			like Hibernate Validator (RI) to your classpath. -->
-		<!-- <dependency> <groupId>org.hibernate</groupId> <artifactId>hibernate-validator</artifactId>
-			</dependency> -->
 
-		<dependency>
-			<groupId>net.ihe.gazelle</groupId>
-			<artifactId>hl7v3-code-jar</artifactId>
-			<version>${hl7v3-code-jar-version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>saxon9he</groupId>
-					<artifactId>net.sf.saxon</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator</artifactId>
@@ -256,24 +231,6 @@
 	       <groupId>org.apache.cxf</groupId>
 	       <artifactId>cxf-core</artifactId>
         </dependency>
-
-
-		<dependency>
-			<groupId>org.springframework.security.extensions</groupId>
-			<artifactId>spring-security-saml2-core</artifactId>
-			<version>${spring-security-saml2-core-version}</version>
-			<exclusions>
-              <exclusion>
-                <groupId>xml-apis</groupId>
-                <artifactId>xml-apis</artifactId>
-              </exclusion>
-            </exclusions>
-
-		</dependency>
-
-
-       <!-- https://mvnrepository.com/artifact/org.springframework.security/spring-security-saml2-service-provider -->
-
 
         <dependency>
           <groupId>org.opensaml</groupId>
@@ -298,82 +255,10 @@
         </dependency>
 
         <dependency>
-          <groupId>net.sf.saxon</groupId>
-          <artifactId>Saxon-HE</artifactId>
+            <groupId>net.sf.saxon</groupId>
+            <artifactId>Saxon-HE</artifactId>
+            <!-- TODO do we still need this? -->
         </dependency>
-        <!-- 
-        <dependency>
-    		<groupId>xerces</groupId>
-    		<artifactId>xercesImpl</artifactId>
-    		<version>2.12.0</version>
-		</dependency>
-		-->
-
-		<!-- Development tools -->
-		<dependency>
-			<!-- Project Lombok is a boilerplate code remover and space saver that
-				generates code -->
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
-		<!-- Tests -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-test</artifactId>
-			<version>${camel-version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-test-spring</artifactId>
-			<version>${camel-version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.openehealth.ipf.commons</groupId>
-			<artifactId>ipf-commons-ihe-xds</artifactId>
-			<version>${ipf-version}</version>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-
-		<!-- W3C TraceId -->
-		<!-- Micrometer Tracing -->
-		<dependency>
-			<groupId>io.micrometer</groupId>
-			<artifactId>micrometer-tracing-bridge-brave</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>io.micrometer</groupId>
-			<artifactId>micrometer-tracing</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>io.zipkin.reporter2</groupId>
-			<artifactId>zipkin-reporter-brave</artifactId>
-			<version>2.16.3</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-logging</artifactId>
-		</dependency>
-
-		<!-- Servlet API -->
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<version>4.0.1</version>
-			<scope>provided</scope>
-		</dependency>
 
 	</dependencies>
 

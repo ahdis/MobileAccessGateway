@@ -19,7 +19,6 @@ import javax.xml.stream.XMLStreamException;
 import java.io.StringReader;
 import java.util.*;
 
-import static ch.bfh.ti.i4mi.mag.xua.XuaUtils.OASIS_WSSECURITY_NS;
 import static org.openehealth.ipf.platform.camel.ihe.ws.AbstractWsEndpoint.OUTGOING_SOAP_HEADERS;
 import static org.opensaml.common.xml.SAMLConstants.SAML20_NS;
 
@@ -32,6 +31,7 @@ import static org.opensaml.common.xml.SAMLConstants.SAML20_NS;
 public class RequestHeadersForwarder {
     private static final Logger log = LoggerFactory.getLogger(RequestHeadersForwarder.class);
     private static final String AUTHORIZATION_HEADER = "Authorization";
+    public static final String OASIS_WSSECURITY_NS = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
 
     public static Processor forward() {
         return exchange -> {

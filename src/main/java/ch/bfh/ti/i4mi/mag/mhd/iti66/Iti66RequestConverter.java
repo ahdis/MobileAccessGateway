@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.camel.Body;
-import org.openehealth.ipf.commons.ihe.fhir.iti66_v401.Iti66SearchParameters;
+import org.openehealth.ipf.commons.ihe.fhir.iti66.Iti66ListSearchParameters;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.AssigningAuthority;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.AvailabilityStatus;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Identifiable;
@@ -51,7 +51,7 @@ public class Iti66RequestConverter extends BaseRequestConverter {
 	  * @param searchParameter
 	  * @return
 	  */
-	 public QueryRegistry searchParameterIti66ToFindSubmissionSetsQuery(@Body Iti66SearchParameters searchParameter) {
+	 public QueryRegistry searchParameterIti66ToFindSubmissionSetsQuery(@Body Iti66ListSearchParameters searchParameter) {
 	      
          boolean getLeafClass = true;
        
@@ -77,8 +77,12 @@ public class Iti66RequestConverter extends BaseRequestConverter {
 	         final FindSubmissionSetsQuery query = new FindSubmissionSetsQuery();
 	
 	         
-	         if (searchParameter.getCode() != null && ! searchParameter.getCode().getValue().equals("submissionset")) {
-	        	 throw new InvalidRequestException("Only search for submissionsets supported.");
+	         if (searchParameter.getCode() != null) {
+                 final boolean hasSubmissionset =
+                         searchParameter.getCode().getValuesAsQueryTokens().stream().anyMatch(code -> "submissionset".equals(code.getValue()));
+                 if (!hasSubmissionset) {
+                     throw new InvalidRequestException("Only search for submissionsets supported.");
+                 }
 	         }
 	         
 	         
@@ -110,8 +114,8 @@ public class Iti66RequestConverter extends BaseRequestConverter {
 	         }            
 	         
 	         // TODO author.given / author.family -> $XDSSubmissionSetAuthorPerson
-	         StringParam authorGivenName = searchParameter.getSourceGiven();
-	         StringParam authorFamilyName = searchParameter.getSourceFamily();
+	         StringParam authorGivenName = searchParameter.getAuthorGivenName();
+	         StringParam authorFamilyName = searchParameter.getAuthorFamilyName();
 	         if (authorGivenName != null || authorFamilyName != null) {
 		            String author = (authorGivenName != null ? authorGivenName.getValue() : "%")+" "+(authorFamilyName != null ? authorFamilyName.getValue() : "%");	            
 		            query.setAuthorPerson(author);
@@ -129,7 +133,7 @@ public class Iti66RequestConverter extends BaseRequestConverter {
 	         // status -> $XDSSubmissionSetStatus 
 	         TokenOrListParam status = searchParameter.getStatus();
 	         if (status != null) {
-		            List<AvailabilityStatus> availabilites = new ArrayList<AvailabilityStatus>();
+		            List<AvailabilityStatus> availabilites = new ArrayList<>(status.getListAsCodings().size());
 		            for (TokenParam statusToken : status.getValuesAsQueryTokens()) {
 		            	String tokenValue = statusToken.getValue();
 		            	if (tokenValue.equals("current")) availabilites.add(AvailabilityStatus.APPROVED);

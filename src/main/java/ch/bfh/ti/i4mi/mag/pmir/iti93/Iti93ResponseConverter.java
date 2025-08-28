@@ -19,7 +19,7 @@ package ch.bfh.ti.i4mi.mag.pmir.iti93;
 import java.io.ByteArrayInputStream;
 import java.util.Map;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeableConcept;

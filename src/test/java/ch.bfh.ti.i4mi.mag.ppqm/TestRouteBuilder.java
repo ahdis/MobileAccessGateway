@@ -6,8 +6,8 @@ import org.apache.velocity.VelocityContext;
 import org.herasaf.xacml.core.policy.impl.IdReferenceType;
 import org.herasaf.xacml.core.policy.impl.PolicySetType;
 import org.openehealth.ipf.commons.ihe.fhir.chppqm.translation.FhirToXacmlTranslator;
-import org.openehealth.ipf.commons.ihe.xacml20.ChPpqMessageCreator;
-import org.openehealth.ipf.commons.ihe.xacml20.ChPpqPolicySetCreator;
+import org.openehealth.ipf.commons.ihe.xacml20.chppq.ChPpqMessageCreator;
+import org.openehealth.ipf.commons.ihe.xacml20.chppq.ChPpqPolicySetCreator;
 import org.openehealth.ipf.commons.ihe.xacml20.model.PpqConstants;
 import org.openehealth.ipf.commons.ihe.xacml20.stub.UnknownPolicySetIdFaultMessage;
 import org.openehealth.ipf.commons.ihe.xacml20.stub.ehealthswiss.*;
@@ -16,7 +16,7 @@ import org.openehealth.ipf.commons.ihe.xacml20.stub.xacml20.saml.protocol.XACMLP
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

@@ -9,7 +9,7 @@ import org.hl7.fhir.r4.model.Consent;
 import org.openehealth.ipf.commons.ihe.fhir.chppqm.ChPpqmUtils;
 import org.openehealth.ipf.commons.ihe.fhir.chppqm.translation.FhirToXacmlTranslator;
 import org.openehealth.ipf.commons.ihe.fhir.chppqm.translation.XacmlToFhirTranslator;
-import org.openehealth.ipf.commons.ihe.xacml20.ChPpqMessageCreator;
+import org.openehealth.ipf.commons.ihe.xacml20.chppq.ChPpqMessageCreator;
 import org.openehealth.ipf.commons.ihe.xacml20.stub.ehealthswiss.AssertionBasedRequestType;
 import org.openehealth.ipf.commons.ihe.xacml20.stub.ehealthswiss.EprPolicyRepositoryResponse;
 import org.springframework.beans.factory.annotation.Autowired;

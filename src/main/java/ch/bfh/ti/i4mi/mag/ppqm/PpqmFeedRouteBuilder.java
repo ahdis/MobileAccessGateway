@@ -7,7 +7,7 @@ import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.openehealth.ipf.commons.ihe.fhir.chppqm.translation.FhirToXacmlTranslator;
-import org.openehealth.ipf.commons.ihe.xacml20.ChPpqMessageCreator;
+import org.openehealth.ipf.commons.ihe.xacml20.chppq.ChPpqMessageCreator;
 import org.openehealth.ipf.commons.ihe.xacml20.stub.ehealthswiss.AssertionBasedRequestType;
 import org.openehealth.ipf.commons.ihe.xacml20.stub.ehealthswiss.EprPolicyRepositoryResponse;
 import org.openehealth.ipf.commons.ihe.xacml20.stub.saml20.assertion.AssertionType;

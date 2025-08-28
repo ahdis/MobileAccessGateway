@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 
-import javax.servlet.Filter;
+import jakarta.servlet.Filter;
 
 import ca.uhn.fhir.rest.server.*;
 import ch.bfh.ti.i4mi.mag.fhir.MagCapabilityStatementProvider;
@@ -39,6 +39,7 @@ import org.openehealth.ipf.commons.audit.DefaultAuditContext;
 import org.openehealth.ipf.commons.audit.protocol.TCPSyslogSender;
 import org.openehealth.ipf.commons.ihe.ws.cxf.payload.InPayloadLoggerInterceptor;
 import org.openehealth.ipf.commons.ihe.ws.cxf.payload.OutPayloadLoggerInterceptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -248,6 +249,9 @@ public class Config {
     @Value("${mag.documentSourceId}")
     private String documentSourceId;
 
+    @Autowired
+    private SchemeMapper schemeMapper;
+
     /**
      * Connection security : Use client certificate
      */
@@ -406,11 +410,6 @@ public class Config {
     // ---------------------------------------------
 
     @Bean
-    public SchemeMapper getSchemeMapper() {
-        return new SchemeMapper();
-    }
-
-    @Bean
     public PatientReferenceCreator getPatientReferenceCreator() {
         return new PatientReferenceCreator();
     }
@@ -453,5 +452,8 @@ public class Config {
                                      (clientSsl ? "&sslContextParameters=#sslContext" : ""),
                              assertionEndpointUrl, wsdl);
     }
-    
+
+    public SchemeMapper getSchemeMapper() {
+        return new SchemeMapper();
+    }
 }

@@ -86,7 +86,7 @@ class Iti67RouteBuilder extends RouteBuilder {
         final String metadataQueryEndpoint  = createEndpointUri("xds-iti18", this.config.getIti18HostUrl());
         final String metadataUpdateEndpoint = createEndpointUri("xds-iti57", this.config.getIti57HostUrl());
 
-        from("mhd-iti67-v401:translation?audit=true&auditContext=#myAuditContext").routeId("mdh-documentreference-adapter")
+        from("mhd-iti67:translation?audit=true&auditContext=#myAuditContext").routeId("mdh-documentreference-adapter")
                 .errorHandler(noErrorHandler())
                 .process(RequestHeadersForwarder.checkAuthorization(config.isChMhdConstraints()))
                 .process(RequestHeadersForwarder.forward())

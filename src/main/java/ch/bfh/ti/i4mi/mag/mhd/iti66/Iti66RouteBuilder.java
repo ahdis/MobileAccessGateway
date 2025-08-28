@@ -20,6 +20,7 @@ import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslat
 
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
+import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import org.apache.camel.builder.RouteBuilder;
 import org.openehealth.ipf.commons.ihe.fhir.Constants;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.QueryResponse;
@@ -63,7 +64,7 @@ class Iti66RouteBuilder extends RouteBuilder {
                 "&outInterceptors=#soapRequestLogger" + 
                 "&outFaultInterceptors=#soapRequestLogger";
 
-        from("mhd-iti66-v401:translation?audit=true&auditContext=#myAuditContext").routeId("mdh-documentmanifest-adapter")
+        from("mhd-iti66:translation?audit=true&auditContext=#myAuditContext").routeId("mdh-documentmanifest-adapter")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 .process(RequestHeadersForwarder.checkAuthorization(config.isChMhdConstraints()))

@@ -63,8 +63,8 @@ public class MhdTest {
 
     @Test
     public void testMetadataUpdate() {
-        DocumentReference documentReference = (DocumentReference) FhirContext.forR4().newJsonParser().parseResource(MhdTest.class.getClassLoader().getResourceAsStream("update-request-1.json"));
-        IGenericClient client = FhirContext.forR4().newRestfulGenericClient("http://localhost:" + serverPort + "/fhir");
+        DocumentReference documentReference = (DocumentReference) FhirContext.forR4Cached().newJsonParser().parseResource(MhdTest.class.getClassLoader().getResourceAsStream("update-request-1.json"));
+        IGenericClient client = FhirContext.forR4Cached().newRestfulGenericClient("http://localhost:" + serverPort + "/fhir");
         MethodOutcome methodOutcome;
 
         // test success case

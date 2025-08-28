@@ -62,7 +62,7 @@ class Iti65RouteBuilder extends RouteBuilder {
                       "&outInterceptors=#soapRequestLogger" + 
                       "&outFaultInterceptors=#soapRequestLogger";
         
-        from("mhd-iti65-v401:stub?audit=true&auditContext=#myAuditContext&fhirContext=#fhirContext").routeId("mhd-providedocumentbundle")
+        from("mhd-iti65:stub?audit=true&auditContext=#myAuditContext&fhirContext=#fhirContext").routeId("mhd-providedocumentbundle")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 //.process(itiRequestValidator())

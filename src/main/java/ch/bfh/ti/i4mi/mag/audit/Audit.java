@@ -1,6 +1,6 @@
 package ch.bfh.ti.i4mi.mag.audit;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 
 import org.openehealth.ipf.commons.audit.AuditContext;
 import org.openehealth.ipf.commons.audit.DefaultAuditContext;
@@ -13,9 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
-import ch.bfh.ti.i4mi.mag.MobileAccessGateway;
 import lombok.extern.slf4j.Slf4j;
 
 @Configuration

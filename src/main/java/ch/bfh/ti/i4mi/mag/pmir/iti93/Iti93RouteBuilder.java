@@ -79,7 +79,7 @@ class Iti93RouteBuilder extends RouteBuilder {
                   .process(Utils.keptBodyToHeader())
                   .process(TraceparentHandler.updateHeaderForFhir())
                   .process(translateToFhir(converter , byte[].class))
-            	.doCatch(javax.xml.ws.soap.SOAPFaultException.class)
+            	.doCatch(jakarta.xml.ws.soap.SOAPFaultException.class)
 				  .setBody(simple("${exception}"))
 				  .bean(BaseResponseConverter.class, "errorFromException")
 				.end();

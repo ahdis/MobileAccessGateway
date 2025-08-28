@@ -16,12 +16,11 @@
 
 package ch.bfh.ti.i4mi.mag.mhd.iti65;
 
-import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import javax.activation.DataHandler;
+import jakarta.activation.DataHandler;
 
 import ch.bfh.ti.i4mi.mag.MagConstants;
 import lombok.Setter;
@@ -39,7 +38,6 @@ import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ContactPoint;
 import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.DateType;
-import org.hl7.fhir.r4.model.DocumentManifest;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.DocumentReference.DocumentReferenceContentComponent;
 import org.hl7.fhir.r4.model.DocumentReference.DocumentReferenceContextComponent;
@@ -66,7 +64,6 @@ import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.RelatedPerson;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.codesystems.IdentifierUse;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
 import org.openehealth.ipf.commons.ihe.fhir.support.FhirUtils;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.AssigningAuthority;

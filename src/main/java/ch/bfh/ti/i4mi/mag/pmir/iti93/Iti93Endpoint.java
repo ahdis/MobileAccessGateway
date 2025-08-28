@@ -16,6 +16,7 @@
 
 package ch.bfh.ti.i4mi.mag.pmir.iti93;
 
+import org.apache.camel.Category;
 import org.apache.camel.spi.UriEndpoint;
 import org.openehealth.ipf.commons.ihe.fhir.audit.FhirQueryAuditDataset;
 import org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirConsumer;
@@ -26,7 +27,7 @@ import org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirEndpointConfiguratio
  * PMIR Mobile Patient Identity Feed endpoint (ITI-93)
  *
  */
-@UriEndpoint(scheme = "pmir-iti93", title = "ITI-93 PMIR", syntax = "pmir-iti93:host:port", consumerClass = FhirConsumer.class, label = "http")
+@UriEndpoint(scheme = "pmir-iti93", title = "ITI-93 PMIR", syntax = "pmir-iti93:host:port", category = Category.HTTP)
 public class Iti93Endpoint extends FhirEndpoint<Iti93AuditDataset, Iti93Component> {
 
     public Iti93Endpoint(String uri, Iti93Component fhirComponent, FhirEndpointConfiguration<Iti93AuditDataset> config) {

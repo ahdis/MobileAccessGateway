@@ -66,14 +66,14 @@ import static ch.bfh.ti.i4mi.mag.mhd.Utils.isUnprefixedUuid;
  */
 public abstract class BaseQueryResponseConverter extends BaseResponseConverter implements ToFhirTranslator<QueryResponse> {
 
-	private SchemeMapper schemeMapper;
-	private PatientReferenceCreator patientReferenceCreator;
+	private final PatientReferenceCreator patientReferenceCreator;
+    private final SchemeMapper schemeMapper;
 	
 	protected final Config config;
 
     public BaseQueryResponseConverter(final Config config) {
         this.config = config;
-        schemeMapper = config.getSchemeMapper();
+        this.schemeMapper = config.getSchemeMapper();
         patientReferenceCreator = config.getPatientReferenceCreator();
     }
 	
