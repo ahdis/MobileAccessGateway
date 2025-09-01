@@ -16,39 +16,36 @@
 
 package ch.bfh.ti.i4mi.mag.mhd.iti66;
 
-import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslators.translateToFhir;
-
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
-import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
+import ch.bfh.ti.i4mi.mag.config.props.MagXdsProps;
+import ch.bfh.ti.i4mi.mag.mhd.Utils;
 import org.apache.camel.builder.RouteBuilder;
 import org.openehealth.ipf.commons.ihe.fhir.Constants;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.QueryResponse;
+import org.slf4j.Logger;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
-import ch.bfh.ti.i4mi.mag.Config;
-import ch.bfh.ti.i4mi.mag.mhd.Utils;
-import lombok.extern.slf4j.Slf4j;
+import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslators.translateToFhir;
 
 /**
- * IHE MHD: Find Document Manifests [ITI-66] for Document Responder
- * https://oehf.github.io/ipf-docs/docs/ihe/iti66/
+ * IHE MHD: Find Document Manifests [ITI-66] for Document Responder https://oehf.github.io/ipf-docs/docs/ihe/iti66/
  */
 
 
-@Slf4j
 @Component
 @Conditional(Iti66Condition.class)
 class Iti66RouteBuilder extends RouteBuilder {
-    
-    private final Config config;
+
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(Iti66RouteBuilder.class);
+    private final MagXdsProps xdsProps;
     private final Iti66ResponseConverter iti66ResponseConverter;
 
-    public Iti66RouteBuilder(final Config config,
+    public Iti66RouteBuilder(final MagXdsProps xdsProps,
                              final Iti66ResponseConverter iti66ResponseConverter) {
         super();
-        this.config = config;
+        this.xdsProps = xdsProps;
         this.iti66ResponseConverter = iti66ResponseConverter;
         log.debug("Iti66RouteBuilder initialized");
     }
@@ -57,29 +54,31 @@ class Iti66RouteBuilder extends RouteBuilder {
     public void configure() throws Exception {
         log.debug("Iti66RouteBuilder configure");
         final String xds18Endpoint = String.format("xds-iti18://%s" +
-          "?secure=%s", this.config.getIti18HostUrl(), this.config.isHttps() ? "true" : "false")
-        +
+                                                           "?secure=%s",
+                                                   this.xdsProps.getIti18().getUrl(),
+                                                   this.xdsProps.isHttps() ? "true" : "false")
+                +
                 "&audit=true" +
                 "&auditContext=#myAuditContext" +
-          //      "&sslContextParameters=#pixContext" +
-                "&inInterceptors=#soapResponseLogger" + 
-                "&inFaultInterceptors=#soapResponseLogger"+
-                "&outInterceptors=#soapRequestLogger" + 
+                //      "&sslContextParameters=#pixContext" +
+                "&inInterceptors=#soapResponseLogger" +
+                "&inFaultInterceptors=#soapResponseLogger" +
+                "&outInterceptors=#soapRequestLogger" +
                 "&outFaultInterceptors=#soapRequestLogger";
 
         from("mhd-iti66:translation?audit=true&auditContext=#myAuditContext").routeId("mdh-documentmanifest-adapter")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
-                .process(RequestHeadersForwarder.checkAuthorization(this.config.isChMhdConstraints()))
+                .process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
                 .process(RequestHeadersForwarder.forward()).choice()
                 .when(header(Constants.FHIR_REQUEST_PARAMETERS).isNotNull())
-                    .bean(Utils.class,"searchParameterToBody")
-                    .bean(Iti66RequestConverter.class).endChoice()
+                .bean(Utils.class, "searchParameterToBody")
+                .bean(Iti66RequestConverter.class).endChoice()
                 .when(header("FhirHttpUri").isNotNull())
-                    .bean(IdRequestConverter.class).endChoice().end()
+                .bean(IdRequestConverter.class).endChoice().end()
                 .to(xds18Endpoint)
                 .bean(Iti66ResponseBugfix.class)
                 .process(TraceparentHandler.updateHeaderForFhir())
                 .process(translateToFhir(this.iti66ResponseConverter, QueryResponse.class));
-        }
+    }
 }

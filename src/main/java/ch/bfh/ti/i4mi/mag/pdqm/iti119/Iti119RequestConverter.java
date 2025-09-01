@@ -1,6 +1,7 @@
 package ch.bfh.ti.i4mi.mag.pdqm.iti119;
 
-import ch.bfh.ti.i4mi.mag.Config;
+import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
+import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import ch.bfh.ti.i4mi.mag.pdqm.iti78.Iti78RequestConverter;
 import jakarta.xml.bind.JAXBException;
 import net.ihe.gazelle.hl7v3.datatypes.IVLTS;
@@ -16,8 +17,9 @@ import static ch.bfh.ti.i4mi.mag.MagConstants.FhirExtensionUrls.MOTHERS_MAIDEN_N
 
 public class Iti119RequestConverter extends Iti78RequestConverter {
 
-    public Iti119RequestConverter(final Config config) {
-        this.config = config;
+    public Iti119RequestConverter(final SchemeMapper schemeMapper,
+                                  final MagMpiProps magMpiProps) {
+        super(schemeMapper, magMpiProps);
     }
 
     public String convert(@Body final Resource resource) throws JAXBException {
@@ -29,13 +31,14 @@ public class Iti119RequestConverter extends Iti78RequestConverter {
                 return this.doConvert(patient);
             }
         }
-        throw new IllegalArgumentException("Expected a Patient resource, or Parameters resource with a 'resource' parameter of type Patient");
+        throw new IllegalArgumentException(
+                "Expected a Patient resource, or Parameters resource with a 'resource' parameter of type Patient");
     }
 
     private String doConvert(final Patient patient) throws JAXBException {
         // Create an ITI-47 request
-        final PRPAIN201305UV02Type request = initiateIti47Request(this.config.getPixMySenderOid(),
-                                                                  this.config.getPixReceiverOid());
+        final PRPAIN201305UV02Type request = initiateIti47Request(this.mpiOidsProps.getSender(),
+                                                                  this.mpiOidsProps.getReceiver());
         final var parameterList = request.getControlActProcess().getQueryByParameter().getParameterList();
 
         // Map the search parameters from the Patient resource to the request
@@ -58,7 +61,7 @@ public class Iti119RequestConverter extends Iti78RequestConverter {
         // 4. Birth date
         if (patient.hasBirthDate()) {
             final var birthDate = new IVLTS();
-            birthDate.setValue(patient.getBirthDateElement().getValueAsString().replace("-",""));
+            birthDate.setValue(patient.getBirthDateElement().getValueAsString().replace("-", ""));
             parameterList.addLivingSubjectBirthTime(this.createBirthTime(birthDate));
         }
 

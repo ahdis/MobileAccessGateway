@@ -1,6 +1,6 @@
 package ch.bfh.ti.i4mi.mag.common;
 
-import ch.bfh.ti.i4mi.mag.Config;
+import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
 import org.apache.camel.Message;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Identifier;
@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 
+import static ch.bfh.ti.i4mi.mag.MagConstants.EPR_SPID_OID;
+
 /**
  * A response interceptor that can extract patient identifiers (XAD-PID and EPR-SPID), and inject them in the cache.
  **/
@@ -21,13 +23,12 @@ public class PatientIdInterceptor {
     private static final Logger log = LoggerFactory.getLogger(PatientIdInterceptor.class);
 
     private final PatientIdMappingService patientIdMappingService;
-
     private final String xadMpiOid;
 
     public PatientIdInterceptor(final PatientIdMappingService patientIdMappingService,
-                                final Config config) {
+                                final MagMpiProps mpiProps) {
         this.patientIdMappingService = patientIdMappingService;
-        this.xadMpiOid = config.getOidMpiPid();
+        this.xadMpiOid = mpiProps.getOids().getMpiPid();
     }
 
     public void interceptBundleOfPatients(final Message message) {
@@ -66,7 +67,7 @@ public class PatientIdInterceptor {
         String eprSpid = null;
         String xadPid = null;
         for (final var identifier : identifiers) {
-            if (Config.OID_EPRSPID.equals(identifier.getSystem())) {
+            if (EPR_SPID_OID.equals(identifier.getSystem())) {
                 eprSpid = identifier.getValue();
             } else if (this.xadMpiOid.equals(identifier.getSystem())) {
                 xadPid = identifier.getValue();

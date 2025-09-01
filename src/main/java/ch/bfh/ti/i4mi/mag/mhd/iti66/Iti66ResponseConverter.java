@@ -15,16 +15,10 @@
  */
 package ch.bfh.ti.i4mi.mag.mhd.iti66;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import ch.bfh.ti.i4mi.mag.common.PatientIdMappingService;
-import ch.bfh.ti.i4mi.mag.common.UnknownPatientException;
+import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
+import ch.bfh.ti.i4mi.mag.mhd.BaseQueryResponseConverter;
 import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
-import org.apache.jena.sparql.function.library.leviathan.log;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ContactPoint;
@@ -39,7 +33,6 @@ import org.openehealth.ipf.commons.ihe.xds.core.metadata.Association;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.AssociationType;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Author;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.AvailabilityStatus;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.Identifiable;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.LocalizedString;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Organization;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Person;
@@ -47,164 +40,171 @@ import org.openehealth.ipf.commons.ihe.xds.core.metadata.Recipient;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.SubmissionSet;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.QueryResponse;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.Status;
-
-import ch.bfh.ti.i4mi.mag.Config;
-import ch.bfh.ti.i4mi.mag.mhd.BaseQueryResponseConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * ITI-66 from ITI-18 response converter
+ *
  * @author alexander kreutz
  *
  */
 @Component
 public class Iti66ResponseConverter extends BaseQueryResponseConverter {
-    private static final Logger log = LoggerFactory.getLogger(Iti66ResponseConverter.class);
 
-	public Iti66ResponseConverter(final Config config,
+    public Iti66ResponseConverter(final MagMpiProps mpiProps,
+                                  final SchemeMapper schemeMapper,
                                   final PatientIdMappingService patientIdMappingService) {
-	   super(config, patientIdMappingService);
-	}
-	
-	
-	/**
-	 * convert ITI-18 query response to ITI-66 response bundle
-	 */
+        super(mpiProps, schemeMapper, patientIdMappingService);
+    }
+
+    /**
+     * convert ITI-18 query response to ITI-66 response bundle
+     */
     @Override
     public List<ListResource> translateToFhir(QueryResponse input, Map<String, Object> parameters) {
         ArrayList<ListResource> list = new ArrayList<ListResource>();
         if (input != null && Status.SUCCESS.equals(input.getStatus())) {
-        	Map<String, ListResource> targetList = new HashMap<String, ListResource>(); 
-            if (input.getSubmissionSets() != null) {            	
+            Map<String, ListResource> targetList = new HashMap<String, ListResource>();
+            if (input.getSubmissionSets() != null) {
                 for (SubmissionSet submissionSet : input.getSubmissionSets()) {
-                	ListResource documentManifest = new ListResource();
-                    
-                    documentManifest.setId(noUuidPrefix(submissionSet.getEntryUuid()));  
-                    
-                    documentManifest.setCode(new CodeableConcept(new Coding("https://profiles.ihe.net/ITI/MHD/CodeSystem/MHDlistTypes","submissionset","Submission Set")));
+                    ListResource documentManifest = new ListResource();
+
+                    documentManifest.setId(noUuidPrefix(submissionSet.getEntryUuid()));
+
+                    documentManifest.setCode(new CodeableConcept(new Coding(
+                            "https://profiles.ihe.net/ITI/MHD/CodeSystem/MHDlistTypes",
+                            "submissionset",
+                            "Submission Set")));
                     targetList.put(documentManifest.getId(), documentManifest);
-                    
+
                     list.add(documentManifest);
                     // limitedMetadata -> meta.profile canonical [0..*]       
                     if (submissionSet.isLimitedMetadata()) {
-                    	documentManifest.getMeta().addProfile("https://profiles.ihe.net/ITI/MHD/StructureDefinition/IHE.MHD.Minimal.SubmissionSet");
+                        documentManifest.getMeta().addProfile(
+                                "https://profiles.ihe.net/ITI/MHD/StructureDefinition/IHE.MHD.Minimal.SubmissionSet");
                     } else {
-                    	documentManifest.getMeta().addProfile("https://profiles.ihe.net/ITI/MHD/StructureDefinition/IHE.MHD.Comprehensive.SubmissionSet");
+                        documentManifest.getMeta().addProfile(
+                                "https://profiles.ihe.net/ITI/MHD/StructureDefinition/IHE.MHD.Comprehensive.SubmissionSet");
                     }
-                    
+
                     // comment -> text Narrative [0..1]
                     LocalizedString comments = submissionSet.getComments();
-                    if (comments!=null) {
-                    	documentManifest.addNote().setText(comments.getValue());                    	
+                    if (comments != null) {
+                        documentManifest.addNote().setText(comments.getValue());
                     }
-                    
+
                     // uniqueId -> masterIdentifier Identifier [0..1] [1..1]
-                    if (submissionSet.getUniqueId()!=null) {
-                        documentManifest.addIdentifier((new Identifier().setUse(IdentifierUse.USUAL).setSystem("urn:ietf:rfc:3986").setValue("urn:oid:"+submissionSet.getUniqueId())));
+                    if (submissionSet.getUniqueId() != null) {
+                        documentManifest.addIdentifier((new Identifier().setUse(IdentifierUse.USUAL).setSystem(
+                                "urn:ietf:rfc:3986").setValue("urn:oid:" + submissionSet.getUniqueId())));
                     }
-                    
+
                     // entryUUID -> identifier Identifier [0..*]
-                    if (submissionSet.getEntryUuid()!=null) {
-                        documentManifest.addIdentifier((new Identifier().setUse(IdentifierUse.OFFICIAL).setSystem("urn:ietf:rfc:3986").setValue(asUuid(submissionSet.getEntryUuid()))));
+                    if (submissionSet.getEntryUuid() != null) {
+                        documentManifest.addIdentifier((new Identifier().setUse(IdentifierUse.OFFICIAL).setSystem(
+                                "urn:ietf:rfc:3986").setValue(asUuid(submissionSet.getEntryUuid()))));
                     }
                     // availabilityStatus -> status code {DocumentReferenceStatus} [1..1]
                     //   approved -> status=current Other status values are allowed but are not defined in this mapping to XDS.
                     if (AvailabilityStatus.APPROVED.equals(submissionSet.getAvailabilityStatus())) {
                         documentManifest.setStatus(ListResource.ListStatus.CURRENT);
                     }
-                    
+
                     documentManifest.setMode(ListMode.WORKING);
-                    
+
                     // contentTypeCode -> type CodeableConcept [0..1]
-                    if (submissionSet.getContentTypeCode()!=null) {
+                    if (submissionSet.getContentTypeCode() != null) {
                         documentManifest
-                          .addExtension()
-                          .setUrl("https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-designationType")
-                          .setValue(transform(submissionSet.getContentTypeCode()));
+                                .addExtension()
+                                .setUrl("https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-designationType")
+                                .setValue(transform(submissionSet.getContentTypeCode()));
                     }
-                    
+
                     // patientId -> subject Reference(Patient| Practitioner| Group| Device) [0..1], Reference(Patient)
                     // We received the XAD-PID, we need the EPR-SPID
                     if (submissionSet.getPatientId() != null) {
                         documentManifest.setSubject(this.transformPatient(submissionSet.getPatientId()));
                     }
-                    
+
                     // submissionTime -> created dateTime [0..1]
-                    if (submissionSet.getSubmissionTime()!=null) {
+                    if (submissionSet.getSubmissionTime() != null) {
                         documentManifest.setDate(Date.from(submissionSet.getSubmissionTime().getDateTime().toInstant()));
                     }
 
                     // authorInstitution, authorPerson, authorRole, authorSpeciality, authorTelecommunication -> author Reference(Practitioner| PractitionerRole| Organization| Device| Patient| RelatedPerson) [0..*]
                     if (submissionSet.getAuthors() != null) {
-                    	for (Author author : submissionSet.getAuthors()) {
-                    		documentManifest.setSource(transformAuthor(author));
-                    	}
+                        for (Author author : submissionSet.getAuthors()) {
+                            documentManifest.setSource(transformAuthor(author));
+                        }
                     }
-                    
+
                     // intendedRecipient -> recipient Reference(Patient| Practitioner| PractitionerRole| RelatedPerson| Organization) [0..*]
                     List<Recipient> recipients = submissionSet.getIntendedRecipients();
-                    for (Recipient recipient : recipients) { 
-                    	Organization org = recipient.getOrganization();
-                    	Person person = recipient.getPerson();                    	
-                    	ContactPoint contact = transform(recipient.getTelecom());
-                    	var organization = transform(org);
-                    	Practitioner practitioner = transformPractitioner(person);
-                    	if (organization != null && practitioner == null) {
-                    		if (contact != null) organization.addTelecom(contact);
-                    		documentManifest
-                    		  .addExtension()
-                    		  .setUrl("https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-intendedRecipient")
-                    		  .setValue(new Reference().setResource(organization));
-                    	} else if (organization != null && practitioner != null) {
-                    		PractitionerRole role = new PractitionerRole();
-                    		role.setPractitioner((Reference) new Reference().setResource(practitioner));
-                    		role.setOrganization((Reference) new Reference().setResource(organization));
-                    		if (contact != null) role.addTelecom(contact);
-                    		documentManifest
-	                    		.addExtension()
-	                  		    .setUrl("https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-intendedRecipient")
-	                  		    .setValue(new Reference().setResource(role));                    		                    		
-                    	} else if (organization == null && practitioner != null) {                    		
-                    		// May be a patient, related person or practitioner
-                    	}                    	
+                    for (Recipient recipient : recipients) {
+                        Organization org = recipient.getOrganization();
+                        Person person = recipient.getPerson();
+                        ContactPoint contact = transform(recipient.getTelecom());
+                        var organization = transform(org);
+                        Practitioner practitioner = transformPractitioner(person);
+                        if (organization != null && practitioner == null) {
+                            if (contact != null) organization.addTelecom(contact);
+                            documentManifest
+                                    .addExtension()
+                                    .setUrl("https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-intendedRecipient")
+                                    .setValue(new Reference().setResource(organization));
+                        } else if (organization != null && practitioner != null) {
+                            PractitionerRole role = new PractitionerRole();
+                            role.setPractitioner((Reference) new Reference().setResource(practitioner));
+                            role.setOrganization((Reference) new Reference().setResource(organization));
+                            if (contact != null) role.addTelecom(contact);
+                            documentManifest
+                                    .addExtension()
+                                    .setUrl("https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-intendedRecipient")
+                                    .setValue(new Reference().setResource(role));
+                        } else if (organization == null && practitioner != null) {
+                            // May be a patient, related person or practitioner
+                        }
                     }
-                    
+
                     // sourceId -> source uri [0..1] [1..1]
-                    if (submissionSet.getSourceId()!=null) {
+                    if (submissionSet.getSourceId() != null) {
                         documentManifest
-                          .addExtension()
-                          .setUrl("https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-sourceId")
-                          .setValue(new Identifier().setValue("urn:oid:"+submissionSet.getSourceId()));
+                                .addExtension()
+                                .setUrl("https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-sourceId")
+                                .setValue(new Identifier().setValue("urn:oid:" + submissionSet.getSourceId()));
                     }
                     // title -> description string [0..1]
                     LocalizedString title = submissionSet.getTitle();
                     if (title != null) {
-                      documentManifest.setTitle(title.getValue());
+                        documentManifest.setTitle(title.getValue());
                     }
-                                                                                                                                         
+
                 }
             }
             if (input.getAssociations() != null) {
-            	for (Association ass : input.getAssociations()) {
-            		AssociationType tt = ass.getAssociationType();
-            		String source = ass.getSourceUuid();
-            		String target = ass.getTargetUuid();
-            		if (tt == AssociationType.HAS_MEMBER) {
-            			ListResource s = targetList.get(noUuidPrefix(source));            			
-            			if (s!=null) {            			
-            				s.addEntry().setItem(new Reference().setReference("DocumentReference/"+noUuidPrefix(target)));
-            			}
-            		}            		
-            	}
+                for (Association ass : input.getAssociations()) {
+                    AssociationType tt = ass.getAssociationType();
+                    String source = ass.getSourceUuid();
+                    String target = ass.getTargetUuid();
+                    if (tt == AssociationType.HAS_MEMBER) {
+                        ListResource s = targetList.get(noUuidPrefix(source));
+                        if (s != null) {
+                            s.addEntry().setItem(new Reference().setReference("DocumentReference/" + noUuidPrefix(target)));
+                        }
+                    }
+                }
             }
         } else {
-        	processError(input);
+            processError(input);
         }
         return list;
     }
-    
-    
+
 
 }

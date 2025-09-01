@@ -15,28 +15,53 @@
  */
 package ch.bfh.ti.i4mi.mag.mhd.iti67;
 
-import ch.bfh.ti.i4mi.mag.Config;
 import ch.bfh.ti.i4mi.mag.MagConstants;
 import ch.bfh.ti.i4mi.mag.common.PatientIdMappingService;
+import ch.bfh.ti.i4mi.mag.config.props.MagProps;
+import ch.bfh.ti.i4mi.mag.config.props.MagXdsProps;
 import ch.bfh.ti.i4mi.mag.mhd.BaseQueryResponseConverter;
-import lombok.extern.slf4j.Slf4j;
-import org.hl7.fhir.r4.model.*;
+import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
+import org.hl7.fhir.r4.model.Attachment;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.DocumentReference.DocumentReferenceContentComponent;
 import org.hl7.fhir.r4.model.DocumentReference.DocumentReferenceContextComponent;
 import org.hl7.fhir.r4.model.DocumentReference.DocumentReferenceRelatesToComponent;
 import org.hl7.fhir.r4.model.DocumentReference.DocumentRelationshipType;
+import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.Enumerations.DocumentReferenceStatus;
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Identifier.IdentifierUse;
+import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Period;
+import org.hl7.fhir.r4.model.PositiveIntType;
+import org.hl7.fhir.r4.model.Practitioner;
+import org.hl7.fhir.r4.model.Reference;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Address;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.Association;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.AssociationType;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.Author;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.AvailabilityStatus;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.DocumentEntry;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.Hl7v2Based;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.Identifiable;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.Name;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.PatientInfo;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Person;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.*;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.ReferenceId;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.QueryResponse;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.Status;
 import org.owasp.esapi.codecs.Hex;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
 
 /**
  * ITI-67 from ITI-18 response converter
@@ -44,13 +69,16 @@ import java.util.*;
  * @author alexander kreutz
  */
 @Component
-@Slf4j
 public class Iti67ResponseConverter extends BaseQueryResponseConverter {
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(Iti67ResponseConverter.class);
 
-    @Autowired
-    public Iti67ResponseConverter(final Config config,
+    private final MagXdsProps xdsProps;
+
+    public Iti67ResponseConverter(final MagProps magProps,
+                                  final SchemeMapper schemeMapper,
                                   final PatientIdMappingService patientIdMappingService) {
-        super(config, patientIdMappingService);
+        super(magProps.getMpi(), schemeMapper, patientIdMappingService);
+        this.xdsProps = magProps.getXds();
     }
 
     @Override
@@ -106,7 +134,8 @@ public class Iti67ResponseConverter extends BaseQueryResponseConverter {
         return list;
     }
 
-    private DocumentReference translateDocumentEntry(DocumentEntry documentEntry, Map<String, List<DocumentReferenceRelatesToComponent>> relatesToMapping) {
+    private DocumentReference translateDocumentEntry(DocumentEntry documentEntry,
+                                                     Map<String, List<DocumentReferenceRelatesToComponent>> relatesToMapping) {
         DocumentReference documentReference = new DocumentReference();
 
         if (documentEntry.getExtraMetadata() != null) {
@@ -115,7 +144,7 @@ public class Iti67ResponseConverter extends BaseQueryResponseConverter {
                 for (String deletionStatus : deletionStatuses) {
                     if (MagConstants.DeletionStatuses.REQUESTED.equals(deletionStatus)) {
                         log.warn("Skip DocumentEntry with entryUUID='{}' because its deletion flag is set",
-                              documentEntry.getEntryUuid());
+                                 documentEntry.getEntryUuid());
                         return null;
                     }
                     documentReference.addExtension(
@@ -233,8 +262,8 @@ public class Iti67ResponseConverter extends BaseQueryResponseConverter {
         // [0..1] [1..1
         // has to defined, for the PoC we define
         // $host:port/camel/$repositoryid/$uniqueid
-        attachment.setUrl(config.getUriMagXdsRetrieve() + "?uniqueId=" + documentEntry.getUniqueId()
-                + "&repositoryUniqueId=" + documentEntry.getRepositoryUniqueId());
+        attachment.setUrl(this.xdsProps.getRetrieve().getUrl() + "?uniqueId=" + documentEntry.getUniqueId()
+                                  + "&repositoryUniqueId=" + documentEntry.getRepositoryUniqueId());
 
         // size -> content.attachment.size integer [0..1] The size is calculated
         if (documentEntry.getSize() != null) {
@@ -373,7 +402,9 @@ public class Iti67ResponseConverter extends BaseQueryResponseConverter {
         if (documentEntry.getDocumentAvailability() != null) {
             documentReference.addExtension(
                     MagConstants.FhirExtensionUrls.DOCUMENT_AVAILABILITY,
-                    new Coding(MagConstants.FhirCodingSystemIds.RFC_3986, documentEntry.getDocumentAvailability().getFullQualified(), null));
+                    new Coding(MagConstants.FhirCodingSystemIds.RFC_3986,
+                               documentEntry.getDocumentAvailability().getFullQualified(),
+                               null));
         }
 
         String logicalId = (documentEntry.getLogicalUuid() != null) ? documentEntry.getLogicalUuid() : documentEntry.getEntryUuid();
@@ -381,7 +412,9 @@ public class Iti67ResponseConverter extends BaseQueryResponseConverter {
             documentReference.addIdentifier()
                     .setValue(asUuid(logicalId))
                     .setSystem(MagConstants.FhirCodingSystemIds.RFC_3986)
-                    .setType(new CodeableConcept().addCoding(new Coding(MagConstants.FhirCodingSystemIds.MHD_DOCUMENT_ID_TYPE, "logicalID", "Logical ID")));
+                    .setType(new CodeableConcept().addCoding(new Coding(MagConstants.FhirCodingSystemIds.MHD_DOCUMENT_ID_TYPE,
+                                                                        "logicalID",
+                                                                        "Logical ID")));
         }
 
         documentReference.setId(noUuidPrefix(logicalId));

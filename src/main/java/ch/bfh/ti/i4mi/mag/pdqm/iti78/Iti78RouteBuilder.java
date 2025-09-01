@@ -21,13 +21,12 @@ import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslat
 import ch.bfh.ti.i4mi.mag.common.PatientIdInterceptor;
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
+import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
 import org.apache.camel.builder.RouteBuilder;
 import org.openehealth.ipf.commons.ihe.fhir.Constants;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import ch.bfh.ti.i4mi.mag.Config;
 import ch.bfh.ti.i4mi.mag.mhd.BaseResponseConverter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,15 +38,14 @@ import lombok.extern.slf4j.Slf4j;
 @ConditionalOnProperty("mag.pix.iti-47.url")
 public class Iti78RouteBuilder extends RouteBuilder {
 
-	private final Config config;
+	private final MagMpiProps mpiProps;
+	private final Iti78ResponseConverter responseConverter;
 	
-	@Autowired
-	Iti78ResponseConverter converter;
-	
-	public Iti78RouteBuilder(final Config config) {
+	public Iti78RouteBuilder(final MagMpiProps mpiProps,
+                             final Iti78ResponseConverter responseConverter) {
 		super();
-	    this.config = config;
-		log.debug("Iti78RouteBuilder initialized");
+	    this.mpiProps = mpiProps;
+	    this.responseConverter = responseConverter;
 	}
 
 	@Override
@@ -55,7 +53,8 @@ public class Iti78RouteBuilder extends RouteBuilder {
 		log.debug("Iti78RouteBuilder configure");
 		
 		 final String xds47Endpoint = String.format("pdqv3-iti47://%s" +
-	                "?secure=%s", this.config.getIti47HostUrl(), this.config.isPixHttps() ? "true" : "false")
+	                "?secure=%s", this.mpiProps.getIti47().getUrl(), this.mpiProps.isHttps() ? "true" :
+                "false")
 	                +
 	                //"&sslContextParameters=#pixContext" +
 	                "&audit=true" +
@@ -68,7 +67,7 @@ public class Iti78RouteBuilder extends RouteBuilder {
 		from("pdqm-iti78:translation?audit=true&auditContext=#myAuditContext").routeId("pdqm-adapter")
 				// pass back errors to the endpoint
 				.errorHandler(noErrorHandler())
-				.process(RequestHeadersForwarder.checkAuthorization(config.isChPdqmConstraints()))
+				.process(RequestHeadersForwarder.checkAuthorization(this.mpiProps.isChPdqmConstraints()))
 				.process(RequestHeadersForwarder.forward())
 				.choice()
 					.when(header(Constants.FHIR_REQUEST_PARAMETERS).isNotNull())
@@ -81,7 +80,7 @@ public class Iti78RouteBuilder extends RouteBuilder {
 				.doTry()
 				  .to(xds47Endpoint)
 				  .process(TraceparentHandler.updateHeaderForFhir())
-			      .process(translateToFhir(converter , byte[].class))
+			      .process(translateToFhir(responseConverter, byte[].class))
                   .bean(PatientIdInterceptor.class, "interceptBundleOfPatients")
 				.doCatch(jakarta.xml.ws.soap.SOAPFaultException.class)
 				  .setBody(simple("${exception}"))

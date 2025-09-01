@@ -16,36 +16,39 @@
 
 package ch.bfh.ti.i4mi.mag.mhd.iti68;
 
-import java.util.Map;
-
+import ch.bfh.ti.i4mi.mag.BaseRequestConverter;
+import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import org.apache.camel.Headers;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.DocumentEntry;
 import org.openehealth.ipf.commons.ihe.xds.core.requests.RetrieveDocumentSet;
 
-import ch.bfh.ti.i4mi.mag.BaseRequestConverter;
+import java.util.Map;
 
 /**
  * ITI-68 to ITI-43 request converter
+ *
  * @author alexander kreutz
  *
  */
 public class Iti68RequestConverter extends BaseRequestConverter {
 
+    public Iti68RequestConverter(final SchemeMapper schemeMapper) {
+        super(schemeMapper);
+    }
 
     public static RetrieveDocumentSet queryParameterToRetrieveDocumentSet(@Headers Map<String, Object> parameters) {
-            	           
-            RetrieveDocumentSet retrieveDocumentSet = new RetrieveDocumentSet();
-            DocumentEntry documentEntry = new DocumentEntry();
-            if (parameters.containsKey("repositoryUniqueId")) {
-                documentEntry.setRepositoryUniqueId(parameters.getOrDefault("repositoryUniqueId", "").toString());
-            }
-            if (parameters.containsKey("uniqueId")) {
-                documentEntry.setUniqueId(parameters.getOrDefault("uniqueId", "").toString());
-            }
+        final var retrieveDocumentSet = new RetrieveDocumentSet();
+        DocumentEntry documentEntry = new DocumentEntry();
+        if (parameters.containsKey("repositoryUniqueId")) {
+            documentEntry.setRepositoryUniqueId(parameters.getOrDefault("repositoryUniqueId", "").toString());
+        }
+        if (parameters.containsKey("uniqueId")) {
+            documentEntry.setUniqueId(parameters.getOrDefault("uniqueId", "").toString());
+        }
 //            documentEntry.setHomeCommunityId("");
-            retrieveDocumentSet.addReferenceTo(documentEntry);
-            
-            return retrieveDocumentSet;        
+        retrieveDocumentSet.addReferenceTo(documentEntry);
+
+        return retrieveDocumentSet;
     }
-    
+
 }

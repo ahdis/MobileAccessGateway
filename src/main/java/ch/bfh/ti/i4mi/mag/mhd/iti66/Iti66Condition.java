@@ -9,7 +9,8 @@ public class Iti66Condition implements Condition {
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
         boolean iti18 = context.getEnvironment().getProperty("mag.xds.iti-18.url") != null;
-        boolean allowIti66 = context.getEnvironment().getProperty("mag.mhd.iti66.disable") == null || Boolean.parseBoolean(context.getEnvironment().getProperty("mag.mhd.iti66.disable"))==false;
+        boolean allowIti66 = context.getEnvironment().getProperty("mag.mhd.iti66.disable") == null || Boolean.parseBoolean(
+                context.getEnvironment().getProperty("mag.mhd.iti66.disable")) == false;
         return iti18 && allowIti66;
     }
 }

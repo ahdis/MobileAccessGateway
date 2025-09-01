@@ -20,6 +20,8 @@ import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslat
 
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
+import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
+import ch.bfh.ti.i4mi.mag.pixm.iti83.Iti83ResponseConverter;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.support.ExpressionAdapter;
@@ -28,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import ch.bfh.ti.i4mi.mag.Config;
 import ch.bfh.ti.i4mi.mag.mhd.BaseResponseConverter;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
 import ch.bfh.ti.i4mi.mag.pdqm.iti78.Iti78RequestConverter;
@@ -43,18 +44,17 @@ import lombok.extern.slf4j.Slf4j;
 @ConditionalOnProperty({"mag.pix.iti-44.url", "mag.pix.iti-47.url"})
 class Iti104RouteBuilder extends RouteBuilder {
 
-	private final Config config;
-	
-	@Autowired
-	Iti104ResponseConverter converter;
-	
-	@Autowired
-	Iti78ResponseConverter converter_78;
-	
-    public Iti104RouteBuilder(final Config config) {
+    private final MagMpiProps mpiProps;
+    private final Iti104ResponseConverter response104Converter;
+    private final Iti78ResponseConverter response78Converter;
+
+    public Iti104RouteBuilder(final MagMpiProps mpiProps,
+                              final Iti104ResponseConverter response104Converter,
+                              final Iti78ResponseConverter response78Converter) {
         super();
-        this.config = config;
-        log.debug("Iti104RouteBuilder initialized");
+        this.mpiProps = mpiProps;
+        this.response104Converter = response104Converter;
+        this.response78Converter = response78Converter;
     }
 
     @Override
@@ -62,7 +62,7 @@ class Iti104RouteBuilder extends RouteBuilder {
         log.debug("Iti104RouteBuilder configure");
         
         final String xds44Endpoint = String.format("pixv3-iti44://%s" +
-                "?secure=%s", this.config.getIti44HostUrl(), this.config.isPixHttps() ? "true" : "false")
+                "?secure=%s", this.mpiProps.getIti44().getUrl(), this.mpiProps.isHttps() ? "true" : "false")
                 +
                 "&audit=true" +
                 "&auditContext=#myAuditContext" +
@@ -73,7 +73,7 @@ class Iti104RouteBuilder extends RouteBuilder {
                 "&outFaultInterceptors=#soapRequestLogger";
         
    	 final String xds47Endpoint = String.format("pdqv3-iti47://%s" +
-             "?secure=%s", this.config.getIti47HostUrl(), this.config.isPixHttps() ? "true" : "false")
+             "?secure=%s", this.mpiProps.getIti47().getUrl(), this.mpiProps.isHttps() ? "true" : "false")
              +
              //"&sslContextParameters=#pixContext" +
              "&audit=true" +
@@ -87,7 +87,7 @@ class Iti104RouteBuilder extends RouteBuilder {
         from("pixm-iti104:stub?audit=true&auditContext=#myAuditContext").routeId("iti104-feed")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
-                .process(RequestHeadersForwarder.checkAuthorization(config.isChPdqmConstraints()))
+                .process(RequestHeadersForwarder.checkAuthorization(this.mpiProps.isChPdqmConstraints()))
                 .process(RequestHeadersForwarder.forward())
                 .process(Utils.keepBody())                
                 .bean(Iti104RequestConverter.class)
@@ -95,7 +95,7 @@ class Iti104RouteBuilder extends RouteBuilder {
                   .to(xds44Endpoint)
                   .process(Utils.keptBodyToHeader())
                   .process(Utils.storePreferHeader())
-                  .process(translateToFhir(converter , byte[].class))
+                  .process(translateToFhir(this.response104Converter , byte[].class))
                   .process(TraceparentHandler.updateHeaderForFhir())
                   .choice()
 	                    .when(header("Prefer").isEqualToIgnoreCase("return=Representation"))	                    
@@ -103,7 +103,7 @@ class Iti104RouteBuilder extends RouteBuilder {
 	                    .bean(Iti78RequestConverter.class, "fromMethodOutcome")
                         .process(TraceparentHandler.updateHeaderForSoap())
 	                    .to(xds47Endpoint)
-	  			        .process(translateToFhir(converter_78 , byte[].class))
+	  			        .process(translateToFhir(this.response78Converter , byte[].class))
                         .process(TraceparentHandler.updateHeaderForFhir())
 	  			        .process(Iti104ResponseConverter.addPatientToOutcome())
 	  			        .endChoice()

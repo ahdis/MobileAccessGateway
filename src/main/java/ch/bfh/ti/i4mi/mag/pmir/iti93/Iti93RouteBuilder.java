@@ -16,74 +16,73 @@
 
 package ch.bfh.ti.i4mi.mag.pmir.iti93;
 
-import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslators.translateToFhir;
-
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
+import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
+import ch.bfh.ti.i4mi.mag.mhd.BaseResponseConverter;
+import ch.bfh.ti.i4mi.mag.mhd.Utils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.support.ExpressionAdapter;
 import org.hl7.fhir.r4.model.Bundle;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
-import ch.bfh.ti.i4mi.mag.Config;
-import ch.bfh.ti.i4mi.mag.mhd.BaseResponseConverter;
-import ch.bfh.ti.i4mi.mag.mhd.Utils;
-import lombok.extern.slf4j.Slf4j;
- 
+import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslators.translateToFhir;
+
 /**
- * 
+ *
  */
 @Slf4j
 @Component
 @Conditional(Iti93Condition.class)
 class Iti93RouteBuilder extends RouteBuilder {
 
-	private final Config config;
-	
-	@Autowired
-	Iti93ResponseConverter converter;
-	
-    public Iti93RouteBuilder(final Config config) {
+    private final Iti93ResponseConverter responseConverter;
+    private final MagMpiProps mpiProps;
+
+    public Iti93RouteBuilder(final Iti93ResponseConverter responseConverter,
+                             final MagMpiProps mpiProps) {
         super();
-        this.config = config;
-        log.debug("Iti93RouteBuilder initialized");
+        this.responseConverter = responseConverter;
+        this.mpiProps = mpiProps;
     }
 
     @Override
     public void configure() throws Exception {
         log.debug("Iti93RouteBuilder configure");
-        
+
         final String xds44Endpoint = String.format("pixv3-iti44://%s" +
-                "?secure=%s", this.config.getIti44HostUrl(), this.config.isPixHttps() ? "true" : "false")
+                                                           "?secure=%s",
+                                                   this.mpiProps.getIti44().getUrl(),
+                                                   this.mpiProps.isHttps() ? "true" : "false")
                 +
                 "&audit=true" +
                 "&auditContext=#myAuditContext" +
-              //  "&sslContextParameters=#pixContext" +
-                "&inInterceptors=#soapResponseLogger" + 
-                "&inFaultInterceptors=#soapResponseLogger"+
-                "&outInterceptors=#soapRequestLogger" + 
+                //  "&sslContextParameters=#pixContext" +
+                "&inInterceptors=#soapResponseLogger" +
+                "&inFaultInterceptors=#soapResponseLogger" +
+                "&outInterceptors=#soapRequestLogger" +
                 "&outFaultInterceptors=#soapRequestLogger";
-        
+
         from("pmir-iti93:stub?audit=true&auditContext=#myAuditContext").routeId("pmir-feed")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
-				.process(RequestHeadersForwarder.checkAuthorization(config.isChMhdConstraints()))
+                .process(RequestHeadersForwarder.checkAuthorization(this.mpiProps.isChPixmConstraints()))
                 .process(RequestHeadersForwarder.forward())
                 .process(Utils.keepBody())
                 .bean(Iti93RequestConverter.class)
                 .doTry()
-                  .to(xds44Endpoint)
-                  .process(Utils.keptBodyToHeader())
-                  .process(TraceparentHandler.updateHeaderForFhir())
-                  .process(translateToFhir(converter , byte[].class))
-            	.doCatch(jakarta.xml.ws.soap.SOAPFaultException.class)
-				  .setBody(simple("${exception}"))
-				  .bean(BaseResponseConverter.class, "errorFromException")
-				.end();
-                
+                .to(xds44Endpoint)
+                .process(Utils.keptBodyToHeader())
+                .process(TraceparentHandler.updateHeaderForFhir())
+                .process(translateToFhir(responseConverter, byte[].class))
+                .doCatch(jakarta.xml.ws.soap.SOAPFaultException.class)
+                .setBody(simple("${exception}"))
+                .bean(BaseResponseConverter.class, "errorFromException")
+                .end();
+
     }
 
     private class Responder extends ExpressionAdapter {
@@ -91,7 +90,7 @@ class Iti93RouteBuilder extends RouteBuilder {
         @Override
         public Object evaluate(Exchange exchange) {
             Bundle requestBundle = exchange.getIn().getBody(Bundle.class);
-            
+
             Bundle responseBundle = new Bundle()
                     .setType(Bundle.BundleType.TRANSACTIONRESPONSE)
                     .setTotal(requestBundle.getTotal());
@@ -100,5 +99,4 @@ class Iti93RouteBuilder extends RouteBuilder {
         }
 
     }
-
 }

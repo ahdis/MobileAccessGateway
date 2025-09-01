@@ -16,67 +16,68 @@
 
 package ch.bfh.ti.i4mi.mag.mhd.iti65;
 
-import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslators.translateToFhir;
-
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
+import ch.bfh.ti.i4mi.mag.config.props.MagXdsProps;
+import ch.bfh.ti.i4mi.mag.mhd.Utils;
 import org.apache.camel.builder.RouteBuilder;
 import org.openehealth.ipf.commons.ihe.xds.core.ebxml.ebxml30.ProvideAndRegisterDocumentSetRequestType;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.Response;
+import org.slf4j.Logger;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import ch.bfh.ti.i4mi.mag.Config;
-import ch.bfh.ti.i4mi.mag.mhd.Utils;
-import lombok.extern.slf4j.Slf4j;
+import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslators.translateToFhir;
 
 /**
  * IHE MHD: [ITI-65] Provide Document Bundle Request Message for Document Recipient
  * https://oehf.github.io/ipf-docs/docs/ihe/iti65/
  */
-@Slf4j
 @Component
 @ConditionalOnProperty("mag.xds.iti-41.url")
 class Iti65RouteBuilder extends RouteBuilder {
 
-	private final Config config;
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(Iti65RouteBuilder.class);
+    private final MagXdsProps xdsProps;
     private final Iti65ResponseConverter iti65ResponseConverter;
-	
-    public Iti65RouteBuilder(final Config config,
+
+    public Iti65RouteBuilder(final MagXdsProps xdsProps,
                              final Iti65ResponseConverter iti65ResponseConverter) {
         super();
-        this.config = config;
+        this.xdsProps = xdsProps;
         this.iti65ResponseConverter = iti65ResponseConverter;
-        log.debug("Iti65RouteBuilder initialized");
     }
 
     @Override
     public void configure() throws Exception {
         log.debug("Iti65RouteBuilder configure");
-        
+
         final String xds41Endpoint = String.format("xds-iti41://%s" +
-                "?secure=%s", this.config.getIti41HostUrl(), this.config.isHttps() ? "true" : "false")
-              +
-                      "&audit=true" +
-                      "&auditContext=#myAuditContext" +
+                                                           "?secure=%s",
+                                                   this.xdsProps.getIti41().getUrl(),
+                                                   this.xdsProps.isHttps() ? "true" : "false")
+                +
+                "&audit=true" +
+                "&auditContext=#myAuditContext" +
                 //      "&sslContextParameters=#pixContext" +
-                      "&inInterceptors=#soapResponseLogger" + 
-                      "&inFaultInterceptors=#soapResponseLogger"+
-                      "&outInterceptors=#soapRequestLogger" + 
-                      "&outFaultInterceptors=#soapRequestLogger";
-        
-        from("mhd-iti65:stub?audit=true&auditContext=#myAuditContext&fhirContext=#fhirContext").routeId("mhd-providedocumentbundle")
+                "&inInterceptors=#soapResponseLogger" +
+                "&inFaultInterceptors=#soapResponseLogger" +
+                "&outInterceptors=#soapRequestLogger" +
+                "&outFaultInterceptors=#soapRequestLogger";
+
+        from("mhd-iti65:stub?audit=true&auditContext=#myAuditContext&fhirContext=#fhirContext").routeId(
+                        "mhd-providedocumentbundle")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 //.process(itiRequestValidator())
-                .process(RequestHeadersForwarder.checkAuthorization(config.isChMhdConstraints()))
+                .process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
                 .process(RequestHeadersForwarder.forward())
                 // translate, forward, translate back
                 .process(Utils.keepBody())
                 .process(Utils.storeBodyToHeader("BundleRequest"))
                 .bean(Iti65RequestConverter.class)
                 .process(Utils.storeBodyToHeader("ProvideAndRegisterDocumentSet"))
-                .convertBodyTo(ProvideAndRegisterDocumentSetRequestType.class)               
+                .convertBodyTo(ProvideAndRegisterDocumentSetRequestType.class)
                 //.process(iti41RequestValidator())
                 .to(xds41Endpoint)
                 .convertBodyTo(Response.class)

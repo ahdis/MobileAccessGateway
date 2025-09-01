@@ -16,9 +16,15 @@
 
 package ch.bfh.ti.i4mi.mag.mhd.iti66;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import ca.uhn.fhir.rest.param.DateParam;
+import ca.uhn.fhir.rest.param.DateRangeParam;
+import ca.uhn.fhir.rest.param.ReferenceParam;
+import ca.uhn.fhir.rest.param.StringParam;
+import ca.uhn.fhir.rest.param.TokenOrListParam;
+import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
+import ch.bfh.ti.i4mi.mag.BaseRequestConverter;
+import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import org.apache.camel.Body;
 import org.openehealth.ipf.commons.ihe.fhir.iti66.Iti66ListSearchParameters;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.AssigningAuthority;
@@ -30,126 +36,127 @@ import org.openehealth.ipf.commons.ihe.xds.core.requests.query.GetSubmissionSetA
 import org.openehealth.ipf.commons.ihe.xds.core.requests.query.Query;
 import org.openehealth.ipf.commons.ihe.xds.core.requests.query.QueryReturnType;
 
-import ca.uhn.fhir.rest.param.DateParam;
-import ca.uhn.fhir.rest.param.DateRangeParam;
-import ca.uhn.fhir.rest.param.ReferenceParam;
-import ca.uhn.fhir.rest.param.StringParam;
-import ca.uhn.fhir.rest.param.TokenOrListParam;
-import ca.uhn.fhir.rest.param.TokenParam;
-import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
-import ch.bfh.ti.i4mi.mag.BaseRequestConverter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * ITI-66 to ITI-18 request converter
+ *
  * @author alexander kreutz
  *
  */
 public class Iti66RequestConverter extends BaseRequestConverter {
 
-	 /**
-	  * convert ITI-66 request to ITI-18 request
-	  * @param searchParameter
-	  * @return
-	  */
-	 public QueryRegistry searchParameterIti66ToFindSubmissionSetsQuery(@Body Iti66ListSearchParameters searchParameter) {
-	      
-         boolean getLeafClass = true;
-       
-         Query searchQuery = null;
-         
-         if (searchParameter.getIdentifier() != null || searchParameter.get_id() != null) {
-        	 final GetSubmissionSetAndContentsQuery query = new GetSubmissionSetAndContentsQuery();
-        	 if (searchParameter.getIdentifier() != null) {
-	        	 String val = searchParameter.getIdentifier().getValue();
-	        	 if (val.startsWith("urn:oid:")) {
-	        		 query.setUniqueId(val.substring("urn:oid:".length()));
-	        	 } else if (val.startsWith("urn:uuid:")) {
-	        		 query.setUuid(val.substring("urn:uuid:".length()));
-	        	 }
-        	 } else {
-        		 query.setUuid(searchParameter.get_id().getValue());
-        	 }
-        	 
-        	 searchQuery = query;
-         } else {
-         
-         
-	         final FindSubmissionSetsQuery query = new FindSubmissionSetsQuery();
-	
-	         
-	         if (searchParameter.getCode() != null) {
-                 final boolean hasSubmissionset =
-                         searchParameter.getCode().getValuesAsQueryTokens().stream().anyMatch(code -> "submissionset".equals(code.getValue()));
-                 if (!hasSubmissionset) {
-                     throw new InvalidRequestException("Only search for submissionsets supported.");
-                 }
-	         }
-	         
-	         
-	         // patient or patient.identifier -> $XDSSubmissionSetPatientId
-	         TokenParam tokenIdentifier = searchParameter.getPatientIdentifier();
-	         if (tokenIdentifier != null) {
-	         	String system = getScheme(tokenIdentifier.getSystem());
-	         	if (system==null) throw new InvalidRequestException("Missing OID for patient");
+    public Iti66RequestConverter(final SchemeMapper schemeMapper) {
+        super(schemeMapper);
+    }
+
+    /**
+     * convert ITI-66 request to ITI-18 request
+     *
+     * @param searchParameter
+     * @return
+     */
+    public QueryRegistry searchParameterIti66ToFindSubmissionSetsQuery(@Body Iti66ListSearchParameters searchParameter) {
+
+        boolean getLeafClass = true;
+
+        Query searchQuery = null;
+
+        if (searchParameter.getIdentifier() != null || searchParameter.get_id() != null) {
+            final GetSubmissionSetAndContentsQuery query = new GetSubmissionSetAndContentsQuery();
+            if (searchParameter.getIdentifier() != null) {
+                String val = searchParameter.getIdentifier().getValue();
+                if (val.startsWith("urn:oid:")) {
+                    query.setUniqueId(val.substring("urn:oid:".length()));
+                } else if (val.startsWith("urn:uuid:")) {
+                    query.setUuid(val.substring("urn:uuid:".length()));
+                }
+            } else {
+                query.setUuid(searchParameter.get_id().getValue());
+            }
+
+            searchQuery = query;
+        } else {
+
+
+            final FindSubmissionSetsQuery query = new FindSubmissionSetsQuery();
+
+
+            if (searchParameter.getCode() != null) {
+                final boolean hasSubmissionset =
+                        searchParameter.getCode().getValuesAsQueryTokens().stream().anyMatch(code -> "submissionset".equals(
+                                code.getValue()));
+                if (!hasSubmissionset) {
+                    throw new InvalidRequestException("Only search for submissionsets supported.");
+                }
+            }
+
+
+            // patient or patient.identifier -> $XDSSubmissionSetPatientId
+            TokenParam tokenIdentifier = searchParameter.getPatientIdentifier();
+            if (tokenIdentifier != null) {
+                String system = getScheme(tokenIdentifier.getSystem());
+                if (system == null) throw new InvalidRequestException("Missing OID for patient");
 	         	/*if (system.startsWith("urn:oid:")) {
 	                 system = system.substring(8);
 	             }*/
-	         	
-	              query.setPatientId(new Identifiable(tokenIdentifier.getValue(), new AssigningAuthority(system)));
-	         } 
-	         ReferenceParam patientRef =  searchParameter.getPatientReference();
-	         if (patientRef != null) {
-	        	 Identifiable id = transformReference(patientRef.getValue());
-	        	 query.setPatientId(id);
-	         }
-	        
-	         // created Note 1 -> $XDSSubmissionSetSubmissionTimeFrom
-	         // created Note 2 -> $XDSSubmissionSetSubmissionTimeTo 
-	         DateRangeParam createdRange = searchParameter.getDate();
-	         if (createdRange != null) {
-		            DateParam creationTimeFrom = createdRange.getLowerBound();
-		            DateParam creationTimeTo = createdRange.getUpperBound();
-		            query.getSubmissionTime().setFrom(timestampFromDateParam(creationTimeFrom));
-		            query.getSubmissionTime().setTo(timestampFromDateParam(creationTimeTo));
-	         }            
-	         
-	         // TODO author.given / author.family -> $XDSSubmissionSetAuthorPerson
-	         StringParam authorGivenName = searchParameter.getAuthorGivenName();
-	         StringParam authorFamilyName = searchParameter.getAuthorFamilyName();
-	         if (authorGivenName != null || authorFamilyName != null) {
-		            String author = (authorGivenName != null ? authorGivenName.getValue() : "%")+" "+(authorFamilyName != null ? authorFamilyName.getValue() : "%");	            
-		            query.setAuthorPerson(author);
-	         }
-	                                 
-	         // type -> $XDSSubmissionSetContentType
-	         TokenOrListParam types = searchParameter.getDesignationType();
-	         query.setContentTypeCodes(codesFromTokens(types));
-	         
-	         
-	         // source -> $XDSSubmissionSetSourceId 
-	         TokenOrListParam sources = searchParameter.getSourceId();
-	         query.setSourceIds(urisFromTokens(sources));
-	         
-	         // status -> $XDSSubmissionSetStatus 
-	         TokenOrListParam status = searchParameter.getStatus();
-	         if (status != null) {
-		            List<AvailabilityStatus> availabilites = new ArrayList<>(status.getListAsCodings().size());
-		            for (TokenParam statusToken : status.getValuesAsQueryTokens()) {
-		            	String tokenValue = statusToken.getValue();
-		            	if (tokenValue.equals("current")) availabilites.add(AvailabilityStatus.APPROVED);
-		            	else if (tokenValue.equals("superseded")) availabilites.add(AvailabilityStatus.DEPRECATED);
-		            }            
-		            query.setStatus(availabilites);
-	         }       
-	         searchQuery = query;
-         }
 
-         final QueryRegistry queryRegistry = new QueryRegistry(searchQuery);
-         
-                  
-         queryRegistry.setReturnType((getLeafClass) ? QueryReturnType.LEAF_CLASS : QueryReturnType.OBJECT_REF);
+                query.setPatientId(new Identifiable(tokenIdentifier.getValue(), new AssigningAuthority(system)));
+            }
+            ReferenceParam patientRef = searchParameter.getPatientReference();
+            if (patientRef != null) {
+                Identifiable id = transformReference(patientRef.getValue());
+                query.setPatientId(id);
+            }
 
-         return queryRegistry;
-     
- }
+            // created Note 1 -> $XDSSubmissionSetSubmissionTimeFrom
+            // created Note 2 -> $XDSSubmissionSetSubmissionTimeTo
+            DateRangeParam createdRange = searchParameter.getDate();
+            if (createdRange != null) {
+                DateParam creationTimeFrom = createdRange.getLowerBound();
+                DateParam creationTimeTo = createdRange.getUpperBound();
+                query.getSubmissionTime().setFrom(timestampFromDateParam(creationTimeFrom));
+                query.getSubmissionTime().setTo(timestampFromDateParam(creationTimeTo));
+            }
+
+            // TODO author.given / author.family -> $XDSSubmissionSetAuthorPerson
+            StringParam authorGivenName = searchParameter.getAuthorGivenName();
+            StringParam authorFamilyName = searchParameter.getAuthorFamilyName();
+            if (authorGivenName != null || authorFamilyName != null) {
+                String author = (authorGivenName != null ? authorGivenName.getValue() : "%") + " " + (authorFamilyName != null ? authorFamilyName.getValue() : "%");
+                query.setAuthorPerson(author);
+            }
+
+            // type -> $XDSSubmissionSetContentType
+            TokenOrListParam types = searchParameter.getDesignationType();
+            query.setContentTypeCodes(codesFromTokens(types));
+
+
+            // source -> $XDSSubmissionSetSourceId
+            TokenOrListParam sources = searchParameter.getSourceId();
+            query.setSourceIds(urisFromTokens(sources));
+
+            // status -> $XDSSubmissionSetStatus
+            TokenOrListParam status = searchParameter.getStatus();
+            if (status != null) {
+                List<AvailabilityStatus> availabilites = new ArrayList<>(status.getListAsCodings().size());
+                for (TokenParam statusToken : status.getValuesAsQueryTokens()) {
+                    String tokenValue = statusToken.getValue();
+                    if (tokenValue.equals("current")) availabilites.add(AvailabilityStatus.APPROVED);
+                    else if (tokenValue.equals("superseded")) availabilites.add(AvailabilityStatus.DEPRECATED);
+                }
+                query.setStatus(availabilites);
+            }
+            searchQuery = query;
+        }
+
+        final QueryRegistry queryRegistry = new QueryRegistry(searchQuery);
+
+
+        queryRegistry.setReturnType((getLeafClass) ? QueryReturnType.LEAF_CLASS : QueryReturnType.OBJECT_REF);
+
+        return queryRegistry;
+
+    }
 }

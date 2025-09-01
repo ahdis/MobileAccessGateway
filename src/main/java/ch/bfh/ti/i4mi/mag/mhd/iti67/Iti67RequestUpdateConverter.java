@@ -15,23 +15,39 @@
  */
 package ch.bfh.ti.i4mi.mag.mhd.iti67;
 
-import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.UUID;
-
-import ch.bfh.ti.i4mi.mag.Config;
 import ch.bfh.ti.i4mi.mag.MagConstants;
-import org.hl7.fhir.r4.model.*;
+import ch.bfh.ti.i4mi.mag.common.PatientIdMappingService;
+import ch.bfh.ti.i4mi.mag.config.props.MagProps;
+import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
+import ch.bfh.ti.i4mi.mag.mhd.iti65.Iti65RequestConverter;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.DocumentReference;
+import org.hl7.fhir.r4.model.Extension;
+import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.PositiveIntType;
 import org.openehealth.ipf.commons.core.URN;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.*;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.AssigningAuthority;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.Association;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.AssociationLabel;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.AssociationType;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.Code;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.DocumentAvailability;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.DocumentEntry;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.Identifiable;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.LocalizedString;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.SubmissionSet;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.Timestamp;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.Version;
 import org.openehealth.ipf.commons.ihe.xds.core.requests.builder.RegisterDocumentSetBuilder;
 import org.openehealth.ipf.commons.ihe.xds.core.stub.ebrs30.lcm.SubmitObjectsRequest;
 import org.openehealth.ipf.platform.camel.ihe.xds.core.converters.EbXML30Converters;
-
-import ch.bfh.ti.i4mi.mag.mhd.iti65.Iti65RequestConverter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
+
+import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.UUID;
 
 /**
  * ITI-67 DocumentReference Update request converter
@@ -39,16 +55,19 @@ import org.springframework.stereotype.Component;
  * @author oliver egger
  *
  */
-@Slf4j
 @Component
 public class Iti67RequestUpdateConverter extends Iti65RequestConverter {
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(Iti67RequestUpdateConverter.class);
 
-    private final Config config;
+    private final MagProps magProps;
 
-    @Autowired
-    public Iti67RequestUpdateConverter(Config config) {
-        this.config = config;
+    public Iti67RequestUpdateConverter(final SchemeMapper schemeMapper,
+                                       final PatientIdMappingService patientIdMappingService,
+                                       final MagProps magProps) {
+        super(schemeMapper, patientIdMappingService, magProps);
+        this.magProps = magProps;
     }
+
 
     /**
      * ITI-67 Response to ITI-57 request converter
@@ -65,7 +84,9 @@ public class Iti67RequestUpdateConverter extends Iti65RequestConverter {
         int currentVersion = Integer.parseInt(documentEntry.getVersion().getVersionName());
         RegisterDocumentSetBuilder builder = new RegisterDocumentSetBuilder(true, submissionSet)
                 .withDocument(documentEntry)
-                .withAssociation(createHasMemberAssociationWithOriginalPreviousLabel(currentVersion, submissionSet, documentEntry));
+                .withAssociation(createHasMemberAssociationWithOriginalPreviousLabel(currentVersion,
+                                                                                     submissionSet,
+                                                                                     documentEntry));
         documentEntry.getVersion().setVersionName(Integer.toString(currentVersion + 1));
 
         // Submission contains a DocumentEntry object.
@@ -80,19 +101,23 @@ public class Iti67RequestUpdateConverter extends Iti65RequestConverter {
 
     private void enrichSubmissionSet(SubmissionSet submissionSet, DocumentReference documentReference) {
         Extension source =
-                getExtensionByUrl(documentReference, "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-sourceId");
+                getExtensionByUrl(documentReference,
+                                  "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-sourceId");
         if (source != null && source.getValue() instanceof Identifier) {
             submissionSet.setSourceId(noPrefix(((Identifier) source.getValue()).getValue()));
         } else {
-            submissionSet.setSourceId(noPrefix(config.getDocumentSourceId()));
+            submissionSet.setSourceId(noPrefix(this.magProps.getDocumentSourceId()));
         }
 
         Extension designationType =
-                getExtensionByUrl(documentReference, "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-designationType");
+                getExtensionByUrl(documentReference,
+                                  "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-designationType");
         if (designationType != null && designationType.getValue() instanceof CodeableConcept) {
             submissionSet.setContentTypeCode(transformCodeableConcept((CodeableConcept) designationType.getValue()));
         } else {
-            submissionSet.setContentTypeCode(new Code("71388002", new LocalizedString("Procedure"), "2.16.840.1.113883.6.96"));
+            submissionSet.setContentTypeCode(new Code("71388002",
+                                                      new LocalizedString("Procedure"),
+                                                      "2.16.840.1.113883.6.96"));
         }
 
         Extension authorRoleExt =
@@ -100,7 +125,8 @@ public class Iti67RequestUpdateConverter extends Iti65RequestConverter {
         if (authorRoleExt != null) {
             Coding coding = authorRoleExt.castToCoding(authorRoleExt.getValue());
             if (coding != null) {
-                Identifiable identifiable = new Identifiable(coding.getCode(), new AssigningAuthority(noPrefix(coding.getSystem())));
+                Identifiable identifiable = new Identifiable(coding.getCode(),
+                                                             new AssigningAuthority(noPrefix(coding.getSystem())));
                 submissionSet.setAuthor(transformAuthor(null, null, identifiable));
             }
         }
@@ -122,7 +148,8 @@ public class Iti67RequestUpdateConverter extends Iti65RequestConverter {
                 .getExtensionByUrl(MagConstants.FhirExtensionUrls.DOCUMENT_AVAILABILITY);
         if (documentAvailabilityExtension != null && documentAvailabilityExtension.getValue() instanceof Coding) {
             Coding coding = (Coding) documentAvailabilityExtension.getValue();
-            if (MagConstants.FhirCodingSystemIds.RFC_3986.equals(coding.getSystem()) && coding.getCode().startsWith("urn:ihe:iti:2010:DocumentAvailability:")) {
+            if (MagConstants.FhirCodingSystemIds.RFC_3986.equals(coding.getSystem()) && coding.getCode().startsWith(
+                    "urn:ihe:iti:2010:DocumentAvailability:")) {
                 entry.setDocumentAvailability(DocumentAvailability.valueOfOpcode(coding.getCode().substring(38)));
             }
         }
@@ -139,7 +166,9 @@ public class Iti67RequestUpdateConverter extends Iti65RequestConverter {
         return entry;
     }
 
-    private Association createHasMemberAssociationWithOriginalPreviousLabel(int version, SubmissionSet submissionSet, DocumentEntry entry) {
+    private Association createHasMemberAssociationWithOriginalPreviousLabel(int version,
+                                                                            SubmissionSet submissionSet,
+                                                                            DocumentEntry entry) {
         var assoc = createHasMemberAssociation(entry.getEntryUuid(), submissionSet);
         assoc.setLabel(AssociationLabel.ORIGINAL);
         assoc.setPreviousVersion(Integer.toString(version));
@@ -149,15 +178,17 @@ public class Iti67RequestUpdateConverter extends Iti65RequestConverter {
 
     private Association createHasMemberAssociation(String entryUuid, SubmissionSet submissionSet) {
         return new Association(AssociationType.HAS_MEMBER, new URN(UUID.randomUUID()).toString(),
-                submissionSet.getEntryUuid(), entryUuid);
+                               submissionSet.getEntryUuid(), entryUuid);
 
     }
 
     public SubmissionSet createSubmissionSet() {
         SubmissionSet submissionSet = new SubmissionSet();
         submissionSet.setSubmissionTime(new Timestamp(ZonedDateTime.now(), Timestamp.Precision.SECOND));
-        submissionSet.setContentTypeCode(new Code("71388002", new LocalizedString("Procedure"), "2.16.840.1.113883.6.96"));
-        submissionSet.setSourceId(noPrefix(config.getDocumentSourceId()));
+        submissionSet.setContentTypeCode(new Code("71388002",
+                                                  new LocalizedString("Procedure"),
+                                                  "2.16.840.1.113883.6.96"));
+        submissionSet.setSourceId(noPrefix(this.magProps.getDocumentSourceId()));
         submissionSet.assignEntryUuid();
         submissionSet.assignUniqueId();
         return submissionSet;

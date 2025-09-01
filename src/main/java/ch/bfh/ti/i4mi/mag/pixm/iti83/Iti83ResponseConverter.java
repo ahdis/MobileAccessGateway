@@ -30,15 +30,12 @@ import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.UriType;
 import org.openehealth.ipf.commons.ihe.fhir.translation.ToFhirTranslator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
-import ch.bfh.ti.i4mi.mag.Config;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
 import ch.bfh.ti.i4mi.mag.pmir.BasePMIRResponseConverter;
-import ch.bfh.ti.i4mi.mag.pmir.PatientReferenceCreator;
 import net.ihe.gazelle.hl7v3.datatypes.II;
 import net.ihe.gazelle.hl7v3.mccimt000300UV01.MCCIMT000300UV01Acknowledgement;
 import net.ihe.gazelle.hl7v3.mccimt000300UV01.MCCIMT000300UV01AcknowledgementDetail;
@@ -54,12 +51,6 @@ import net.ihe.gazelle.hl7v3transformer.HL7V3Transformer;
  */
 @Component
 public class Iti83ResponseConverter extends BasePMIRResponseConverter implements ToFhirTranslator<byte[]> {
-
-	@Autowired
-	PatientReferenceCreator patientRefCreator;
-
-	@Autowired
-	private Config config;
 
 	public Parameters translateToFhir(byte[] input, Map<String, Object> parameters)  {
 		try {
@@ -101,15 +92,14 @@ public class Iti83ResponseConverter extends BasePMIRResponseConverter implements
 		
 		List<PRPAIN201310UV02MFMIMT700711UV01Subject1> subjects = controlAct.getSubject();
 		for (PRPAIN201310UV02MFMIMT700711UV01Subject1 subject : subjects) {
-			boolean targetIdAdded = false;
-			
-			List<II> ids = new ArrayList<II>();
+
+			List<II> ids = new ArrayList<>(5);
 			
 			ids.addAll(subject.getRegistrationEvent().getSubject1().getPatient().getId());
 			for (var otherId : subject.getRegistrationEvent().getSubject1().getPatient().getPatientPerson().getAsOtherIDs()) {
 				ids.addAll(otherId.getId());
 			}
-						
+
 			for (II ii : ids) {
 				String root = ii.getRoot();
 				String extension = ii.getExtension();
@@ -118,15 +108,7 @@ public class Iti83ResponseConverter extends BasePMIRResponseConverter implements
 				  response.addParameter().setName("targetIdentifier").setValue((new Identifier()).setSystem("urn:oid:"+root).setValue(extension));
 				  noDuplicates.add(root);
 				}
-				if (!targetIdAdded && root.equals(config.getOidMpiPid()) && !config.isChEprspidAsPatientId()) {
-					response.addParameter().setName("targetId").setValue(patientRefCreator.createPatientReference(root, extension));
-					targetIdAdded = true;
-				}
-				if (!targetIdAdded && root.equals(config.OID_EPRSPID) && config.isChEprspidAsPatientId()) {
-					response.addParameter().setName("targetId").setValue(patientRefCreator.createPatientReference(root, extension));
-					targetIdAdded = true;
-				}
-			}	
+			}
 		}
 						
 		return response;

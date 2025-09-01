@@ -1,8 +1,12 @@
 package ch.bfh.ti.i4mi.mag.mhd.iti65;
 
+import ch.bfh.ti.i4mi.mag.common.PatientIdMappingService;
+import ch.bfh.ti.i4mi.mag.config.props.MagProps;
+import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import org.hl7.fhir.r4.model.Organization;
 import org.junit.jupiter.api.Test;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Hl7v2Based;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -13,9 +17,20 @@ import static org.junit.jupiter.api.Assertions.*;
  **/
 class Iti65RequestConverterTest {
 
+    @Autowired
+    private SchemeMapper schemeMapper;
+
+    @Autowired
+    private PatientIdMappingService patientIdMappingService;
+
+    @Autowired
+    private MagProps magProps;
+
     @Test
     void testTransformOrganization() {
-        final var iti65RequestConverter = new Iti65RequestConverter();
+        final var iti65RequestConverter = new Iti65RequestConverter(
+                schemeMapper, patientIdMappingService, magProps
+        );
 
         final var org = new Organization();
         org.setName("Test");

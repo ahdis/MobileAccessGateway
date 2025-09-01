@@ -16,10 +16,8 @@
 
 package ch.bfh.ti.i4mi.mag;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.Extension;
@@ -35,7 +33,6 @@ import ca.uhn.fhir.rest.param.DateParam;
 import ca.uhn.fhir.rest.param.TokenOrListParam;
 import ca.uhn.fhir.rest.param.TokenParam;
 import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
-import ch.bfh.ti.i4mi.mag.pmir.PatientReferenceCreator;
 import net.ihe.gazelle.hl7v3.datatypes.ST;
 
 /**
@@ -44,14 +41,14 @@ import net.ihe.gazelle.hl7v3.datatypes.ST;
  */
 public class BaseRequestConverter {
 
-	@Autowired
-	private SchemeMapper schemeMapper;// = new SchemeMapper();
-	
-	@Autowired
-	private PatientReferenceCreator patientReferenceCreator;
+    protected final SchemeMapper schemeMapper;
+
+    public BaseRequestConverter(final SchemeMapper schemeMapper) {
+        this.schemeMapper = schemeMapper;
+    }
 
 	public String getScheme(String system) {
-		return schemeMapper.getScheme(system);
+		return this.schemeMapper.getScheme(system);
 	}
 
 	public Timestamp timestampFromDateParam(DateParam dateParam) {
@@ -95,10 +92,7 @@ public class BaseRequestConverter {
 	
 	public Identifiable transformReference(String targetRef) {
 		if (targetRef == null) return null;
-		
-		Identifiable id = patientReferenceCreator.resolvePatientReference(targetRef);
-		if (id!=null) return id;
-		
+
 		MultiValueMap<String, String> vals = UriComponentsBuilder.fromUriString(targetRef).build().getQueryParams();
 		if (vals.containsKey("identifier")) {
 			String ids = vals.getFirst("identifier");
@@ -126,16 +120,4 @@ public class BaseRequestConverter {
 		}
 		return null;
 	}
-
-	public List<Extension> getExtensionsByUrl(DomainResource resource,String url) {
-		if (url != null && resource != null) {
-		    List<Extension> ext = resource.getExtensionsByUrl(url);
-		    if (!ext.isEmpty()) return ext;
-		    if (url.startsWith("https://")) ext = resource.getExtensionsByUrl(url.replace("https://", "http://"));
-		    return ext;
-		}
-		return null;
-	}
-
-	
 }

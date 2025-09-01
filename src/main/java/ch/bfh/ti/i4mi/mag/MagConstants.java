@@ -19,8 +19,6 @@ public class MagConstants {
         // Swiss EPR specific extensions
         public static final String CH_AUTHOR_ROLE     = CH_PREFIX + "ch-ext-author-authorrole";
         public static final String CH_DELETION_STATUS = CH_PREFIX + "ch-ext-deletionstatus";
-
-
     }
 
     @UtilityClass
@@ -45,4 +43,5 @@ public class MagConstants {
         public static final String PROHIBITED    = PREFIX + "deletionProhibited";
     }
 
+    final static public String EPR_SPID_OID = "2.16.756.5.30.1.127.3.10.3";
 }

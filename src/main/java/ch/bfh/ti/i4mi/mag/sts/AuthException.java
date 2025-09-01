@@ -16,25 +16,28 @@
 
 package ch.bfh.ti.i4mi.mag.sts;
 
-import lombok.Getter;
-
 /**
- * Error during authentication 
+ * Error during authentication
+ *
  * @author alexander kreutz
  *
  */
 public class AuthException extends Exception {
 
-	@Getter
-	private int status;
-	
-	@Getter
-	private String error;
-	
-	
-	public AuthException(int status, String error, String msg) {
-		super(msg);
-		this.status = status;
-		this.error = error;
-	}
+    private int status;
+    private String error;
+
+    public AuthException(int status, String error, String msg) {
+        super(msg);
+        this.status = status;
+        this.error = error;
+    }
+
+    public int getStatus() {
+        return this.status;
+    }
+
+    public String getError() {
+        return this.error;
+    }
 }

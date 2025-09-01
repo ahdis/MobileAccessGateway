@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
 import jakarta.xml.bind.JAXBException;
 
 import net.ihe.gazelle.hl7v3.coctmt030007UV.COCTMT030007UVPerson;
@@ -50,18 +51,16 @@ import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
 import org.openehealth.ipf.commons.ihe.fhir.translation.ToFhirTranslator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ca.uhn.fhir.rest.server.exceptions.UnclassifiedServerFailureException;
-import ch.bfh.ti.i4mi.mag.Config;
 import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import ch.bfh.ti.i4mi.mag.pmir.BasePMIRResponseConverter;
-import ch.bfh.ti.i4mi.mag.pmir.PatientReferenceCreator;
 import lombok.extern.slf4j.Slf4j;
 
+import static ch.bfh.ti.i4mi.mag.MagConstants.EPR_SPID_OID;
 import static ch.bfh.ti.i4mi.mag.MagConstants.FhirExtensionUrls.MOTHERS_MAIDEN_NAME;
 
 /**
@@ -74,14 +73,14 @@ import static ch.bfh.ti.i4mi.mag.MagConstants.FhirExtensionUrls.MOTHERS_MAIDEN_N
 @Primary
 public class Iti78ResponseConverter extends BasePMIRResponseConverter implements ToFhirTranslator<byte[]> {
 
-	@Autowired
-	PatientReferenceCreator patientRefCreator;
+	private final SchemeMapper schemeMapper;
+    private final MagMpiProps mpiProps;
 
-	@Autowired
-	private Config config;
-
-	@Autowired
-	SchemeMapper schemeMapper;
+    public Iti78ResponseConverter(final SchemeMapper schemeMapper,
+                                  final MagMpiProps mpiProps) {
+    	this.schemeMapper = schemeMapper;
+    	this.mpiProps = mpiProps;
+    }
 	
 	public OperationOutcome error(IssueType type, String diagnostics) {
 		OperationOutcome result = new OperationOutcome();
@@ -261,7 +260,7 @@ public class Iti78ResponseConverter extends BasePMIRResponseConverter implements
 		}
 
 		List<PRPAIN201306UV02MFMIMT700711UV01Subject1> subjects = controlAct.getSubject();
-		if (config.isChPdqmConstraints() && subjects.size()>5) {
+		if (this.mpiProps.isChPdqmConstraints() && subjects.size()>5) {
 			// https://github.com/i4mi/MobileAccessGateway/issues/171
 			OperationOutcome operationOutcome = new OperationOutcome();
 			CodeableConcept code = new CodeableConcept();
@@ -291,8 +290,8 @@ public class Iti78ResponseConverter extends BasePMIRResponseConverter implements
 			for (II patientId : patient.getId()) {
 				if (patientId.getRoot()==null && patientId.getExtension()==null) continue;
 
-				if (config.isChPdqmConstraints()) {
-					if (config.getOidMpiPid().equals(patientId.getRoot()) || config.OID_EPRSPID.equals(patientId.getRoot())) {
+				if (this.mpiProps.isChPdqmConstraints()) {
+					if (this.mpiProps.getOids().getMpiPid().equals(patientId.getRoot()) || EPR_SPID_OID.equals(patientId.getRoot())) {
 						result.addIdentifier().setSystem(getSystem(patientId.getRoot())).setValue(patientId.getExtension());
 					} else {
 						log.warn("Ignoring patient identifier "+patientId.getRoot());
@@ -300,19 +299,14 @@ public class Iti78ResponseConverter extends BasePMIRResponseConverter implements
 				} else	{							
 					result.addIdentifier().setSystem(getSystem(patientId.getRoot())).setValue(patientId.getExtension());
 				}
-				
-				if (!idadded) {
-					result.setId(patientRefCreator.createPatientId(patientId.getRoot(), patientId.getExtension()));
-					idadded = true;
-				}
 			}
 			
 			for (PRPAMT201310UV02OtherIDs otherIds : patient.getPatientPerson().getAsOtherIDs()) {
 				for (II patientId : otherIds.getId()) {
 				   if (patientId.getRoot()==null && patientId.getExtension()==null) continue;
 
-				   if (config.isChPdqmConstraints()) {
-						if (config.getOidMpiPid().equals(patientId.getRoot()) || config.OID_EPRSPID.equals(patientId.getRoot())) {
+				   if (this.mpiProps.isChPdqmConstraints()) {
+						if (this.mpiProps.getOids().getMpiPid().equals(patientId.getRoot()) || EPR_SPID_OID.equals(patientId.getRoot())) {
 							result.addIdentifier().setSystem(getSystem(patientId.getRoot())).setValue(patientId.getExtension());
 						} else {
 							log.warn("Ignoring patient identifier "+patientId.getRoot());

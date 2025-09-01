@@ -1,6 +1,6 @@
 package ch.bfh.ti.i4mi.mag.common;
 
-import ch.bfh.ti.i4mi.mag.Config;
+import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
 import net.ihe.gazelle.hl7v3.datatypes.II;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static ch.bfh.ti.i4mi.mag.MagConstants.EPR_SPID_OID;
+
 /**
  * A service dedicated to patient identifiers cross-mapping: XAD-PID ↔ EPR-SPID.
  **/
@@ -38,20 +40,20 @@ public class PatientIdMappingService implements CamelContextAware {
     private ProducerTemplate producerTemplate;
     private final String pixv3Endpoint;
 
-    public PatientIdMappingService(final Config config) {
+    public PatientIdMappingService(final MagMpiProps mpiProps) {
         this.cache = new PassiveExpiringMap<>(5, TimeUnit.MINUTES);
-        this.xadMpiOid = config.getOidMpiPid();
+        this.xadMpiOid = mpiProps.getOids().getMpiPid();
         this.pixv3Endpoint = "pixv3-iti45://%s?secure=%s&audit=%s".formatted(
-                config.getIti45HostUrl(),
-                String.valueOf(config.isPixHttps()),
+                mpiProps.getIti45().getUrl(),
+                String.valueOf(mpiProps.isHttps()),
                 String.valueOf(true)
         );
 
         this.pixv3Sender = new Device();
-        this.pixv3Sender.getIds().add(new II(config.getPixMySenderOid(), null));
+        this.pixv3Sender.getIds().add(new II(mpiProps.getOids().getSender(), null));
 
         this.pixv3Receiver = new Device();
-        this.pixv3Receiver.getIds().add(new II(config.getPixReceiverOid(), null));
+        this.pixv3Receiver.getIds().add(new II(mpiProps.getOids().getReceiver(), null));
     }
 
     @Override
@@ -74,7 +76,7 @@ public class PatientIdMappingService implements CamelContextAware {
             return maybeXadPid.get();
         }
 
-        final var xadPid = this.query(new II(Config.OID_EPRSPID, eprSpid), this.xadMpiOid);
+        final var xadPid = this.query(new II(EPR_SPID_OID, eprSpid), this.xadMpiOid);
         this.cache.put(xadPid, eprSpid);
         return xadPid;
     }
@@ -84,7 +86,7 @@ public class PatientIdMappingService implements CamelContextAware {
             return this.cache.get(xadPid);
         }
 
-        final var eprSpid = this.query(new II(this.xadMpiOid, xadPid), Config.OID_EPRSPID);
+        final var eprSpid = this.query(new II(this.xadMpiOid, xadPid), EPR_SPID_OID);
         this.cache.put(xadPid, eprSpid);
         return eprSpid;
     }
@@ -102,7 +104,7 @@ public class PatientIdMappingService implements CamelContextAware {
                          final String wantedSystem) throws Exception {
         final var pixQuery = new PixV3QueryRequest();
         pixQuery.setQueryPatientId(queriedIdentifier);
-        pixQuery.getDataSourceOids().add(Config.OID_EPRSPID);
+        pixQuery.getDataSourceOids().add(EPR_SPID_OID);
         pixQuery.getDataSourceOids().add(this.xadMpiOid);
         pixQuery.setMessageId(new II(UUID.randomUUID().toString(), null));
         pixQuery.setQueryId(new II(UUID.randomUUID().toString(), null));

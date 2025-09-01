@@ -1,6 +1,6 @@
 package ch.bfh.ti.i4mi.mag.ppqm;
 
-import ch.bfh.ti.i4mi.mag.Config;
+import ch.bfh.ti.i4mi.mag.config.props.MagPpqProps;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.cxf.binding.soap.SoapFault;
 import org.openehealth.ipf.commons.ihe.fhir.chppqm.translation.FhirToXacmlTranslator;
@@ -14,18 +14,18 @@ import org.openehealth.ipf.platform.camel.core.util.Exchanges;
  */
 abstract public class PpqmRouteBuilder extends RouteBuilder {
 
-    protected final Config config;
     protected final FhirToXacmlTranslator fhirToXacmlTranslator;
     protected final ChPpqMessageCreator ppqMessageCreator;
+    protected final MagPpqProps ppqProps;
 
     protected PpqmRouteBuilder(
-            Config config,
-            FhirToXacmlTranslator fhirToXacmlTranslator,
-            ChPpqMessageCreator ppqMessageCreator)
+            final FhirToXacmlTranslator fhirToXacmlTranslator,
+            final ChPpqMessageCreator ppqMessageCreator,
+            final MagPpqProps ppqProps)
     {
-        this.config = config;
         this.fhirToXacmlTranslator = fhirToXacmlTranslator;
         this.ppqMessageCreator = ppqMessageCreator;
+        this.ppqProps = ppqProps;
     }
 
     protected void configureExceptionHandling() {

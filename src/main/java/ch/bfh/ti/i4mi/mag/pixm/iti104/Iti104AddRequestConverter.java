@@ -16,33 +16,11 @@
 
 package ch.bfh.ti.i4mi.mag.pixm.iti104;
 
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import jakarta.xml.bind.JAXBException;
-
-import org.hl7.fhir.r4.model.Address;
-import org.hl7.fhir.r4.model.ContactPoint;
-import org.hl7.fhir.r4.model.HumanName;
-import org.hl7.fhir.r4.model.Identifier;
-import org.hl7.fhir.r4.model.MessageHeader;
-import org.hl7.fhir.r4.model.Organization;
-import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.Patient.PatientCommunicationComponent;
-import org.hl7.fhir.r4.model.Reference;
-import org.hl7.fhir.r4.model.Resource;
-import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
-import org.hl7.fhir.r4.model.Bundle.HTTPVerb;
-import org.hl7.fhir.r4.model.Organization.OrganizationContactComponent;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.Timestamp;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
-import ch.bfh.ti.i4mi.mag.Config;
+import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
+import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import ch.bfh.ti.i4mi.mag.pmir.PMIRRequestConverter;
+import jakarta.xml.bind.JAXBException;
 import net.ihe.gazelle.hl7v3.coctmt090003UV01.COCTMT090003UV01AssignedEntity;
 import net.ihe.gazelle.hl7v3.coctmt090003UV01.COCTMT090003UV01Organization;
 import net.ihe.gazelle.hl7v3.coctmt150003UV03.COCTMT150003UV03ContactParty;
@@ -84,279 +62,301 @@ import net.ihe.gazelle.hl7v3.voc.RoleClassAssignedEntity;
 import net.ihe.gazelle.hl7v3.voc.RoleClassContact;
 import net.ihe.gazelle.hl7v3.voc.XActMoodIntentEvent;
 import net.ihe.gazelle.hl7v3transformer.HL7V3Transformer;
+import org.hl7.fhir.r4.model.Address;
+import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
+import org.hl7.fhir.r4.model.ContactPoint;
+import org.hl7.fhir.r4.model.HumanName;
+import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.Organization;
+import org.hl7.fhir.r4.model.Organization.OrganizationContactComponent;
+import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Patient.PatientCommunicationComponent;
+import org.hl7.fhir.r4.model.Reference;
+import org.hl7.fhir.r4.model.Resource;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.Timestamp;
+
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * ITI-104 Patient Identity Feed (add a new patient)
- * 
+ *
  * @author alexander kreutz
  *
  */
 public class Iti104AddRequestConverter extends PMIRRequestConverter {
 
-	@Autowired
-	protected Config config;
+    protected final MagMpiProps.MagMpiOidsProps mpiOidsProps;
 
-	/**
-	 * add a new patient
-	 * 
-	 * @param header
-	 * @param entriesByReference
-	 * @return
-	 * @throws JAXBException
-	 */
-	public String doCreate(Patient in, Identifier identifier) throws JAXBException {
+    public Iti104AddRequestConverter(final SchemeMapper schemeMapper,
+                                     final MagMpiProps mpiProps) {
+        super(schemeMapper);
+        this.mpiOidsProps = mpiProps.getOids();
+    }
 
-		PRPAIN201301UV02Type resultMsg = new PRPAIN201301UV02Type();
-		resultMsg.setITSVersion("XML_1.0");
-		// String UUID.randomUUID().toString();
-		resultMsg.setId(new II(config.getPixQueryOid(), uniqueId()));
-		resultMsg.setCreationTime(new TS(Timestamp.now().toHL7())); // Now
-		resultMsg.setProcessingCode(new CS("T", null, null));
-		resultMsg.setProcessingModeCode(new CS("T", null, null));
-		resultMsg.setInteractionId(new II("2.16.840.1.113883.1.18", "PRPA_IN201301UV02"));
-		resultMsg.setAcceptAckCode(new CS("AL", null, null));
+    /**
+     * add a new patient
+     *
+     * @return
+     * @throws JAXBException
+     */
+    public String doCreate(Patient in, Identifier identifier) throws JAXBException {
 
-		MCCIMT000100UV01Receiver receiver = new MCCIMT000100UV01Receiver();
-		resultMsg.addReceiver(receiver);
-		receiver.setTypeCode(CommunicationFunctionType.RCV);
+        PRPAIN201301UV02Type resultMsg = new PRPAIN201301UV02Type();
+        resultMsg.setITSVersion("XML_1.0");
+        // String UUID.randomUUID().toString();
+        resultMsg.setId(new II(this.mpiOidsProps.getSender(), uniqueId()));
+        resultMsg.setCreationTime(new TS(Timestamp.now().toHL7())); // Now
+        resultMsg.setProcessingCode(new CS("T", null, null));
+        resultMsg.setProcessingModeCode(new CS("T", null, null));
+        resultMsg.setInteractionId(new II("2.16.840.1.113883.1.18", "PRPA_IN201301UV02"));
+        resultMsg.setAcceptAckCode(new CS("AL", null, null));
 
-		MCCIMT000100UV01Device receiverDevice = new MCCIMT000100UV01Device();
-		receiver.setDevice(receiverDevice);
-		receiverDevice.setClassCode(EntityClassDevice.DEV);
-		receiverDevice.setDeterminerCode(EntityDeterminer.INSTANCE);
-		receiverDevice.setId(Collections.singletonList(new II(config.getPixReceiverOid(), null)));
+        MCCIMT000100UV01Receiver receiver = new MCCIMT000100UV01Receiver();
+        resultMsg.addReceiver(receiver);
+        receiver.setTypeCode(CommunicationFunctionType.RCV);
 
-		MCCIMT000100UV01Sender sender = new MCCIMT000100UV01Sender();
-		resultMsg.setSender(sender);
-		sender.setTypeCode(CommunicationFunctionType.SND);
+        MCCIMT000100UV01Device receiverDevice = new MCCIMT000100UV01Device();
+        receiver.setDevice(receiverDevice);
+        receiverDevice.setClassCode(EntityClassDevice.DEV);
+        receiverDevice.setDeterminerCode(EntityDeterminer.INSTANCE);
+        receiverDevice.setId(Collections.singletonList(new II(this.mpiOidsProps.getReceiver(), null)));
 
-		MCCIMT000100UV01Device senderDevice = new MCCIMT000100UV01Device();
-		sender.setDevice(senderDevice);
-		senderDevice.setClassCode(EntityClassDevice.DEV);
-		senderDevice.setDeterminerCode(EntityDeterminer.INSTANCE);
-		senderDevice.setId(Collections.singletonList(new II(config.getPixMySenderOid(), null)));
+        MCCIMT000100UV01Sender sender = new MCCIMT000100UV01Sender();
+        resultMsg.setSender(sender);
+        sender.setTypeCode(CommunicationFunctionType.SND);
 
-		PRPAIN201301UV02MFMIMT700701UV01ControlActProcess controlActProcess = new PRPAIN201301UV02MFMIMT700701UV01ControlActProcess();
-		resultMsg.setControlActProcess(controlActProcess);
-		controlActProcess.setClassCode(ActClassControlAct.CACT);
-		controlActProcess.setMoodCode(XActMoodIntentEvent.EVN);
-		controlActProcess.setCode(new CD("PRPA_TE201301UV02", null, "2.16.840.1.113883.1.18"));
+        MCCIMT000100UV01Device senderDevice = new MCCIMT000100UV01Device();
+        sender.setDevice(senderDevice);
+        senderDevice.setClassCode(EntityClassDevice.DEV);
+        senderDevice.setDeterminerCode(EntityDeterminer.INSTANCE);
+        senderDevice.setId(Collections.singletonList(new II(this.mpiOidsProps.getSender(), null)));
 
-		PRPAIN201301UV02MFMIMT700701UV01Subject1 subject = new PRPAIN201301UV02MFMIMT700701UV01Subject1();
-		controlActProcess.addSubject(subject);
-		subject.setTypeCode("SUBJ");
-		subject.setContextConductionInd(false); // ???
+        PRPAIN201301UV02MFMIMT700701UV01ControlActProcess controlActProcess = new PRPAIN201301UV02MFMIMT700701UV01ControlActProcess();
+        resultMsg.setControlActProcess(controlActProcess);
+        controlActProcess.setClassCode(ActClassControlAct.CACT);
+        controlActProcess.setMoodCode(XActMoodIntentEvent.EVN);
+        controlActProcess.setCode(new CD("PRPA_TE201301UV02", null, "2.16.840.1.113883.1.18"));
 
-		PRPAIN201301UV02MFMIMT700701UV01RegistrationEvent registrationEvent = new PRPAIN201301UV02MFMIMT700701UV01RegistrationEvent();
-		subject.setRegistrationEvent(registrationEvent);
-		registrationEvent.setClassCode(ActClass.REG);
-		registrationEvent.setMoodCode(ActMood.EVN);
-		registrationEvent.setStatusCode(new CS("active", null, null)); // ???
+        PRPAIN201301UV02MFMIMT700701UV01Subject1 subject = new PRPAIN201301UV02MFMIMT700701UV01Subject1();
+        controlActProcess.addSubject(subject);
+        subject.setTypeCode("SUBJ");
+        subject.setContextConductionInd(false); // ???
 
-		PRPAIN201301UV02MFMIMT700701UV01Subject2 subject1 = new PRPAIN201301UV02MFMIMT700701UV01Subject2();
+        PRPAIN201301UV02MFMIMT700701UV01RegistrationEvent registrationEvent = new PRPAIN201301UV02MFMIMT700701UV01RegistrationEvent();
+        subject.setRegistrationEvent(registrationEvent);
+        registrationEvent.setClassCode(ActClass.REG);
+        registrationEvent.setMoodCode(ActMood.EVN);
+        registrationEvent.setStatusCode(new CS("active", null, null)); // ???
 
-		registrationEvent.setSubject1(subject1);
-		subject1.setTypeCode(ParticipationTargetSubject.SBJ);
+        PRPAIN201301UV02MFMIMT700701UV01Subject2 subject1 = new PRPAIN201301UV02MFMIMT700701UV01Subject2();
 
-		PRPAMT201301UV02Patient patient = new PRPAMT201301UV02Patient();
-		subject1.setPatient(patient);
-		patient.setClassCode("PAT");
+        registrationEvent.setSubject1(subject1);
+        subject1.setTypeCode(ParticipationTargetSubject.SBJ);
 
-		patient.setStatusCode(new CS("active", null, null)); // ???
+        PRPAMT201301UV02Patient patient = new PRPAMT201301UV02Patient();
+        subject1.setPatient(patient);
+        patient.setClassCode("PAT");
 
-		PRPAMT201301UV02Person patientPerson = new PRPAMT201301UV02Person();
-		patient.setPatientPerson(patientPerson);
-		patientPerson.setClassCode(EntityClass.PSN);
-		patientPerson.setDeterminerCode(EntityDeterminer.INSTANCE);
+        patient.setStatusCode(new CS("active", null, null)); // ???
 
-		patient.addId(patientIdentifier(identifier));
-		boolean inHeaderAndRequest = false;
-		for (Identifier id : in.getIdentifier()) {
-			if (id.getSystem()!=null && id.getSystem().equals(identifier.getSystem()) && id.getValue()!=null && id.getValue().equals(identifier.getValue())) {
-				inHeaderAndRequest = true;
-			} else {
-				patient.addId(patientIdentifier(id));
-			}
-		}
-		if (!inHeaderAndRequest) {
-			throw new InvalidRequestException("Patient identifier in header and request do not match");
-		}
+        PRPAMT201301UV02Person patientPerson = new PRPAMT201301UV02Person();
+        patient.setPatientPerson(patientPerson);
+        patientPerson.setClassCode(EntityClass.PSN);
+        patientPerson.setDeterminerCode(EntityDeterminer.INSTANCE);
 
-		for (HumanName name : in.getName()) {
-			patientPerson.addName(transform(name));
-		}
+        patient.addId(patientIdentifier(identifier));
+        boolean inHeaderAndRequest = false;
+        for (Identifier id : in.getIdentifier()) {
+            if (id.getSystem() != null && id.getSystem().equals(identifier.getSystem()) && id.getValue() != null && id.getValue().equals(
+                    identifier.getValue())) {
+                inHeaderAndRequest = true;
+            } else {
+                patient.addId(patientIdentifier(id));
+            }
+        }
+        if (!inHeaderAndRequest) {
+            throw new InvalidRequestException("Patient identifier in header and request do not match");
+        }
 
-		patientPerson.setBirthTime(transform(in.getBirthDateElement()));
-		if (in.hasGender()) {
-			switch (in.getGender()) {
-				case MALE:
-					patientPerson.setAdministrativeGenderCode(new CE("M", "Male", "2.16.840.1.113883.12.1"));
-					break;
-				case FEMALE:
-					patientPerson.setAdministrativeGenderCode(new CE("F", "Female", "2.16.840.1.113883.12.1"));
-					break;
-				case OTHER:
-					patientPerson.setAdministrativeGenderCode(new CE("A", "Ambiguous", "2.16.840.1.113883.12.1"));
-					break;
-				case UNKNOWN:
-					patientPerson.setAdministrativeGenderCode(new CE("U", "Unknown", "2.16.840.1.113883.12.1"));
-					break;
-			}
-		}
+        for (HumanName name : in.getName()) {
+            patientPerson.addName(transform(name));
+        }
 
-		if (in.hasAddress())
-			patientPerson.setAddr(new ArrayList<AD>());
-		for (Address address : in.getAddress()) {
-			patientPerson.addAddr(transform(address));
-		}
+        patientPerson.setBirthTime(transform(in.getBirthDateElement()));
+        if (in.hasGender()) {
+            switch (in.getGender()) {
+                case MALE:
+                    patientPerson.setAdministrativeGenderCode(new CE("M", "Male", "2.16.840.1.113883.12.1"));
+                    break;
+                case FEMALE:
+                    patientPerson.setAdministrativeGenderCode(new CE("F", "Female", "2.16.840.1.113883.12.1"));
+                    break;
+                case OTHER:
+                    patientPerson.setAdministrativeGenderCode(new CE("A", "Ambiguous", "2.16.840.1.113883.12.1"));
+                    break;
+                case UNKNOWN:
+                    patientPerson.setAdministrativeGenderCode(new CE("U", "Unknown", "2.16.840.1.113883.12.1"));
+                    break;
+            }
+        }
 
-		for (ContactPoint contactPoint : in.getTelecom()) {
-			patientPerson.addTelecom(transform(contactPoint));
-		}
+        if (in.hasAddress())
+            patientPerson.setAddr(new ArrayList<AD>());
+        for (Address address : in.getAddress()) {
+            patientPerson.addAddr(transform(address));
+        }
 
-		List<II> orgIds = new ArrayList<II>();
-		Organization managingOrg = getManagingOrganization(in);
-		// NULL POINTER CHECK
-		if (managingOrg != null) {
-			for (Identifier id : managingOrg.getIdentifier()) {
-				orgIds.add(new II(getScheme(id.getSystem()), null));
-			}
-		} else {
-			Reference org = in.getManagingOrganization();
-			if (org != null && org.getIdentifier() != null) {
-				orgIds.add(new II(getScheme(org.getIdentifier().getSystem()), org.getIdentifier().getValue()));
-			}
-		}
+        for (ContactPoint contactPoint : in.getTelecom()) {
+            patientPerson.addTelecom(transform(contactPoint));
+        }
 
-		if (in.hasDeceasedBooleanType()) {
-			patientPerson.setDeceasedInd(new BL(in.getDeceasedBooleanType().getValue()));
-		}
-		if (in.hasDeceasedDateTimeType()) {
-			patientPerson.setDeceasedTime(transform(in.getDeceasedDateTimeType()));
-		}
-		if (in.hasMultipleBirthBooleanType()) {
-			patientPerson.setMultipleBirthInd(new BL(in.getMultipleBirthBooleanType().getValue()));
-		}
-		if (in.hasMultipleBirthIntegerType()) {
-			patientPerson.setMultipleBirthOrderNumber(new INT(in.getMultipleBirthIntegerType().getValue()));
-		}
-		if (in.hasMaritalStatus()) {
-			patientPerson.setMaritalStatusCode(transform(in.getMaritalStatus()));
-		}
-		if (in.hasCommunication()) {
-			for (PatientCommunicationComponent pcc : in.getCommunication()) {
-				PRPAMT201301UV02LanguageCommunication languageCommunication = new PRPAMT201301UV02LanguageCommunication();
-				languageCommunication.setLanguageCode(transform(pcc.getLanguage()));
-				// NULL POINTER EXCEPTION
-				if (pcc.hasPreferred())
-					languageCommunication.setPreferenceInd(new BL(pcc.getPreferred()));
-				patientPerson.addLanguageCommunication(languageCommunication);
-			}
-		}
+        List<II> orgIds = new ArrayList<II>();
+        Organization managingOrg = getManagingOrganization(in);
+        // NULL POINTER CHECK
+        if (managingOrg != null) {
+            for (Identifier id : managingOrg.getIdentifier()) {
+                orgIds.add(new II(getScheme(id.getSystem()), null));
+            }
+        } else {
+            Reference org = in.getManagingOrganization();
+            if (org != null && org.getIdentifier() != null) {
+                orgIds.add(new II(getScheme(org.getIdentifier().getSystem()), org.getIdentifier().getValue()));
+            }
+        }
 
-		COCTMT150003UV03Organization providerOrganization = new COCTMT150003UV03Organization();
-		patient.setProviderOrganization(providerOrganization);
-		providerOrganization.setClassCode(EntityClassOrganization.ORG);
-		providerOrganization.setDeterminerCode(EntityDeterminer.INSTANCE);
+        if (in.hasDeceasedBooleanType()) {
+            patientPerson.setDeceasedInd(new BL(in.getDeceasedBooleanType().getValue()));
+        }
+        if (in.hasDeceasedDateTimeType()) {
+            patientPerson.setDeceasedTime(transform(in.getDeceasedDateTimeType()));
+        }
+        if (in.hasMultipleBirthBooleanType()) {
+            patientPerson.setMultipleBirthInd(new BL(in.getMultipleBirthBooleanType().getValue()));
+        }
+        if (in.hasMultipleBirthIntegerType()) {
+            patientPerson.setMultipleBirthOrderNumber(new INT(in.getMultipleBirthIntegerType().getValue()));
+        }
+        if (in.hasMaritalStatus()) {
+            patientPerson.setMaritalStatusCode(transform(in.getMaritalStatus()));
+        }
+        if (in.hasCommunication()) {
+            for (PatientCommunicationComponent pcc : in.getCommunication()) {
+                PRPAMT201301UV02LanguageCommunication languageCommunication = new PRPAMT201301UV02LanguageCommunication();
+                languageCommunication.setLanguageCode(transform(pcc.getLanguage()));
+                // NULL POINTER EXCEPTION
+                if (pcc.hasPreferred())
+                    languageCommunication.setPreferenceInd(new BL(pcc.getPreferred()));
+                patientPerson.addLanguageCommunication(languageCommunication);
+            }
+        }
 
-		providerOrganization.setId(orgIds);
-		ON name = null;
-		if (managingOrg != null && managingOrg.hasName()) {
-			name = new ON();
-			name.setMixed(Collections.singletonList(managingOrg.getName()));
-			providerOrganization.setName(Collections.singletonList(name));
-		}
-		if (managingOrg != null) {
-			COCTMT150003UV03ContactParty contactParty = new COCTMT150003UV03ContactParty();
-			contactParty.setClassCode(RoleClassContact.CON);
-			for (ContactPoint contactPoint : managingOrg.getTelecom()) {
-				contactParty.addTelecom(transform(contactPoint));
-			}
-			if (managingOrg.hasAddress()) {
-				contactParty.setAddr(new ArrayList<AD>());
-				for (Address address : managingOrg.getAddress()) {
-					contactParty.addAddr(transform(address));
-				}
-				if (managingOrg.hasContact()) {
-					OrganizationContactComponent occ = managingOrg.getContactFirstRep();
-					COCTMT150003UV03Person contactPerson = new COCTMT150003UV03Person();
-					contactPerson.setClassCode(EntityClass.PSN);
-					contactPerson.setDeterminerCode(EntityDeterminer.INSTANCE);
-					if (occ.hasName())
-						contactPerson.setName(Collections.singletonList(transform(occ.getName())));
-					contactParty.setContactPerson(contactPerson);
-				}
-				providerOrganization.setContactParty(Collections.singletonList(contactParty));
-			}
+        COCTMT150003UV03Organization providerOrganization = new COCTMT150003UV03Organization();
+        patient.setProviderOrganization(providerOrganization);
+        providerOrganization.setClassCode(EntityClassOrganization.ORG);
+        providerOrganization.setDeterminerCode(EntityDeterminer.INSTANCE);
 
-			MFMIMT700701UV01Custodian custodian = new MFMIMT700701UV01Custodian();
-			registrationEvent.setCustodian(custodian);
-			custodian.setTypeCode(ParticipationType.CST);
+        providerOrganization.setId(orgIds);
+        ON name = null;
+        if (managingOrg != null && managingOrg.hasName()) {
+            name = new ON();
+            name.setMixed(Collections.singletonList(managingOrg.getName()));
+            providerOrganization.setName(Collections.singletonList(name));
+        }
+        if (managingOrg != null) {
+            COCTMT150003UV03ContactParty contactParty = new COCTMT150003UV03ContactParty();
+            contactParty.setClassCode(RoleClassContact.CON);
+            for (ContactPoint contactPoint : managingOrg.getTelecom()) {
+                contactParty.addTelecom(transform(contactPoint));
+            }
+            if (managingOrg.hasAddress()) {
+                contactParty.setAddr(new ArrayList<AD>());
+                for (Address address : managingOrg.getAddress()) {
+                    contactParty.addAddr(transform(address));
+                }
+                if (managingOrg.hasContact()) {
+                    OrganizationContactComponent occ = managingOrg.getContactFirstRep();
+                    COCTMT150003UV03Person contactPerson = new COCTMT150003UV03Person();
+                    contactPerson.setClassCode(EntityClass.PSN);
+                    contactPerson.setDeterminerCode(EntityDeterminer.INSTANCE);
+                    if (occ.hasName())
+                        contactPerson.setName(Collections.singletonList(transform(occ.getName())));
+                    contactParty.setContactPerson(contactPerson);
+                }
+                providerOrganization.setContactParty(Collections.singletonList(contactParty));
+            }
 
-			COCTMT090003UV01AssignedEntity assignedEntity = new COCTMT090003UV01AssignedEntity();
-			custodian.setAssignedEntity(assignedEntity);
-			assignedEntity.setClassCode(RoleClassAssignedEntity.ASSIGNED);
+            MFMIMT700701UV01Custodian custodian = new MFMIMT700701UV01Custodian();
+            registrationEvent.setCustodian(custodian);
+            custodian.setTypeCode(ParticipationType.CST);
 
-			List<II> custIds = new ArrayList<II>();
-			custIds.add(new II(getScheme(config.getCustodianOid()), null));
+            COCTMT090003UV01AssignedEntity assignedEntity = new COCTMT090003UV01AssignedEntity();
+            custodian.setAssignedEntity(assignedEntity);
+            assignedEntity.setClassCode(RoleClassAssignedEntity.ASSIGNED);
 
-			assignedEntity.setId(custIds);
-			// assignedEntity.setId(orgIds);
+            List<II> custIds = new ArrayList<II>();
+            custIds.add(new II(getScheme(this.mpiOidsProps.getCustodian()), null));
 
-			COCTMT090003UV01Organization assignedOrganization = new COCTMT090003UV01Organization();
-			assignedEntity.setAssignedOrganization(assignedOrganization);
-			assignedOrganization.setClassCode(EntityClassOrganization.ORG);
-			assignedOrganization.setDeterminerCode(EntityDeterminer.INSTANCE);
-			if (managingOrg.hasName()) {
-				assignedOrganization.setName(Collections.singletonList(name));
-			}
-		}
+            assignedEntity.setId(custIds);
+            // assignedEntity.setId(orgIds);
 
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		HL7V3Transformer.marshallMessage(PRPAIN201301UV02Type.class, out, resultMsg);
+            COCTMT090003UV01Organization assignedOrganization = new COCTMT090003UV01Organization();
+            assignedEntity.setAssignedOrganization(assignedOrganization);
+            assignedOrganization.setClassCode(EntityClassOrganization.ORG);
+            assignedOrganization.setDeterminerCode(EntityDeterminer.INSTANCE);
+            if (managingOrg.hasName()) {
+                assignedOrganization.setName(Collections.singletonList(name));
+            }
+        }
 
-		String outArray = new String(out.toByteArray());
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        HL7V3Transformer.marshallMessage(PRPAIN201301UV02Type.class, out, resultMsg);
 
-		return outArray;
-	}
+        String outArray = new String(out.toByteArray());
 
-	Organization getManagingOrganization(Patient in) {
-		return getManagingOrganization(in, null);
-	}
+        return outArray;
+    }
 
-	Organization getManagingOrganization(Patient in, List<Resource> container) {
-		Reference org = in.getManagingOrganization();
-		if (org == null)
-			return null;
-		String targetRef = org.getReference();
-		List<Resource> resources = container != null ? container : in.getContained();
-		for (Resource resource : resources) {
-			if (targetRef.equals(resource.getId()) && resource instanceof Organization) {
-				return (Organization) resource;
-			}
-		}
-		return null;
-	}
+    Organization getManagingOrganization(Patient in) {
+        return getManagingOrganization(in, null);
+    }
 
-	Patient findPatient(Reference ref, Map<String, BundleEntryComponent> entriesbyReference, Patient current) {
-		BundleEntryComponent entry = entriesbyReference.get(ref.getReference());
-		if (entry != null)
-			return (Patient) entry.getResource();
-		for (Resource res : current.getContained()) {
-			if (ref.getReference().equals(res.getId()))
-				return (Patient) res;
-		}
-		return null;
-	}
+    Organization getManagingOrganization(Patient in, List<Resource> container) {
+        Reference org = in.getManagingOrganization();
+        if (org == null)
+            return null;
+        String targetRef = org.getReference();
+        List<Resource> resources = container != null ? container : in.getContained();
+        for (Resource resource : resources) {
+            if (targetRef.equals(resource.getId()) && resource instanceof Organization) {
+                return (Organization) resource;
+            }
+        }
+        return null;
+    }
 
-	public II patientIdentifier(Identifier id) {
-		String assigner = null;
-		if (id.hasAssigner())
-			assigner = id.getAssigner().getDisplay();
-		return new II(getScheme(id.getSystem()), id.getValue(), assigner);
-	}
+    Patient findPatient(Reference ref, Map<String, BundleEntryComponent> entriesbyReference, Patient current) {
+        BundleEntryComponent entry = entriesbyReference.get(ref.getReference());
+        if (entry != null)
+            return (Patient) entry.getResource();
+        for (Resource res : current.getContained()) {
+            if (ref.getReference().equals(res.getId()))
+                return (Patient) res;
+        }
+        return null;
+    }
 
-	public PRPAMT201302UV02PatientId patientIdentifierUpd(Identifier id) {
-		return new PRPAMT201302UV02PatientId(getScheme(id.getSystem()), id.getValue());
-	}
+    public II patientIdentifier(Identifier id) {
+        String assigner = null;
+        if (id.hasAssigner())
+            assigner = id.getAssigner().getDisplay();
+        return new II(getScheme(id.getSystem()), id.getValue(), assigner);
+    }
+
+    public PRPAMT201302UV02PatientId patientIdentifierUpd(Identifier id) {
+        return new PRPAMT201302UV02PatientId(getScheme(id.getSystem()), id.getValue());
+    }
 }

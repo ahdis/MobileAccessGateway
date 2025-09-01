@@ -1,5 +1,6 @@
 package ch.bfh.ti.i4mi.mag.pmir;
 
+import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import net.ihe.gazelle.hl7v3.datatypes.*;
 import net.ihe.gazelle.hl7v3.mccimt000100UV01.MCCIMT000100UV01Device;
 import net.ihe.gazelle.hl7v3.mccimt000100UV01.MCCIMT000100UV01Receiver;
@@ -15,7 +16,6 @@ import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ContactPoint;
 import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.DateType;
-import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.HumanName.NameUse;
 import org.hl7.fhir.r4.model.Period;
@@ -33,7 +33,11 @@ import java.util.Collections;
  */
 public class PMIRRequestConverter extends BaseRequestConverter {
 
-	public static <T extends net.ihe.gazelle.hl7v3.datatypes.ST> T element(Class<T> cl, String content) {
+    public PMIRRequestConverter(final SchemeMapper schemeMapper) {
+        super(schemeMapper);
+    }
+
+    public static <T extends ST> T element(Class<T> cl, String content) {
 		try {
 			T instance = cl.getDeclaredConstructor().newInstance();
 			instance.addMixed(content);

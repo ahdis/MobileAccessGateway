@@ -1,6 +1,6 @@
 package ch.bfh.ti.i4mi.mag.ppqm;
 
-import ch.bfh.ti.i4mi.mag.Config;
+import ch.bfh.ti.i4mi.mag.config.props.MagPpqProps;
 import org.apache.cxf.binding.soap.SoapFault;
 import org.apache.velocity.VelocityContext;
 import org.herasaf.xacml.core.policy.impl.IdReferenceType;
@@ -34,11 +34,11 @@ public class TestRouteBuilder extends PpqmRouteBuilder {
 
     @Autowired
     public TestRouteBuilder(
-            Config config,
-            FhirToXacmlTranslator fhirToXacmlTranslator,
-            ChPpqMessageCreator ppqMessageCreator)
+            final FhirToXacmlTranslator fhirToXacmlTranslator,
+            final ChPpqMessageCreator ppqMessageCreator,
+            final MagPpqProps ppqProps)
     {
-        super(config, fhirToXacmlTranslator, ppqMessageCreator);
+        super(fhirToXacmlTranslator, ppqMessageCreator, ppqProps);
     }
 
     @Override

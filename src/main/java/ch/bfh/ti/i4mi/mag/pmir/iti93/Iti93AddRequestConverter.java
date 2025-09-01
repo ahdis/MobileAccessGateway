@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
+import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import jakarta.xml.bind.JAXBException;
 
 import org.hl7.fhir.r4.model.Address;
@@ -38,10 +40,8 @@ import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.Bundle.HTTPVerb;
 import org.hl7.fhir.r4.model.Organization.OrganizationContactComponent;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Timestamp;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
-import ch.bfh.ti.i4mi.mag.Config;
 import ch.bfh.ti.i4mi.mag.pmir.PMIRRequestConverter;
 import net.ihe.gazelle.hl7v3.coctmt090003UV01.COCTMT090003UV01AssignedEntity;
 import net.ihe.gazelle.hl7v3.coctmt090003UV01.COCTMT090003UV01Organization;
@@ -92,8 +92,13 @@ import net.ihe.gazelle.hl7v3transformer.HL7V3Transformer;
  */
 public class Iti93AddRequestConverter extends PMIRRequestConverter {
 
-	@Autowired
-	protected Config config;
+    protected final MagMpiProps.MagMpiOidsProps mpiOidsProps;
+
+    public Iti93AddRequestConverter(final SchemeMapper schemeMapper,
+                                    final MagMpiProps mpiProps) {
+        super(schemeMapper);
+        this.mpiOidsProps = mpiProps.getOids();
+    }
 	
 	/**
 	 * add a new patient
@@ -106,7 +111,7 @@ public class Iti93AddRequestConverter extends PMIRRequestConverter {
 		PRPAIN201301UV02Type resultMsg = new PRPAIN201301UV02Type();		
 		  resultMsg.setITSVersion("XML_1.0");
 		  //String UUID.randomUUID().toString();
-		  resultMsg.setId(new II(config.getPixQueryOid(), uniqueId()));
+		  resultMsg.setId(new II(this.mpiOidsProps.getSender(), uniqueId()));
 		  resultMsg.setCreationTime(new TS(Timestamp.now().toHL7())); // Now
 		  resultMsg.setProcessingCode(new CS("T", null ,null));
 		  resultMsg.setProcessingModeCode(new CS("T", null, null));
@@ -121,7 +126,7 @@ public class Iti93AddRequestConverter extends PMIRRequestConverter {
 		  receiver.setDevice(receiverDevice );
 		  receiverDevice.setClassCode(EntityClassDevice.DEV);
 		  receiverDevice.setDeterminerCode(EntityDeterminer.INSTANCE);
-		  receiverDevice.setId(Collections.singletonList(new II(config.getPixReceiverOid(), null)));
+		  receiverDevice.setId(Collections.singletonList(new II(this.mpiOidsProps.getReceiver(), null)));
 		  
 		  MCCIMT000100UV01Sender sender = new MCCIMT000100UV01Sender();
 		  resultMsg.setSender(sender);
@@ -131,7 +136,7 @@ public class Iti93AddRequestConverter extends PMIRRequestConverter {
 		  sender.setDevice(senderDevice);
 		  senderDevice.setClassCode(EntityClassDevice.DEV);
 		  senderDevice.setDeterminerCode(EntityDeterminer.INSTANCE);
-		  senderDevice.setId(Collections.singletonList(new II(config.getPixMySenderOid(), null)));
+		  senderDevice.setId(Collections.singletonList(new II(this.mpiOidsProps.getSender(), null)));
 		 
 		  PRPAIN201301UV02MFMIMT700701UV01ControlActProcess controlActProcess = new PRPAIN201301UV02MFMIMT700701UV01ControlActProcess();		  
 		  resultMsg.setControlActProcess(controlActProcess);
@@ -279,8 +284,8 @@ public class Iti93AddRequestConverter extends PMIRRequestConverter {
 				custodian.setAssignedEntity(assignedEntity);
 				assignedEntity.setClassCode(RoleClassAssignedEntity.ASSIGNED);
 				
-				List<II> custIds = new ArrayList<II>();			        			       
-			    custIds.add(new II(getScheme(config.getCustodianOid()), null));
+				List<II> custIds = new ArrayList<>(1);
+			    custIds.add(new II(getScheme(this.mpiOidsProps.getCustodian()), null));
 				
 				assignedEntity.setId(custIds);
 				//assignedEntity.setId(orgIds);

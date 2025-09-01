@@ -1,8 +1,6 @@
 package ch.bfh.ti.i4mi.mag.ppqm;
 
-import ch.bfh.ti.i4mi.mag.Config;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import ch.bfh.ti.i4mi.mag.config.props.MagPpqProps;
 import org.apache.camel.Exchange;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Consent;
@@ -24,19 +22,15 @@ import java.util.stream.Collectors;
  */
 @Component
 @ConditionalOnProperty({"mag.ppq.ppq-1.url", "mag.ppq.ppq-2.url"})
-@Slf4j
 public class Ppq4RouteBuilder extends PpqmFeedRouteBuilder {
 
-    @Getter
     private final String uriSchema = "ch-ppq4";
 
     @Autowired
-    public Ppq4RouteBuilder(
-            Config config,
-            FhirToXacmlTranslator fhirToXacmlTranslator,
-            ChPpqMessageCreator ppqMessageCreator)
-    {
-        super(config, fhirToXacmlTranslator, ppqMessageCreator);
+    public Ppq4RouteBuilder(final FhirToXacmlTranslator fhirToXacmlTranslator,
+                            final ChPpqMessageCreator ppqMessageCreator,
+                            final MagPpqProps ppqProps) {
+        super(fhirToXacmlTranslator, ppqMessageCreator, ppqProps);
     }
 
     @Override
@@ -72,8 +66,14 @@ public class Ppq4RouteBuilder extends PpqmFeedRouteBuilder {
     }
 
     @Override
-    protected Object createPpqmResponse(Object ppqmRequest, AssertionBasedRequestType xacmlRequest, EprPolicyRepositoryResponse xacmlResponse) {
+    protected Object createPpqmResponse(Object ppqmRequest,
+                                        AssertionBasedRequestType xacmlRequest,
+                                        EprPolicyRepositoryResponse xacmlResponse) {
         return XacmlToFhirTranslator.translatePpq1To4Response((Bundle) ppqmRequest, xacmlRequest, xacmlResponse);
     }
 
+    @Override
+    public String getUriSchema() {
+        return this.uriSchema;
+    }
 }

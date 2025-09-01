@@ -56,7 +56,8 @@ public class StsUtils {
 
     public OAuth2TokenResponse generateOAuth2TokenResponse(final @ExchangeProperty("oauthrequest") AuthenticationRequest authRequest,
                                                            final @Body String assertion,
-                                                           final @Header("scope") String scope) throws XMLParserException, UnmarshallingException {
+                                                           final @Header("scope") String scope)
+            throws XMLParserException, UnmarshallingException {
 
         final String encoded = Base64.getEncoder().encodeToString(assertion.getBytes(StandardCharsets.UTF_8));
         final String idpAssertion = authRequest.getIdpAssertion();
@@ -76,7 +77,7 @@ public class StsUtils {
      *
      * @param assertionXml The XML representation of the Assertion.
      * @return a duration in seconds.
-     * @throws XMLParserException if the Assertion cannot be parsed.
+     * @throws XMLParserException     if the Assertion cannot be parsed.
      * @throws UnmarshallingException if the Assertion cannot be unmarshalled.
      */
     private long computeExpiresInFromNotOnOrAfter(final String assertionXml)
@@ -118,6 +119,7 @@ public class StsUtils {
                                                          final @Header("scope") String scope) throws AuthException {
         return this.buildAssertionRequestInternal(authorization, scope);
     }
+
     private AssertionRequest buildAssertionRequestInternal(final Object authorization,
                                                            final String scope) throws AuthException {
         if (authorization == null) {
@@ -159,7 +161,7 @@ public class StsUtils {
         return new AuthException(400, "invalid_request", message);
     }
 
-    private String token(final String token, final String system) throws AuthException{
+    private String token(final String token, final String system) throws AuthException {
         if (token.startsWith(system + "|")) {
             return token.substring(system.length() + 1);
         }

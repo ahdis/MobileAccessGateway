@@ -19,6 +19,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.ComponentScan;
 
@@ -36,6 +37,7 @@ import javax.validation.spi.ValidationProvider;
 // without it does not work directly with mvn and current snapshot, when running the Pixm query an error is returned   "resourceType": "OperationOutcome", "issue": [ { "severity": "error", "code": "processing", "diagnostics": "Unknown resource type 'Patient' - Server knows how to handle: [StructureDefinition, OperationDefinition]" } ]
 // it looks like the META-INF directory is not correct configured that is copied to the output, if it is added in eclipse as on open project to java/main/resources it works without above line 
 @EnableAutoConfiguration
+@EnableConfigurationProperties
 public class MobileAccessGateway {
 	
     /**

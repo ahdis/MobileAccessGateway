@@ -16,24 +16,28 @@
 
 package ch.bfh.ti.i4mi.mag.mhd.iti66;
 
+import ch.bfh.ti.i4mi.mag.BaseRequestConverter;
+import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import org.apache.camel.Header;
 import org.openehealth.ipf.commons.ihe.xds.core.requests.QueryRegistry;
 import org.openehealth.ipf.commons.ihe.xds.core.requests.query.GetSubmissionSetAndContentsQuery;
 import org.openehealth.ipf.commons.ihe.xds.core.requests.query.QueryReturnType;
 
-import ch.bfh.ti.i4mi.mag.BaseRequestConverter;
-
 /**
  * DocumentManifest id to GetSubmissionSetAndContentsQuery converter
- * 
+ *
  * @author oliver egger
  *
  */
 public class IdRequestConverter extends BaseRequestConverter {
 
+    public IdRequestConverter(final SchemeMapper schemeMapper) {
+        super(schemeMapper);
+    }
+
     /**
      * convert DocumentManifest id to GetSubmissionSetAndContentsQuery converter
-     * 
+     *
      * @param fhirHttpUri MAG defines uniqueId as FHIR id
      * @return
      */

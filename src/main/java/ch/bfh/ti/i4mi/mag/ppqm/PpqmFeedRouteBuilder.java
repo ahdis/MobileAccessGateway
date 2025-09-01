@@ -1,10 +1,9 @@
 package ch.bfh.ti.i4mi.mag.ppqm;
 
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
-import ch.bfh.ti.i4mi.mag.Config;
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
-import lombok.extern.slf4j.Slf4j;
+import ch.bfh.ti.i4mi.mag.config.props.MagPpqProps;
 import org.apache.camel.Exchange;
 import org.openehealth.ipf.commons.ihe.fhir.chppqm.translation.FhirToXacmlTranslator;
 import org.openehealth.ipf.commons.ihe.xacml20.chppq.ChPpqMessageCreator;
@@ -14,6 +13,8 @@ import org.openehealth.ipf.commons.ihe.xacml20.stub.saml20.assertion.AssertionTy
 import org.openehealth.ipf.commons.ihe.xacml20.stub.saml20.protocol.ResponseType;
 import org.openehealth.ipf.commons.ihe.xacml20.stub.xacml20.saml.assertion.XACMLPolicyStatementType;
 import org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelValidators;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -21,21 +22,19 @@ import java.util.List;
 /**
  * @author Dmytro Rud
  */
-@Slf4j
 abstract public class PpqmFeedRouteBuilder extends PpqmRouteBuilder {
+    private static final Logger log = LoggerFactory.getLogger(PpqmFeedRouteBuilder.class);
 
-    public static final String PROP_FHIR_REQUEST  = "ppqm-fhir-request";
-    public static final String PROP_FHIR_METHOD   = "ppqm-fhir-method";
+    public static final String PROP_FHIR_REQUEST = "ppqm-fhir-request";
+    public static final String PROP_FHIR_METHOD = "ppqm-fhir-method";
     public static final String PROP_XACML_REQUEST = "ppqm-xacml-request";
-    public static final String PROP_POLICY_COUNT  = "ppqm-policy-count";
+    public static final String PROP_POLICY_COUNT = "ppqm-policy-count";
 
     @Autowired
-    protected PpqmFeedRouteBuilder(
-            Config config,
-            FhirToXacmlTranslator fhirToXacmlTranslator,
-            ChPpqMessageCreator ppqMessageCreator)
-    {
-        super(config, fhirToXacmlTranslator, ppqMessageCreator);
+    protected PpqmFeedRouteBuilder(final FhirToXacmlTranslator fhirToXacmlTranslator,
+                                   final ChPpqMessageCreator ppqMessageCreator,
+                                   final MagPpqProps ppqProps) {
+        super(fhirToXacmlTranslator, ppqMessageCreator, ppqProps);
     }
 
     /**
@@ -57,20 +56,21 @@ abstract public class PpqmFeedRouteBuilder extends PpqmRouteBuilder {
 
     /**
      * Changes HTTP method in the <b>body</b> of the CH:PPQm request message (whenever applicable) to POST.
+     *
      * @param ppqmRequest CH:PPQm request message.
      */
     abstract protected void setHttpMethodPost(Object ppqmRequest) throws Exception;
 
     /**
      * @param ppqmRequest CH:PPQm request message.
-     * @param method HTTP method of the request message.
+     * @param method      HTTP method of the request message.
      * @return CH:PPQ request message (translation of the CH:PPQm one).
      */
     abstract protected AssertionBasedRequestType createPpqRequest(Object ppqmRequest, String method);
 
     /**
-     * @param ppqmRequest CH:PPQm request message.
-     * @param xacmlRequest CH:PPQ request message (translation of the CH:PPQm one).
+     * @param ppqmRequest   CH:PPQm request message.
+     * @param xacmlRequest  CH:PPQ request message (translation of the CH:PPQm one).
      * @param xacmlResponse CH:PPQ response message (from the backend).
      * @return CH:PPQm response message.
      */
@@ -87,20 +87,20 @@ abstract public class PpqmFeedRouteBuilder extends PpqmRouteBuilder {
         from(getUriSchema() + ":stub")
                 .setHeader(FhirCamelValidators.VALIDATION_MODE, constant(FhirCamelValidators.MODEL))
                 .process(FhirCamelValidators.itiRequestValidator())
-				.process(RequestHeadersForwarder.checkAuthorization(config.isChPpqmConstraints()))
+                .process(RequestHeadersForwarder.checkAuthorization(this.ppqProps.isChPpqmConstraints()))
                 .process(RequestHeadersForwarder.forward())
                 .process(exchange -> {
                     Object body = exchange.getMessage().getBody();
                     String method = extractHttpMethod(exchange);
                     log.trace("Received {} request of type {} with method {}", getUriSchema(),
-                          body.getClass().getSimpleName(), method);
+                              body.getClass().getSimpleName(), method);
                     exchange.setProperty(PROP_FHIR_REQUEST, body);
                     exchange.setProperty(PROP_FHIR_METHOD, method);
                 })
                 .choice()
-                    .when(exchangeProperty(PROP_FHIR_METHOD).isEqualTo("PUT"))
-                        .to("direct:handle-put-" + getUriSchema())
-                        .end()
+                .when(exchangeProperty(PROP_FHIR_METHOD).isEqualTo("PUT"))
+                .to("direct:handle-put-" + getUriSchema())
+                .end()
                 .process(exchange -> {
                     Object ppqRequest = createPpqRequest(
                             exchange.getProperty(PROP_FHIR_REQUEST),
@@ -109,7 +109,7 @@ abstract public class PpqmFeedRouteBuilder extends PpqmRouteBuilder {
                     exchange.setProperty(PROP_XACML_REQUEST, ppqRequest);
                     log.debug("Created PPQ-1 {}", ppqRequest.getClass().getSimpleName());
                 })
-                .to("ch-ppq1://" + config.getPpq1HostUrl())
+                .to("ch-ppq1://" + this.ppqProps.getPp1().getUrl())
                 .process(TraceparentHandler.updateHeaderForFhir())
                 .process(exchange -> {
                     log.debug("Received PPQ-1 response, convert it to PPQm");
@@ -130,9 +130,9 @@ abstract public class PpqmFeedRouteBuilder extends PpqmRouteBuilder {
                     exchange.getMessage().setBody(ppqMessageCreator.createPolicyQuery(policySetIds));
                     log.debug("Created PPQ-2 request for {} policy set(s)", policySetIds.size());
                 })
-				.process(RequestHeadersForwarder.checkAuthorization(config.isChPpqmConstraints()))
+                .process(RequestHeadersForwarder.checkAuthorization(this.ppqProps.isChPpqmConstraints()))
                 .process(RequestHeadersForwarder.forward())
-                .to("ch-ppq2://" + config.getPpq2HostUrl())
+                .to("ch-ppq2://" + this.ppqProps.getPp2().getUrl())
                 .process(TraceparentHandler.updateHeaderForFhir())
                 .process(exchange -> {
                     log.debug("Received PPQ-2 response");
@@ -140,16 +140,20 @@ abstract public class PpqmFeedRouteBuilder extends PpqmRouteBuilder {
                     int presentPolicyCount = extractPresentPolicyCount(ppq2Response);
                     int fedPolicyCount = exchange.getProperty(PROP_POLICY_COUNT, Integer.class);
                     if (presentPolicyCount == fedPolicyCount) {
-                        log.debug("All policy sets being fed already exist in the Policy Repository, keep HTTP method PUT");
+                        log.debug(
+                                "All policy sets being fed already exist in the Policy Repository, keep HTTP method PUT");
                     } else if (presentPolicyCount == 0) {
-                        log.debug("None of the policy sets being fed exists in the Policy Repository, switch HTTP method from PUT to POST");
+                        log.debug(
+                                "None of the policy sets being fed exists in the Policy Repository, switch HTTP method from PUT to POST");
                         exchange.setProperty(PROP_FHIR_METHOD, "POST");
                         setHttpMethodPost(exchange.getProperty(PROP_FHIR_REQUEST));
                     } else {
                         throw new InvalidRequestException(String.format(
                                 "Cannot create PPQ-1 request, because out of %d policy sets being fed with HTTP method PUT, " +
                                         "%d are already present in the Policy Repository, and %d are not",
-                                fedPolicyCount, presentPolicyCount, fedPolicyCount - presentPolicyCount));
+                                fedPolicyCount,
+                                presentPolicyCount,
+                                fedPolicyCount - presentPolicyCount));
                     }
                 })
         ;
@@ -158,7 +162,8 @@ abstract public class PpqmFeedRouteBuilder extends PpqmRouteBuilder {
     private static int extractPresentPolicyCount(ResponseType ppq2Response) {
         if ("urn:oasis:names:tc:SAML:2.0:status:Success".equals(ppq2Response.getStatus().getStatusCode().getValue())) {
             AssertionType assertion = (AssertionType) ppq2Response.getAssertionOrEncryptedAssertion().get(0);
-            XACMLPolicyStatementType statement = (XACMLPolicyStatementType) assertion.getStatementOrAuthnStatementOrAuthzDecisionStatement().get(0);
+            XACMLPolicyStatementType statement = (XACMLPolicyStatementType) assertion.getStatementOrAuthnStatementOrAuthzDecisionStatement().get(
+                    0);
             return statement.getPolicyOrPolicySet().size();
         }
         log.debug("PPQ-2 response is negative");

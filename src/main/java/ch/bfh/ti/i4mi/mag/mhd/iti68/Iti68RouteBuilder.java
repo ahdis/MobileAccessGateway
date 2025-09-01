@@ -18,61 +18,61 @@ package ch.bfh.ti.i4mi.mag.mhd.iti68;
 
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
+import ch.bfh.ti.i4mi.mag.config.props.MagXdsProps;
 import org.apache.camel.builder.RouteBuilder;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import ch.bfh.ti.i4mi.mag.Config;
-import lombok.extern.slf4j.Slf4j;
-
 /**
- * IHE MHD: Retrieve Document [ITI-68] for Document Responder see also
- * https://oehf.github.io/ipf-docs/docs/ihe/iti68/
- * https://oehf.github.io/ipf-docs/docs/boot-fhir/
- * https://camel.apache.org/components/latest/servlet-component.html
+ * IHE MHD: Retrieve Document [ITI-68] for Document Responder see also https://oehf.github.io/ipf-docs/docs/ihe/iti68/
+ * https://oehf.github.io/ipf-docs/docs/boot-fhir/ https://camel.apache.org/components/latest/servlet-component.html
  */
-@Slf4j
 @Component
 @ConditionalOnProperty("mag.xds.iti-43.url")
 class Iti68RouteBuilder extends RouteBuilder {
+    private static final Logger log = LoggerFactory.getLogger(Iti68RouteBuilder.class);
 
-    private final Config config;
-    
-    public Iti68RouteBuilder(final Config config) {
+    private final MagXdsProps xdsProps;
+    private final boolean isChMhdConstraints;
+
+    public Iti68RouteBuilder(final MagXdsProps xdsProps) {
         super();
-        this.config = config;
+        this.xdsProps = xdsProps;
+        this.isChMhdConstraints = xdsProps.isChMhdConstraints();
         log.debug("Iti68RouteBuilder initialized");
     }
-
 
     @Override
     public void configure() throws Exception {
         log.debug("Iti68RouteBuilder configure");
         final String xds43Endpoint = String.format("xds-iti43://%s" +
-                "?secure=%s", this.config.getIti43HostUrl(), this.config.isHttps() ? "true" : "false")
+                                                           "?secure=%s",
+                                                   this.xdsProps.getIti43().getUrl(),
+                                                   this.xdsProps.isHttps() ? "true" : "false")
                 +
                 "&audit=true" +
                 "&auditContext=#myAuditContext" +
-              //  "&sslContextParameters=#pixContext" +
-                "&inInterceptors=#soapResponseLogger" + 
-                "&inFaultInterceptors=#soapResponseLogger"+
-                "&outInterceptors=#soapRequestLogger" + 
+                //  "&sslContextParameters=#pixContext" +
+                "&inInterceptors=#soapResponseLogger" +
+                "&inFaultInterceptors=#soapResponseLogger" +
+                "&outInterceptors=#soapRequestLogger" +
                 "&outFaultInterceptors=#soapRequestLogger";
         from("mhd-iti68:camel/xdsretrieve?audit=true&auditContext=#myAuditContext").routeId("ddh-retrievedoc-adapter")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
-                .process(RequestHeadersForwarder.checkAuthorization(config.isChMhdConstraints()))
+                .process(RequestHeadersForwarder.checkAuthorization(this.isChMhdConstraints))
                 .process(RequestHeadersForwarder.forward())
-               
+
                 // translate, forward, translate back
-                .bean(Iti68RequestConverter.class)                
+                .bean(Iti68RequestConverter.class)
                 .to(xds43Endpoint)
                 .process(TraceparentHandler.updateHeaderForFhir())
-                .bean(Iti68ResponseConverter.class,"retrievedDocumentSetToHttResponse"); 
-                // if removing retrievedDocumentSetToHttResponse its given an AmbiguousMethodCallException with two same methods??
-                // public java.lang.Object ch.bfh.ti.i4mi.mag.mhd.iti68.Iti68ResponseConverter.retrievedDocumentSetToHttResponse(org.openehealth.ipf.commons.ihe.xds.core.responses.RetrievedDocumentSet,java.util.Map) throws java.io.IOException,
-                // public java.lang.Object ch.bfh.ti.i4mi.mag.mhd.iti68.Iti68ResponseConverter.retrievedDocumentSetToHttResponse(org.openehealth.ipf.commons.ihe.xds.core.responses.RetrievedDocumentSet,java.util.Map) throws java.io.IOException] 
+                .bean(Iti68ResponseConverter.class, "retrievedDocumentSetToHttResponse");
+        // if removing retrievedDocumentSetToHttResponse its given an AmbiguousMethodCallException with two same methods??
+        // public java.lang.Object ch.bfh.ti.i4mi.mag.mhd.iti68.Iti68ResponseConverter.retrievedDocumentSetToHttResponse(org.openehealth.ipf.commons.ihe.xds.core.responses.RetrievedDocumentSet,java.util.Map) throws java.io.IOException,
+        // public java.lang.Object ch.bfh.ti.i4mi.mag.mhd.iti68.Iti68ResponseConverter.retrievedDocumentSetToHttResponse(org.openehealth.ipf.commons.ihe.xds.core.responses.RetrievedDocumentSet,java.util.Map) throws java.io.IOException]
     }
 
 }

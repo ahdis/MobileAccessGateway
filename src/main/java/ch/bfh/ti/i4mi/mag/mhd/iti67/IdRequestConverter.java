@@ -17,6 +17,7 @@
 package ch.bfh.ti.i4mi.mag.mhd.iti67;
 
 import ch.bfh.ti.i4mi.mag.BaseRequestConverter;
+import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import org.apache.camel.Header;
 import org.openehealth.ipf.commons.ihe.xds.core.requests.QueryRegistry;
 import org.openehealth.ipf.commons.ihe.xds.core.requests.query.GetDocumentsQuery;
@@ -31,6 +32,10 @@ import java.util.Collections;
  */
 public class IdRequestConverter extends BaseRequestConverter {
 
+    public IdRequestConverter(final SchemeMapper schemeMapper) {
+        super(schemeMapper);
+    }
+
     /**
      * convert ITI-67 request to ITI-18 request
      */
@@ -39,7 +44,7 @@ public class IdRequestConverter extends BaseRequestConverter {
         if (fhirHttpUri != null && fhirHttpUri.contains("/")) {
             boolean getLeafClass = true;
 
-            String uuid = "urn:uuid:"+fhirHttpUri.substring(fhirHttpUri.lastIndexOf("/") + 1);
+            String uuid = "urn:uuid:" + fhirHttpUri.substring(fhirHttpUri.lastIndexOf("/") + 1);
 
             GetDocumentsQuery query = new GetDocumentsQuery();
             final QueryRegistry queryRegistry = new QueryRegistry(query);

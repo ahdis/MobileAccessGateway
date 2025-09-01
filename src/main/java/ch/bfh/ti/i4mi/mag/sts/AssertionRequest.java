@@ -19,47 +19,94 @@ package ch.bfh.ti.i4mi.mag.sts;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Getter;
-import lombok.Setter;
-
 /**
  * Information for a Get-X-User Assertion Request
+ *
  * @author alexander kreutz
  *
  */
 public class AssertionRequest {
-	
-	@Getter @Setter
-	private String purposeOfUse;
-	
-	@Getter @Setter
-	private String role;
-	
-	@Getter @Setter
-	private String resourceId;
-	
-	@Getter @Setter
-	private String principalID;
-	
-	@Getter @Setter
-	private String principalName;
-	
-	@Getter @Setter
-	private List<String> organizationID;
-	
-	@Getter @Setter
-	private List<String> organizationName;
-	
-	@Getter @Setter
-	private Object samlToken;
-	
-	public void addOrganizationID(String orgId) {
-		if (organizationID==null) organizationID = new ArrayList<>(4);
-		organizationID.add(orgId);
-	}
-	
-	public void addOrganizationName(String orgName) {
-		if (organizationName==null) organizationName = new ArrayList<>(4);
-		organizationName.add(orgName);
-	}
+
+    private String purposeOfUse;
+    private String role;
+    private String resourceId;
+    private String principalID;
+    private String principalName;
+    private List<String> organizationID;
+    private List<String> organizationName;
+    private Object samlToken;
+
+    public void addOrganizationID(String orgId) {
+        if (organizationID == null) organizationID = new ArrayList<>(4);
+        organizationID.add(orgId);
+    }
+
+    public void addOrganizationName(String orgName) {
+        if (organizationName == null) organizationName = new ArrayList<>(4);
+        organizationName.add(orgName);
+    }
+
+    public String getPurposeOfUse() {
+        return this.purposeOfUse;
+    }
+
+    public void setPurposeOfUse(final String purposeOfUse) {
+        this.purposeOfUse = purposeOfUse;
+    }
+
+    public String getRole() {
+        return this.role;
+    }
+
+    public void setRole(final String role) {
+        this.role = role;
+    }
+
+    public String getResourceId() {
+        return this.resourceId;
+    }
+
+    public void setResourceId(final String resourceId) {
+        this.resourceId = resourceId;
+    }
+
+    public String getPrincipalID() {
+        return this.principalID;
+    }
+
+    public void setPrincipalID(final String principalID) {
+        this.principalID = principalID;
+    }
+
+    public String getPrincipalName() {
+        return this.principalName;
+    }
+
+    public void setPrincipalName(final String principalName) {
+        this.principalName = principalName;
+    }
+
+    public List<String> getOrganizationID() {
+        return this.organizationID;
+    }
+
+    public void setOrganizationID(final List<String> organizationID) {
+        this.organizationID = organizationID;
+    }
+
+    public List<String> getOrganizationName() {
+        return this.organizationName;
+    }
+
+    public void setOrganizationName(final List<String> organizationName) {
+        this.organizationName = organizationName;
+    }
+
+    public Object getSamlToken() {
+        return this.samlToken;
+    }
+
+    public void setSamlToken(final Object samlToken) {
+        this.samlToken = samlToken;
+    }
 }

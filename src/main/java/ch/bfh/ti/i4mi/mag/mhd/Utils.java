@@ -15,86 +15,93 @@ package ch.bfh.ti.i4mi.mag.mhd;
  * limitations under the License.
  */
 
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
 import org.apache.camel.Headers;
 import org.apache.camel.Processor;
 import org.apache.camel.http.common.HttpMessage;
 import org.openehealth.ipf.commons.ihe.fhir.Constants;
 import org.openehealth.ipf.commons.ihe.fhir.FhirSearchParameters;
 
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
 /**
  * utility classes for Mobile Access Gateway
+ *
  * @author alexander kreutz
  *
  */
 public class Utils {
 
-	public static final String KEPT_BODY = "KeptBody";
+    public static final String KEPT_BODY = "KeptBody";
 
     public static final Pattern UNPREFIXED_OID_PATTERN = Pattern.compile("\\d+(\\.\\d+)+");
-    public static final Pattern UNPREFIXED_UUID_PATTERN = Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
-	
-    public static FhirSearchParameters searchParameterToBody(@Headers Map<String, Object> parameters) {        
-            FhirSearchParameters searchParameter = (FhirSearchParameters) parameters
-                    .get(Constants.FHIR_REQUEST_PARAMETERS);
-            return searchParameter;        
+    public static final Pattern UNPREFIXED_UUID_PATTERN = Pattern.compile(
+            "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+
+    public static FhirSearchParameters searchParameterToBody(@Headers Map<String, Object> parameters) {
+        FhirSearchParameters searchParameter = (FhirSearchParameters) parameters
+                .get(Constants.FHIR_REQUEST_PARAMETERS);
+        return searchParameter;
     }
-    
+
     /**
      * keep current message body
+     *
      * @return
      */
     public static Processor keepBody() {
         return exchange -> {
-        	exchange.setProperty(KEPT_BODY, exchange.getIn().getBody());        	        
+            exchange.setProperty(KEPT_BODY, exchange.getIn().getBody());
         };
     }
-    
+
     /**
      * terminate current spring security session
+     *
      * @return
      */
     public static Processor endHttpSession() {
-    	return exchange -> {
-    		exchange.getIn(HttpMessage.class).getRequest().getSession().invalidate();
-    	};
+        return exchange -> {
+            exchange.getIn(HttpMessage.class).getRequest().getSession().invalidate();
+        };
     }
-    
+
     /**
      * move previously stored message body to "KeptBody" property
+     *
      * @return
      */
     public static Processor keptBodyToHeader() {
         return exchange -> {
-        	exchange.getMessage().setHeader(KEPT_BODY, exchange.getProperty(KEPT_BODY));        	        
+            exchange.getMessage().setHeader(KEPT_BODY, exchange.getProperty(KEPT_BODY));
         };
     }
 
     /**
      * move previously stored message body to name property
+     *
      * @return
      */
     public static Processor storeBodyToHeader(String name) {
         return exchange -> {
-        	exchange.getMessage().setHeader(name, exchange.getIn().getBody());        	        
+            exchange.getMessage().setHeader(name, exchange.getIn().getBody());
         };
     }
-    
+
     public static Processor storePreferHeader() {
-    	return exchange -> {
-    
-	    	Map<String, List<String>> httpHeaders = (Map<String, List<String>>) exchange.getMessage().getHeader("FhirHttpHeaders");
-					
-			if (httpHeaders != null) {
-				List<String> header = httpHeaders.get("Prefer");
-				if (header != null && !header.isEmpty()) {
-					exchange.getMessage().setHeader("Prefer", header.get(0));
-				}
-			}
-		};
+        return exchange -> {
+
+            Map<String, List<String>> httpHeaders = (Map<String, List<String>>) exchange.getMessage().getHeader(
+                    "FhirHttpHeaders");
+
+            if (httpHeaders != null) {
+                List<String> header = httpHeaders.get("Prefer");
+                if (header != null && !header.isEmpty()) {
+                    exchange.getMessage().setHeader("Prefer", header.get(0));
+                }
+            }
+        };
     }
 
    

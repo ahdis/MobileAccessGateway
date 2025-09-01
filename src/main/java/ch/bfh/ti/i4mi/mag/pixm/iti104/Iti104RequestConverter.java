@@ -18,6 +18,8 @@ package ch.bfh.ti.i4mi.mag.pixm.iti104;
 
 import java.nio.charset.StandardCharsets;
 
+import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
+import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import jakarta.xml.bind.JAXBException;
 
 import org.apache.camel.Body;
@@ -34,8 +36,12 @@ import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
  */
 public class Iti104RequestConverter extends Iti104MergeRequestConverter {
 
-	
-	private static String decode(String in) {
+    public Iti104RequestConverter(final SchemeMapper schemeMapper,
+                                  final MagMpiProps mpiProps) {
+        super(schemeMapper, mpiProps);
+    }
+
+    private static String decode(String in) {
 		return java.net.URLDecoder.decode(in, StandardCharsets.UTF_8);
 	}
 	

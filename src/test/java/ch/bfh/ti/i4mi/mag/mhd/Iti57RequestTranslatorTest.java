@@ -1,9 +1,7 @@
 package ch.bfh.ti.i4mi.mag.mhd;
 
 import ca.uhn.fhir.context.FhirContext;
-import ch.bfh.ti.i4mi.mag.Config;
 import ch.bfh.ti.i4mi.mag.MagConstants;
-import ch.bfh.ti.i4mi.mag.pmir.PatientReferenceCreator;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;

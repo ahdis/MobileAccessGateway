@@ -1,6 +1,5 @@
 package ch.bfh.ti.i4mi.mag.mhd;
 
-import ch.bfh.ti.i4mi.mag.Config;
 import ch.bfh.ti.i4mi.mag.mhd.iti67.Iti67ResponseConverter;
 import org.junit.jupiter.api.Test;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Hl7v2Based;
@@ -17,7 +16,7 @@ class BaseQueryResponseConverterTest {
 
     @Test
     void testTransformOrganization() {
-        final var converter = new Iti67ResponseConverter(new Config());
+        final var converter = new Iti67ResponseConverter(null, null, null);
 
         var fhirOrg = converter.transform(Hl7v2Based.parse("Test^^^^^^^^^1234", Organization.class));
         assertEquals("Test", fhirOrg.getName());

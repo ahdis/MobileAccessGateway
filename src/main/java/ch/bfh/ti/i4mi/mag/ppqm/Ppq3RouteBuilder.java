@@ -1,8 +1,6 @@
 package ch.bfh.ti.i4mi.mag.ppqm;
 
-import ch.bfh.ti.i4mi.mag.Config;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import ch.bfh.ti.i4mi.mag.config.props.MagPpqProps;
 import org.apache.camel.Exchange;
 import org.hl7.fhir.r4.model.Consent;
 import org.openehealth.ipf.commons.ihe.fhir.Constants;
@@ -12,6 +10,8 @@ import org.openehealth.ipf.commons.ihe.fhir.chppqm.translation.XacmlToFhirTransl
 import org.openehealth.ipf.commons.ihe.xacml20.chppq.ChPpqMessageCreator;
 import org.openehealth.ipf.commons.ihe.xacml20.stub.ehealthswiss.AssertionBasedRequestType;
 import org.openehealth.ipf.commons.ihe.xacml20.stub.ehealthswiss.EprPolicyRepositoryResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -24,19 +24,16 @@ import java.util.List;
  */
 @Component
 @ConditionalOnProperty({"mag.ppq.ppq-1.url", "mag.ppq.ppq-2.url"})
-@Slf4j
 public class Ppq3RouteBuilder extends PpqmFeedRouteBuilder {
+    private static final Logger log = LoggerFactory.getLogger(Ppq3RouteBuilder.class);
 
-    @Getter
     private final String uriSchema = "ch-ppq3";
 
     @Autowired
-    public Ppq3RouteBuilder(
-            Config config,
-            FhirToXacmlTranslator fhirToXacmlTranslator,
-            ChPpqMessageCreator ppqMessageCreator)
-    {
-        super(config, fhirToXacmlTranslator, ppqMessageCreator);
+    public Ppq3RouteBuilder(final FhirToXacmlTranslator fhirToXacmlTranslator,
+                            final ChPpqMessageCreator ppqMessageCreator,
+                            final MagPpqProps ppqProps) {
+        super(fhirToXacmlTranslator, ppqMessageCreator, ppqProps);
     }
 
     @Override
@@ -62,11 +59,17 @@ public class Ppq3RouteBuilder extends PpqmFeedRouteBuilder {
     }
 
     @Override
-    protected Object createPpqmResponse(Object ppqmRequest, AssertionBasedRequestType xacmlRequest, EprPolicyRepositoryResponse xacmlResponse) {
+    protected Object createPpqmResponse(Object ppqmRequest,
+                                        AssertionBasedRequestType xacmlRequest,
+                                        EprPolicyRepositoryResponse xacmlResponse) {
         return XacmlToFhirTranslator.translatePpq1To3Response(
                 (ppqmRequest instanceof Consent) ? (Consent) ppqmRequest : null,
                 xacmlRequest,
                 xacmlResponse);
     }
 
+    @Override
+    public String getUriSchema() {
+        return this.uriSchema;
+    }
 }
