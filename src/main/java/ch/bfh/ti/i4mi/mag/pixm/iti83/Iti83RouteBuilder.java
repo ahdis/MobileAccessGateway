@@ -18,6 +18,7 @@ package ch.bfh.ti.i4mi.mag.pixm.iti83;
 
 import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslators.translateToFhir;
 
+import ch.bfh.ti.i4mi.mag.common.PatientIdInterceptor;
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
 import org.apache.camel.builder.RouteBuilder;
@@ -76,6 +77,7 @@ class Iti83RouteBuilder extends RouteBuilder {
 				  .process(Utils.keptBodyToHeader())
 				  .process(TraceparentHandler.updateHeaderForFhir())
 				  .process(translateToFhir(converter , byte[].class))
+                  .bean(PatientIdInterceptor.class, "interceptIti83Parameters")
 				.doCatch(jakarta.xml.ws.soap.SOAPFaultException.class)
 				  .setBody(simple("${exception}"))
 				  .bean(BaseResponseConverter.class, "errorFromException")

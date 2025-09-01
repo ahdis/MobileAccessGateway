@@ -53,7 +53,7 @@ public class Iti67RequestUpdateConverter extends Iti65RequestConverter {
     /**
      * ITI-67 Response to ITI-57 request converter
      */
-    public SubmitObjectsRequest createMetadataUpdateRequest(DocumentReference documentReference) {
+    public SubmitObjectsRequest createMetadataUpdateRequest(DocumentReference documentReference) throws Exception {
         DocumentEntry documentEntry = translateDocumentMetadata(documentReference);
         SubmissionSet submissionSet = createSubmissionSet();
         enrichSubmissionSet(submissionSet, documentReference);
@@ -106,7 +106,7 @@ public class Iti67RequestUpdateConverter extends Iti65RequestConverter {
         }
     }
 
-    private DocumentEntry translateDocumentMetadata(DocumentReference documentReference) {
+    private DocumentEntry translateDocumentMetadata(DocumentReference documentReference) throws Exception {
         DocumentEntry entry = new DocumentEntry();
         entry.setExtraMetadata(new HashMap<>());
         processDocumentReference(documentReference, entry);

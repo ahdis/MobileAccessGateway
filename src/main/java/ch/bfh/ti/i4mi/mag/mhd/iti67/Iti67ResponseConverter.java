@@ -15,13 +15,11 @@
  */
 package ch.bfh.ti.i4mi.mag.mhd.iti67;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.client.impl.GenericClient;
 import ch.bfh.ti.i4mi.mag.Config;
 import ch.bfh.ti.i4mi.mag.MagConstants;
+import ch.bfh.ti.i4mi.mag.common.PatientIdMappingService;
 import ch.bfh.ti.i4mi.mag.mhd.BaseQueryResponseConverter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.DocumentReference.DocumentReferenceContentComponent;
 import org.hl7.fhir.r4.model.DocumentReference.DocumentReferenceContextComponent;
@@ -50,8 +48,9 @@ import java.util.*;
 public class Iti67ResponseConverter extends BaseQueryResponseConverter {
 
     @Autowired
-    public Iti67ResponseConverter(final Config config) {
-        super(config);
+    public Iti67ResponseConverter(final Config config,
+                                  final PatientIdMappingService patientIdMappingService) {
+        super(config, patientIdMappingService);
     }
 
     @Override
@@ -171,29 +170,9 @@ public class Iti67ResponseConverter extends BaseQueryResponseConverter {
 
         // patientId -> subject Reference(Patient| Practitioner| Group| Device) [0..1],
         // Reference(Patient)
-        // Not a contained resource. URL Points to an existing Patient Resource
-        // representing the XDS Affinity Domain Patient.
+        // We received the XAD-PID, we need the EPR-SPID
         if (documentEntry.getPatientId() != null) {
-            final Identifiable patient = documentEntry.getPatientId();
-            if (StringUtils.isNotBlank(this.config.getUriExternalPatientEndpoint())) {
-                final GenericClient client = new GenericClient(FhirContext.forR4Cached(), null,
-                        this.config.getUriExternalPatientEndpoint(),
-                        null);
-                client.setDontValidateConformance(true);
-                final var bundle = (Bundle) client.search()
-                        .forResource(Patient.class)
-                        .where(Patient.IDENTIFIER.exactly().systemAndIdentifier("urn:oid:" + patient.getAssigningAuthority().getUniversalId(),
-                                patient.getId()))
-                        .returnBundle(Bundle.class)
-                        .execute();
-                if (!bundle.getEntry().isEmpty()) {
-                    final var result = new Reference();
-                    result.setReference(bundle.getEntry().get(0).getFullUrl());
-                    documentReference.setSubject(result);
-                }
-            } else {
-                documentReference.setSubject(transformPatient(patient));
-            }
+            documentReference.setSubject(this.transformPatient(documentEntry.getPatientId()));
         }
 
         // creationTime -> date instant [0..1]

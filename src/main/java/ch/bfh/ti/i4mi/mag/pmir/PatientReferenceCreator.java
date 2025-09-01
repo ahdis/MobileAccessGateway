@@ -57,7 +57,7 @@ public class PatientReferenceCreator {
 	}
 	
 	public String createPatientId(String system, String value) {
-		if (system.equals(config.getOID_EPRSPID()) &&  config.isChEprspidAsPatientId()) {
+		if (Config.OID_EPRSPID.equals(system) && this.config.isChEprspidAsPatientId()) {
 			return value;
 		}
 		return system+"-"+value;
@@ -86,7 +86,7 @@ public class PatientReferenceCreator {
 		} else {
 			if (config.isChEprspidAsPatientId() && fullId.startsWith("76133761")) {
 				if (fullId.matches("^[0-9]{18}$") ) {
-					return new Identifiable(fullId, new AssigningAuthority(schemeMapper.getScheme(config.getOID_EPRSPID())));
+					return new Identifiable(fullId, new AssigningAuthority(schemeMapper.getScheme(Config.OID_EPRSPID)));
 				}
 			}
 		}

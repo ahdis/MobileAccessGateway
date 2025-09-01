@@ -43,10 +43,13 @@ import lombok.extern.slf4j.Slf4j;
 class Iti66RouteBuilder extends RouteBuilder {
     
     private final Config config;
+    private final Iti66ResponseConverter iti66ResponseConverter;
 
-    public Iti66RouteBuilder(final Config config) {
+    public Iti66RouteBuilder(final Config config,
+                             final Iti66ResponseConverter iti66ResponseConverter) {
         super();
         this.config = config;
+        this.iti66ResponseConverter = iti66ResponseConverter;
         log.debug("Iti66RouteBuilder initialized");
     }
 
@@ -67,7 +70,7 @@ class Iti66RouteBuilder extends RouteBuilder {
         from("mhd-iti66:translation?audit=true&auditContext=#myAuditContext").routeId("mdh-documentmanifest-adapter")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
-                .process(RequestHeadersForwarder.checkAuthorization(config.isChMhdConstraints()))
+                .process(RequestHeadersForwarder.checkAuthorization(this.config.isChMhdConstraints()))
                 .process(RequestHeadersForwarder.forward()).choice()
                 .when(header(Constants.FHIR_REQUEST_PARAMETERS).isNotNull())
                     .bean(Utils.class,"searchParameterToBody")
@@ -77,6 +80,6 @@ class Iti66RouteBuilder extends RouteBuilder {
                 .to(xds18Endpoint)
                 .bean(Iti66ResponseBugfix.class)
                 .process(TraceparentHandler.updateHeaderForFhir())
-                .process(translateToFhir(new Iti66ResponseConverter(config) , QueryResponse.class));
+                .process(translateToFhir(this.iti66ResponseConverter, QueryResponse.class));
         }
 }

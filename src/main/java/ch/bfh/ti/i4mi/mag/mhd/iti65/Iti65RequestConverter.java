@@ -20,9 +20,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+import ch.bfh.ti.i4mi.mag.common.PatientIdMappingService;
+import ch.bfh.ti.i4mi.mag.common.UnknownPatientException;
 import jakarta.activation.DataHandler;
 
 import ch.bfh.ti.i4mi.mag.MagConstants;
+import jakarta.annotation.Nullable;
 import lombok.Setter;
 import org.apache.camel.Body;
 import org.apache.commons.codec.binary.Hex;
@@ -65,6 +68,7 @@ import org.hl7.fhir.r4.model.RelatedPerson;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
+import org.ietf.jgss.Oid;
 import org.openehealth.ipf.commons.ihe.fhir.support.FhirUtils;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.AssigningAuthority;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Association;
@@ -89,6 +93,7 @@ import org.openehealth.ipf.commons.ihe.xds.core.metadata.XpnName;
 import org.openehealth.ipf.commons.ihe.xds.core.requests.ProvideAndRegisterDocumentSet;
 import org.openehealth.ipf.commons.ihe.xds.core.requests.builder.ProvideAndRegisterDocumentSetBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -109,6 +114,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  */
 @Slf4j
+@Component
 public class Iti65RequestConverter extends BaseRequestConverter {
 
 	private SchemeMapper schemeMapper;
@@ -126,12 +132,15 @@ public class Iti65RequestConverter extends BaseRequestConverter {
 	@Setter
 	private PatientReferenceCreator patientRefCreator;
 
+    @Autowired
+    private PatientIdMappingService patientIdMappingService;
+
 	/**
 	 * convert ITI-65 to ITI-41 request
 	 * @param requestBundle
 	 * @return
 	 */
-	public ProvideAndRegisterDocumentSet convert(@Body Bundle requestBundle) {
+	public ProvideAndRegisterDocumentSet convert(@Body Bundle requestBundle) throws Exception {
 
 		SubmissionSet submissionSet = new SubmissionSet();
 
@@ -578,7 +587,7 @@ public class Iti65RequestConverter extends BaseRequestConverter {
 	 * @param manifest
 	 * @param submissionSet
 	 */
-	private  void processDocumentManifest(ListResource manifest, SubmissionSet submissionSet) {
+	private  void processDocumentManifest(ListResource manifest, SubmissionSet submissionSet) throws Exception {
 
 		for (Identifier id : manifest.getIdentifier()) {
 			if (id.getUse() == null ||  id.getUse().equals(Identifier.IdentifierUse.OFFICIAL)) {
@@ -615,8 +624,13 @@ public class Iti65RequestConverter extends BaseRequestConverter {
 		submissionSet.setSubmissionTime(timestampFromDate(created));
 
 		//  subject	SubmissionSet.patientId
-		Reference ref = manifest.getSubject();
-		submissionSet.setPatientId(transformReferenceToIdentifiable(ref, manifest));
+        // We recieved the EPR-SPID, we need to replace it with the XAD-PID
+        final var eprSpid = this.extractEprSpid(manifest.getSubject());
+        final var xadPid = this.patientIdMappingService.getXadPid(eprSpid);
+        if (eprSpid == null || xadPid == null) {
+            throw new UnknownPatientException("Cannot resolve the patient reference in the manifest");
+        }
+		submissionSet.setPatientId(new Identifiable(xadPid, new Oid(this.config.getOidMpiPid())));
 
 		// Author
         Extension authorRoleExt = manifest.getExtensionByUrl(MagConstants.FhirExtensionUrls.CH_AUTHOR_ROLE);
@@ -690,7 +704,7 @@ public class Iti65RequestConverter extends BaseRequestConverter {
 	 * @param reference
 	 * @param entry
 	 */
-	public  void processDocumentReference(DocumentReference reference, DocumentEntry entry) {
+	public  void processDocumentReference(DocumentReference reference, DocumentEntry entry) throws Exception {
 
 		//if (reference.getIdElement()!=null) {
 		//	entry.setEntryUuid(reference.getIdElement().getIdPart());
@@ -739,9 +753,14 @@ public class Iti65RequestConverter extends BaseRequestConverter {
 		List<CodeableConcept> category = reference.getCategory();
 		entry.setClassCode(transform(category));
 
-        // patientId -> subject Reference(Patient| Practitioner| Group| Device) [0..1],       
-		Reference subject = reference.getSubject();
-		entry.setPatientId(transformReferenceToIdentifiable(subject, reference));
+        // patientId -> subject Reference(Patient| Practitioner| Group| Device) [0..1]
+        // We got the EPR-SPID in the document, we need to replace it with the XAD-PID
+        final var eprSpid = this.extractEprSpid(reference.getSubject());
+        final var xadPid = this.patientIdMappingService.getXadPid(eprSpid);
+        if (eprSpid == null || xadPid == null) {
+            throw new UnknownPatientException("Cannot resolve the patient reference in the document");
+        }
+        entry.setPatientId(new Identifiable(xadPid, new Oid(this.config.getOidMpiPid())));
 
 
         // creationTime -> date instant [0..1]     
@@ -1095,19 +1114,15 @@ public class Iti65RequestConverter extends BaseRequestConverter {
 		} catch (NoSuchAlgorithmException e) { return ""; }
 	}
 
-	/*private  String byteArray2Hex(final byte[] hash) {
-	    Formatter formatter = new Formatter();
-	    for (byte b : hash) {
-	        formatter.format("%02x", b);
-	    }
-	    return formatter.toString();
-	}*/
-	/*
-	private String base64ToHex(String input) {
-		byte[] decoded = Base64.getDecoder().decode(input);
-		return Hex.encodeHexString(decoded);
-	}
-	*/
-
-
+    @Nullable
+    private String extractEprSpid(final Reference reference) {
+        if (reference.getResource() instanceof final Patient patient) {
+            for (final Identifier identifier : patient.getIdentifier()) {
+                if (("urn:oid:" + Config.OID_EPRSPID).equals(identifier.getSystem())) {
+                    return identifier.getValue();
+                }
+            }
+        }
+        return null;
+    }
 }

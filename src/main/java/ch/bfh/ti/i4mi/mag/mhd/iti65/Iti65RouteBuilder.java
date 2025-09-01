@@ -40,10 +40,13 @@ import lombok.extern.slf4j.Slf4j;
 class Iti65RouteBuilder extends RouteBuilder {
 
 	private final Config config;
+    private final Iti65ResponseConverter iti65ResponseConverter;
 	
-    public Iti65RouteBuilder(final Config config) {
+    public Iti65RouteBuilder(final Config config,
+                             final Iti65ResponseConverter iti65ResponseConverter) {
         super();
         this.config = config;
+        this.iti65ResponseConverter = iti65ResponseConverter;
         log.debug("Iti65RouteBuilder initialized");
     }
 
@@ -78,7 +81,7 @@ class Iti65RouteBuilder extends RouteBuilder {
                 .to(xds41Endpoint)
                 .convertBodyTo(Response.class)
                 .process(TraceparentHandler.updateHeaderForFhir())
-                .process(translateToFhir(new Iti65ResponseConverter(config) , Response.class));
+                .process(translateToFhir(this.iti65ResponseConverter, Response.class));
     }
 
      /*

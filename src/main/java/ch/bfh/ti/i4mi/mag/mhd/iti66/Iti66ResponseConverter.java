@@ -21,7 +21,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ch.bfh.ti.i4mi.mag.common.PatientIdMappingService;
+import ch.bfh.ti.i4mi.mag.common.UnknownPatientException;
 import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
+import org.apache.jena.sparql.function.library.leviathan.log;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ContactPoint;
@@ -47,16 +50,22 @@ import org.openehealth.ipf.commons.ihe.xds.core.responses.Status;
 
 import ch.bfh.ti.i4mi.mag.Config;
 import ch.bfh.ti.i4mi.mag.mhd.BaseQueryResponseConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * ITI-66 from ITI-18 response converter
  * @author alexander kreutz
  *
  */
+@Component
 public class Iti66ResponseConverter extends BaseQueryResponseConverter {
-    
-	public Iti66ResponseConverter(final Config config) {
-	   super(config);
+    private static final Logger log = LoggerFactory.getLogger(Iti66ResponseConverter.class);
+
+	public Iti66ResponseConverter(final Config config,
+                                  final PatientIdMappingService patientIdMappingService) {
+	   super(config, patientIdMappingService);
 	}
 	
 	
@@ -117,9 +126,9 @@ public class Iti66ResponseConverter extends BaseQueryResponseConverter {
                     }
                     
                     // patientId -> subject Reference(Patient| Practitioner| Group| Device) [0..1], Reference(Patient)
-                    if (submissionSet.getPatientId()!=null) {
-                    	Identifiable patient = submissionSet.getPatientId();                    	
-                    	documentManifest.setSubject(transformPatient(patient));
+                    // We received the XAD-PID, we need the EPR-SPID
+                    if (submissionSet.getPatientId() != null) {
+                        documentManifest.setSubject(this.transformPatient(submissionSet.getPatientId()));
                     }
                     
                     // submissionTime -> created dateTime [0..1]

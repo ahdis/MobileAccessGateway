@@ -32,7 +32,7 @@ public class Iti57RequestTranslatorTest {
     }
 
     @Test
-    public void test1() {
+    public void test1() throws Exception {
         DocumentReference documentReference =
                 (DocumentReference) FhirContext.forR4Cached().newJsonParser().parseResource(Iti57RequestTranslatorTest.class.getClassLoader().getResourceAsStream("update-request-1.json"));
         SubmitObjectsRequest ebXml = iti67RequestUpdateConverter.createMetadataUpdateRequest(documentReference);

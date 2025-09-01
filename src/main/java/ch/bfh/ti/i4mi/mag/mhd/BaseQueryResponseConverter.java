@@ -19,6 +19,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import ch.bfh.ti.i4mi.mag.common.PatientIdMappingService;
+import ch.bfh.ti.i4mi.mag.common.UnknownPatientException;
+import org.apache.jena.sparql.function.library.leviathan.log;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Communication;
@@ -50,6 +53,8 @@ import org.openehealth.ipf.commons.ihe.xds.core.metadata.Telecom;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Timestamp;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Timestamp.Precision;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.QueryResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
@@ -65,16 +70,20 @@ import static ch.bfh.ti.i4mi.mag.mhd.Utils.isUnprefixedUuid;
  *
  */
 public abstract class BaseQueryResponseConverter extends BaseResponseConverter implements ToFhirTranslator<QueryResponse> {
+    private static final Logger log = LoggerFactory.getLogger(BaseQueryResponseConverter.class);
 
-	private final PatientReferenceCreator patientReferenceCreator;
+	protected final PatientReferenceCreator patientReferenceCreator;
+    protected final PatientIdMappingService patientIdMappingService;
     private final SchemeMapper schemeMapper;
 	
 	protected final Config config;
 
-    public BaseQueryResponseConverter(final Config config) {
+    public BaseQueryResponseConverter(final Config config,
+                                      final PatientIdMappingService patientIdMappingService) {
         this.config = config;
         this.schemeMapper = config.getSchemeMapper();
-        patientReferenceCreator = config.getPatientReferenceCreator();
+        this.patientReferenceCreator = config.getPatientReferenceCreator();
+        this.patientIdMappingService = patientIdMappingService;
     }
 	
     /**
@@ -358,9 +367,27 @@ public abstract class BaseQueryResponseConverter extends BaseResponseConverter i
      * @return
      */
     public Reference transformPatient(Identifiable patient) {    	
-    	String system = patient.getAssigningAuthority().getUniversalId();
-    	String value = patient.getId(); 
-		return patientReferenceCreator.createPatientReference(system, value);
+    	final String givenXadOid = patient.getAssigningAuthority().getUniversalId();
+        final String givenXadId = patient.getId();
+        if (!this.config.getOidMpiPid().equals(givenXadOid)) {
+            final var message = "Received patient ID with unexpected assigning authority OID %s, expected %s".formatted(
+                    givenXadOid,
+                    this.config.getOidMpiPid()
+            );
+            log.warn(message);
+            throw new UnknownPatientException(message);
+        }
+        try {
+            final var eprSpid = this.patientIdMappingService.getEprSpid(givenXadId);
+            return this.patientReferenceCreator.createPatientReference(Config.OID_EPRSPID, eprSpid);
+        } catch (final Exception e) {
+            final var message = "Failed to map XAD-PID to EPR-SPID for patient ID %s|%s".formatted(
+                    givenXadOid,
+                    givenXadId
+            );
+            log.warn(message, e);
+            throw new UnknownPatientException(message, e);
+        }
     }
     
     /**

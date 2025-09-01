@@ -1,6 +1,7 @@
 package ch.bfh.ti.i4mi.mag.pdqm.iti119;
 
 import ch.bfh.ti.i4mi.mag.Config;
+import ch.bfh.ti.i4mi.mag.common.PatientIdInterceptor;
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
 import ch.bfh.ti.i4mi.mag.mhd.BaseResponseConverter;
@@ -57,6 +58,7 @@ public class Iti119RouteBuilder extends RouteBuilder {
                     .to(xds47Endpoint)
                     .process(TraceparentHandler.updateHeaderForFhir())
                     .process(translateToFhir(responseConverter , byte[].class))
+                    .bean(PatientIdInterceptor.class, "interceptBundleOfPatients")
                 .doCatch(SOAPFaultException.class)
                     .setBody(simple("${exception}"))
                     .bean(BaseResponseConverter.class, "errorFromException")

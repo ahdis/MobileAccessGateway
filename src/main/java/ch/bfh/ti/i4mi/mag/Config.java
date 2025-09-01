@@ -177,7 +177,7 @@ public class Config {
     @Value("${mag.pix.oids.mpi-pid:}")
     private String oidMpiPid;
 
-    final public String OID_EPRSPID = "2.16.756.5.30.1.127.3.10.3";
+    final static public String OID_EPRSPID = "2.16.756.5.30.1.127.3.10.3";
     /**
      * OID for queries
      */
