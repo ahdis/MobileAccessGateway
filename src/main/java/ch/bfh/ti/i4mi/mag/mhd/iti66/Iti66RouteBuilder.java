@@ -16,8 +16,10 @@
 
 package ch.bfh.ti.i4mi.mag.mhd.iti66;
 
+import ch.bfh.ti.i4mi.mag.common.MagRouteBuilder;
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
+import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagXdsProps;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
 import org.apache.camel.builder.RouteBuilder;
@@ -36,16 +38,16 @@ import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslat
 
 @Component
 @Conditional(Iti66Condition.class)
-class Iti66RouteBuilder extends RouteBuilder {
+class Iti66RouteBuilder extends MagRouteBuilder {
 
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(Iti66RouteBuilder.class);
     private final MagXdsProps xdsProps;
     private final Iti66ResponseConverter iti66ResponseConverter;
 
-    public Iti66RouteBuilder(final MagXdsProps xdsProps,
+    public Iti66RouteBuilder(final MagProps magProps,
                              final Iti66ResponseConverter iti66ResponseConverter) {
-        super();
-        this.xdsProps = xdsProps;
+        super(magProps);
+        this.xdsProps = magProps.getXds();
         this.iti66ResponseConverter = iti66ResponseConverter;
         log.debug("Iti66RouteBuilder initialized");
     }
@@ -53,20 +55,12 @@ class Iti66RouteBuilder extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         log.debug("Iti66RouteBuilder configure");
-        final String xds18Endpoint = String.format("xds-iti18://%s" +
-                                                           "?secure=%s",
-                                                   this.xdsProps.getIti18(),
-                                                   this.xdsProps.isHttps() ? "true" : "false")
-                +
-                "&audit=true" +
-                "&auditContext=#auditContext" +
-                //      "&sslContextParameters=#pixContext" +
-                "&inInterceptors=#soapResponseLogger" +
-                "&inFaultInterceptors=#soapResponseLogger" +
-                "&outInterceptors=#soapRequestLogger" +
-                "&outFaultInterceptors=#soapRequestLogger";
+        final String xds18Endpoint = this.buildOutgoingEndpoint("xds-iti18",
+                                                                this.xdsProps.getIti18(),
+                                                                this.xdsProps.isHttps());
 
-        from("mhd-iti66:translation?audit=true&auditContext=#auditContext").routeId("mdh-documentmanifest-adapter")
+        from("mhd-iti66:find-document-lists?audit=false")
+                .routeId("in-mhd-iti66")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 //.process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))

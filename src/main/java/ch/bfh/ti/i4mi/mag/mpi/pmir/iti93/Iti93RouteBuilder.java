@@ -16,14 +16,15 @@
 
 package ch.bfh.ti.i4mi.mag.mpi.pmir.iti93;
 
+import ch.bfh.ti.i4mi.mag.common.MagRouteBuilder;
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
 import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
+import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.mhd.BaseResponseConverter;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
-import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.support.ExpressionAdapter;
 import org.hl7.fhir.r4.model.Bundle;
 import org.springframework.context.annotation.Conditional;
@@ -37,36 +38,28 @@ import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslat
 @Slf4j
 @Component
 @Conditional(Iti93Condition.class)
-class Iti93RouteBuilder extends RouteBuilder {
+class Iti93RouteBuilder extends MagRouteBuilder {
 
     private final Iti93ResponseConverter responseConverter;
     private final MagMpiProps mpiProps;
 
     public Iti93RouteBuilder(final Iti93ResponseConverter responseConverter,
-                             final MagMpiProps mpiProps) {
-        super();
+                             final MagProps magProps) {
+        super(magProps);
         this.responseConverter = responseConverter;
-        this.mpiProps = mpiProps;
+        this.mpiProps = magProps.getMpi();
     }
 
     @Override
     public void configure() throws Exception {
         log.debug("Iti93RouteBuilder configure");
 
-        final String xds44Endpoint = String.format("pixv3-iti44://%s" +
-                                                           "?secure=%s",
-                                                   this.mpiProps.getIti44(),
-                                                   this.mpiProps.isHttps() ? "true" : "false")
-                +
-                "&audit=true" +
-                "&auditContext=#auditContext" +
-                //  "&sslContextParameters=#pixContext" +
-                "&inInterceptors=#soapResponseLogger" +
-                "&inFaultInterceptors=#soapResponseLogger" +
-                "&outInterceptors=#soapRequestLogger" +
-                "&outFaultInterceptors=#soapRequestLogger";
+        final String xds44Endpoint = this.buildOutgoingEndpoint("pixv3-iti44",
+                                                                this.mpiProps.getIti44(),
+                                                                this.mpiProps.isHttps());
 
-        from("pmir-iti93:stub?audit=true&auditContext=#auditContext").routeId("pmir-feed")
+        from("pmir-iti93:mobile-patient-identity-feed?audit=false")
+                .routeId("in-pmir-iti93")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 //.process(RequestHeadersForwarder.checkAuthorization(this.mpiProps.isChPixmConstraints()))

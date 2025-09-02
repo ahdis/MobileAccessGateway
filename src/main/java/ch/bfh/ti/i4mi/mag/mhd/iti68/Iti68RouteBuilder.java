@@ -16,8 +16,10 @@
 
 package ch.bfh.ti.i4mi.mag.mhd.iti68;
 
+import ch.bfh.ti.i4mi.mag.common.MagRouteBuilder;
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
+import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagXdsProps;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
@@ -31,15 +33,15 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @ConditionalOnProperty("mag.xds.iti-43")
-class Iti68RouteBuilder extends RouteBuilder {
+class Iti68RouteBuilder extends MagRouteBuilder {
     private static final Logger log = LoggerFactory.getLogger(Iti68RouteBuilder.class);
 
     private final MagXdsProps xdsProps;
     private final boolean isChMhdConstraints;
 
-    public Iti68RouteBuilder(final MagXdsProps xdsProps) {
-        super();
-        this.xdsProps = xdsProps;
+    public Iti68RouteBuilder(final MagProps magProps) {
+        super(magProps);
+        this.xdsProps = magProps.getXds();
         this.isChMhdConstraints = xdsProps.isChMhdConstraints();
         log.debug("Iti68RouteBuilder initialized");
     }
@@ -47,19 +49,12 @@ class Iti68RouteBuilder extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         log.debug("Iti68RouteBuilder configure");
-        final String xds43Endpoint = String.format("xds-iti43://%s" +
-                                                           "?secure=%s",
-                                                   this.xdsProps.getIti43(),
-                                                   this.xdsProps.isHttps() ? "true" : "false")
-                +
-                "&audit=true" +
-                "&auditContext=#auditContext" +
-                //  "&sslContextParameters=#pixContext" +
-                "&inInterceptors=#soapResponseLogger" +
-                "&inFaultInterceptors=#soapResponseLogger" +
-                "&outInterceptors=#soapRequestLogger" +
-                "&outFaultInterceptors=#soapRequestLogger";
-        from("mhd-iti68:camel/xdsretrieve?audit=true&auditContext=#auditContext").routeId("ddh-retrievedoc-adapter")
+        final String xds43Endpoint = this.buildOutgoingEndpoint("xds-iti43",
+                                                                this.xdsProps.getIti43(),
+                                                                this.xdsProps.isHttps());
+
+        from("mhd-iti68:camel/xdsretrieve?audit=false")
+                .routeId("in-mhd-iti68")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 //.process(RequestHeadersForwarder.checkAuthorization(this.isChMhdConstraints))

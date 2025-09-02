@@ -21,8 +21,7 @@ abstract public class PpqmRouteBuilder extends RouteBuilder {
     protected PpqmRouteBuilder(
             final FhirToXacmlTranslator fhirToXacmlTranslator,
             final ChPpqMessageCreator ppqMessageCreator,
-            final MagPpqProps ppqProps)
-    {
+            final MagPpqProps ppqProps) {
         this.fhirToXacmlTranslator = fhirToXacmlTranslator;
         this.ppqMessageCreator = ppqMessageCreator;
         this.ppqProps = ppqProps;
@@ -46,7 +45,8 @@ abstract public class PpqmRouteBuilder extends RouteBuilder {
                 .maximumRedeliveries(0)
                 .process(exchange -> {
                     log.debug("Received UnknownPolicySetIdFault, translate to FHIR");
-                    UnknownPolicySetIdFaultMessage fault = (UnknownPolicySetIdFaultMessage) Exchanges.extractException(exchange);
+                    UnknownPolicySetIdFaultMessage fault = (UnknownPolicySetIdFaultMessage) Exchanges.extractException(
+                            exchange);
                     XacmlToFhirTranslator.translateUnknownPolicySetIdFault(fault);
                 })
         ;

@@ -19,12 +19,13 @@ package ch.bfh.ti.i4mi.mag.mhd.iti67;
 import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ch.bfh.ti.i4mi.mag.MagConstants;
+import ch.bfh.ti.i4mi.mag.common.MagRouteBuilder;
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
+import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagXdsProps;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
 import org.apache.camel.builder.PredicateBuilder;
-import org.apache.camel.builder.RouteBuilder;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.openehealth.ipf.commons.ihe.fhir.Constants;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.DocumentEntry;
@@ -48,7 +49,7 @@ import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslat
  */
 @Component
 @ConditionalOnProperty({"mag.xds.iti-18", "mag.xds.iti-57"})
-class Iti67RouteBuilder extends RouteBuilder {
+class Iti67RouteBuilder extends MagRouteBuilder {
 
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(Iti67RouteBuilder.class);
     private final MagXdsProps xdsProps;
@@ -56,35 +57,29 @@ class Iti67RouteBuilder extends RouteBuilder {
     private final Iti67RequestUpdateConverter iti67RequestUpdateConverter;
     private final Iti67FromIti57ResponseConverter iti67FromIti57ResponseConverter;
 
-    public Iti67RouteBuilder(final MagXdsProps xdsProps,
+    public Iti67RouteBuilder(final MagProps magProps,
                              final Iti67ResponseConverter iti67ResponseConverter,
                              final Iti67RequestUpdateConverter iti67RequestUpdateConverter,
                              final Iti67FromIti57ResponseConverter iti67FromIti57ResponseConverter) {
-        super();
-        this.xdsProps = xdsProps;
+        super(magProps);
+        this.xdsProps = magProps.getXds();
         this.iti67ResponseConverter = iti67ResponseConverter;
         this.iti67RequestUpdateConverter = iti67RequestUpdateConverter;
         this.iti67FromIti57ResponseConverter = iti67FromIti57ResponseConverter;
     }
 
-    private String createEndpointUri(String schema, String partialUrl) {
-        return schema + "://" + partialUrl +
-                "?secure=" + this.xdsProps.isHttps() +
-                "&audit=true" +
-                "&auditContext=#auditContext" +
-                "&inInterceptors=#soapResponseLogger" +
-                "&inFaultInterceptors=#soapResponseLogger" +
-                "&outInterceptors=#soapRequestLogger" +
-                "&outFaultInterceptors=#soapRequestLogger";
-    }
-
     @Override
     public void configure() throws Exception {
         log.debug("Iti67RouteBuilder configure");
-        final String metadataQueryEndpoint = createEndpointUri("xds-iti18", this.xdsProps.getIti18());
-        final String metadataUpdateEndpoint = createEndpointUri("xds-iti57", this.xdsProps.getIti57());
+        final String metadataQueryEndpoint = this.buildOutgoingEndpoint("xds-iti18",
+                                                                        this.xdsProps.getIti18(),
+                                                                        this.xdsProps.isHttps());
+        final String metadataUpdateEndpoint = this.buildOutgoingEndpoint("xds-iti57",
+                                                                         this.xdsProps.getIti57(),
+                                                                         this.xdsProps.isHttps());
 
-        from("mhd-iti67:translation?audit=true&auditContext=#auditContext").routeId("mdh-documentreference-adapter")
+        from("mhd-iti67:find-document-references?audit=false")
+                .routeId("in-mhd-iti67")
                 .errorHandler(noErrorHandler())
                 //.process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
                 .process(RequestHeadersForwarder.forward())

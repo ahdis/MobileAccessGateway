@@ -1,9 +1,11 @@
 package ch.bfh.ti.i4mi.mag.mpi.pdqm.iti119;
 
+import ch.bfh.ti.i4mi.mag.common.MagRouteBuilder;
 import ch.bfh.ti.i4mi.mag.common.PatientIdInterceptor;
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
 import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
+import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.mhd.BaseResponseConverter;
 import jakarta.xml.ws.soap.SOAPFaultException;
 import lombok.extern.slf4j.Slf4j;
@@ -19,15 +21,15 @@ import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslat
 @Slf4j
 @Component
 @ConditionalOnProperty("mag.mpi.iti-47")
-public class Iti119RouteBuilder extends RouteBuilder {
+public class Iti119RouteBuilder extends MagRouteBuilder {
 
     private final MagMpiProps mpiProps;
     private final Iti119ResponseConverter responseConverter;
 
-    public Iti119RouteBuilder(final MagMpiProps mpiProps,
+    public Iti119RouteBuilder(final MagProps magProps,
                               final Iti119ResponseConverter responseConverter) {
-        super();
-        this.mpiProps = mpiProps;
+        super(magProps);
+        this.mpiProps = magProps.getMpi();
         this.responseConverter = responseConverter;
         log.debug("Iti119RouteBuilder initialized");
     }
@@ -36,20 +38,12 @@ public class Iti119RouteBuilder extends RouteBuilder {
     public void configure() throws Exception {
         log.debug("Iti119RouteBuilder configure");
 
-        final String xds47Endpoint = String.format(
-                "pdqv3-iti47://%s?secure=%s",
-                this.mpiProps.getIti47(),
-                this.mpiProps.isHttps() ? "true" : "false"
-        ) +
-                //"&sslContextParameters=#pixContext" +
-                "&audit=true" +
-                "&auditContext=#auditContext" +
-                "&inInterceptors=#soapResponseLogger" +
-                "&inFaultInterceptors=#soapResponseLogger" +
-                "&outInterceptors=#soapRequestLogger" +
-                "&outFaultInterceptors=#soapRequestLogger";
+        final String xds47Endpoint = this.buildOutgoingEndpoint("pdqv3-iti47",
+                                                                this.mpiProps.getIti47(),
+                                                                this.mpiProps.isHttps());
 
-        from("pdqm-iti119:translation?audit=true&auditContext=#auditContext").routeId("iti119-match")
+        from("pdqm-iti119:patient-demographics-match?audit=false")
+                .routeId("in-pdqm-iti119")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 //.process(RequestHeadersForwarder.checkAuthorization(this.mpiProps.isChPdqmConstraints()))

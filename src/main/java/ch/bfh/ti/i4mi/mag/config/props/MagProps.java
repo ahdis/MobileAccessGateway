@@ -2,6 +2,7 @@ package ch.bfh.ti.i4mi.mag.config.props;
 
 
 import org.openehealth.ipf.boot.atna.IpfAtnaConfigurationProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "mag")
@@ -16,6 +17,9 @@ public class MagProps {
     private MagMpiProps mpi;
     private MagPpqProps ppq;
     private MagAuthProps auth;
+
+    @Autowired
+    private IpfAtnaConfigurationProperties atna;
 
     public String getHomeCommunityId() {
         return this.homeCommunityId;
@@ -79,6 +83,14 @@ public class MagProps {
 
     public void setAuth(final MagAuthProps auth) {
         this.auth = auth;
+    }
+
+    public IpfAtnaConfigurationProperties getAtna() {
+        return this.atna;
+    }
+
+    public void setAtna(final IpfAtnaConfigurationProperties atna) {
+        this.atna = atna;
     }
 
     public String getFhirBaseUrl() {
