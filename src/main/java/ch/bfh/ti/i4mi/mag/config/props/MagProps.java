@@ -15,7 +15,6 @@ public class MagProps {
     private MagXdsProps xds;
     private MagMpiProps mpi;
     private MagPpqProps ppq;
-    private IpfAtnaConfigurationProperties audit;
     private MagAuthProps auth;
 
     public String getHomeCommunityId() {
@@ -72,14 +71,6 @@ public class MagProps {
 
     public void setPpq(final MagPpqProps ppq) {
         this.ppq = ppq;
-    }
-
-    public IpfAtnaConfigurationProperties getAudit() {
-        return this.audit;
-    }
-
-    public void setAudit(final IpfAtnaConfigurationProperties audit) {
-        this.audit = audit;
     }
 
     public MagAuthProps getAuth() {

@@ -4,15 +4,17 @@ import ca.uhn.fhir.rest.server.HardcodedServerAddressStrategy;
 import ca.uhn.fhir.rest.server.IServerAddressStrategy;
 import ca.uhn.fhir.rest.server.RestfulServer;
 import ca.uhn.fhir.rest.server.RestfulServerConfiguration;
+import ch.bfh.ti.i4mi.mag.common.TcpSyslogSender;
 import ch.bfh.ti.i4mi.mag.config.props.MagAuthProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagClientSslProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.fhir.MagCapabilityStatementProvider;
 import jakarta.servlet.Filter;
+import org.openehealth.ipf.commons.audit.protocol.AuditTransmissionProtocol;
 import org.openehealth.ipf.commons.ihe.ws.cxf.payload.InPayloadLoggerInterceptor;
 import org.openehealth.ipf.commons.ihe.ws.cxf.payload.OutPayloadLoggerInterceptor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -72,6 +74,15 @@ public class MagConfiguration {
         return config;
     }
 
+    @Bean
+    @ConditionalOnProperty(
+            value = "ipf.atna.audit-repository-transport",
+            havingValue = "TCP",
+            matchIfMissing = false)
+    public AuditTransmissionProtocol auditTransmissionProtocolTcp() {
+        return new TcpSyslogSender();
+    }
+
     // ---------------------------------------------
     // Logging configuration
     // ---------------------------------------------
@@ -88,15 +99,23 @@ public class MagConfiguration {
     }
 
 
-
     private static CorsConfiguration defaultCorsConfiguration() {
         var cors = new CorsConfiguration();
         cors.addAllowedOrigin("*");
         cors.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         // A comma separated list of allowed headers when making a non simple CORS request.
-        cors.setAllowedHeaders(Arrays.asList("Origin", "Accept", "Content-Type",
-                                             "Access-Control-Request-Method", "Access-Control-Request-Headers", "Authorization",
-                                             "Prefer", "If-Match", "If-None-Match", "If-Modified-Since", "If-None-Exist", "Scope"));
+        cors.setAllowedHeaders(Arrays.asList("Origin",
+                                             "Accept",
+                                             "Content-Type",
+                                             "Access-Control-Request-Method",
+                                             "Access-Control-Request-Headers",
+                                             "Authorization",
+                                             "Prefer",
+                                             "If-Match",
+                                             "If-None-Match",
+                                             "If-Modified-Since",
+                                             "If-None-Exist",
+                                             "Scope"));
         cors.setExposedHeaders(Arrays.asList("Location", "Content-Location", "ETag", "Last-Modified"));
         cors.setMaxAge(300L);
         return cors;

@@ -5,10 +5,7 @@ import org.apache.camel.support.jsse.KeyManagersParameters;
 import org.apache.camel.support.jsse.KeyStoreParameters;
 import org.apache.camel.support.jsse.SSLContextParameters;
 import org.apache.camel.support.jsse.TrustManagersParameters;
-import org.openehealth.ipf.boot.atna.IpfAtnaConfigurationProperties;
-import org.openehealth.ipf.commons.audit.AuditContext;
-import org.openehealth.ipf.commons.audit.DefaultAuditContext;
-import org.openehealth.ipf.commons.audit.protocol.TCPSyslogSender;
+import org.openehealth.ipf.commons.audit.TlsParameters;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,39 +49,36 @@ public class TlsConfiguration {
         return scp;
     }
 
-    @Bean(name = BEAN_CONTEXT_ATNA)
-    public AuditContext getAuditContext(final IpfAtnaConfigurationProperties auditProps,
-                                        final MagClientSslProps magProps) {
-        final var context = new DefaultAuditContext();
-        if (auditProps.isAuditEnabled() && magProps.getKeyStore() != null) {
-            final var ksp = new KeyStoreParameters();
+    @Bean
+    @ConditionalOnProperty(
+            value = "mag.client-ssl.enabled",
+            havingValue = "true",
+            matchIfMissing = false)
+    public TlsParameters getAtnaTlsParameters(final MagClientSslProps magProps) {
+        final var ksp = new KeyStoreParameters();
 
-            // https://www.baeldung.com/java-keystore
-            // Keystore file may be found at src/main/resources
-            ksp.setResource(magProps.getKeyStore().getPath());
-            ksp.setPassword(magProps.getKeyStore().getPassword());
+        // https://www.baeldung.com/java-keystore
+        // Keystore file may be found at src/main/resources
+        ksp.setResource(magProps.getKeyStore().getPath());
+        ksp.setPassword(magProps.getKeyStore().getPassword());
 
-            final var kmp = new KeyManagersParameters();
-            kmp.setKeyStore(ksp);
-            kmp.setKeyPassword(magProps.getKeyStore().getPassword());
+        final var kmp = new KeyManagersParameters();
+        kmp.setKeyStore(ksp);
+        kmp.setKeyPassword(magProps.getKeyStore().getPassword());
 
-            final var tmp = new TrustManagersParameters();
-            tmp.setKeyStore(ksp);
+        final var tmp = new TrustManagersParameters();
+        tmp.setKeyStore(ksp);
 
-            final var scp = new SSLContextParameters();
-            scp.setKeyManagers(kmp);
-            scp.setTrustManagers(tmp);
-            scp.setCertAlias(magProps.getCertAlias());
-            context.setTlsParameters(b -> {
-                try {
-                    return scp.createSSLContext(scp.getCamelContext());
-                } catch (final Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
-        }
-        context.setAuditTransmissionProtocol(new TCPSyslogSender());
-
-        return context;
+        final var scp = new SSLContextParameters();
+        scp.setKeyManagers(kmp);
+        scp.setTrustManagers(tmp);
+        scp.setCertAlias(magProps.getCertAlias());
+        return b -> {
+            try {
+                return scp.createSSLContext(scp.getCamelContext());
+            } catch (final Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
     }
 }
