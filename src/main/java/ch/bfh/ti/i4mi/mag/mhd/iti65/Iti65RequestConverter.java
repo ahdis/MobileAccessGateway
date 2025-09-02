@@ -622,8 +622,8 @@ public class Iti65RequestConverter extends BaseRequestConverter {
         submissionSet.setSubmissionTime(timestampFromDate(created));
 
         //  subject	SubmissionSet.patientId
-        // We recieved the EPR-SPID, we need to replace it with the XAD-PID
-        final var eprSpid = this.extractEprSpid(manifest.getSubject());
+        // We received the EPR-SPID, we need to replace it with the XAD-PID
+        final var eprSpid = this.extractEprSpid(manifest.getSubject(), "List.subject");
         final var xadPid = this.patientIdMappingService.getXadPid(eprSpid);
         if (eprSpid == null || xadPid == null) {
             throw new UnknownPatientException("Cannot resolve the patient reference in the manifest");
@@ -767,7 +767,7 @@ public class Iti65RequestConverter extends BaseRequestConverter {
 
         // patientId -> subject Reference(Patient| Practitioner| Group| Device) [0..1]
         // We got the EPR-SPID in the document, we need to replace it with the XAD-PID
-        final var eprSpid = this.extractEprSpid(reference.getSubject());
+        final var eprSpid = this.extractEprSpid(reference.getSubject(), "DocumentReference.subject");
         final var xadPid = this.patientIdMappingService.getXadPid(eprSpid);
         if (eprSpid == null || xadPid == null) {
             throw new UnknownPatientException("Cannot resolve the patient reference in the document");
@@ -1160,14 +1160,13 @@ public class Iti65RequestConverter extends BaseRequestConverter {
     }
 
     @Nullable
-    private String extractEprSpid(final Reference reference) {
-        if (reference.getResource() instanceof final Patient patient) {
-            for (final Identifier identifier : patient.getIdentifier()) {
-                if (("urn:oid:" + EPR_SPID_OID).equals(identifier.getSystem())) {
-                    return identifier.getValue();
-                }
+    private String extractEprSpid(final Reference reference,
+                                  final String source) {
+        if (reference.getIdentifier() instanceof final Identifier identifier) {
+            if (("urn:oid:" + EPR_SPID_OID).equals(identifier.getSystem())) {
+                return identifier.getValue();
             }
         }
-        return null;
+        throw new UnknownPatientException("Cannot extract EPR-SPID from reference in " + source);
     }
 }
