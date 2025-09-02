@@ -33,17 +33,23 @@ public class PatientIdInterceptor {
 
     public void interceptBundleOfPatients(final Message message) {
         final var bundle = message.getBody(Bundle.class);
-        if (bundle == null) {
-            log.warn("interceptBundleOfPatients: Unable to read a Bundle instance");
+        if (bundle != null) {
+            bundle.getEntry().stream()
+                    .map(Bundle.BundleEntryComponent::getResource)
+                    .filter(Objects::nonNull)
+                    .filter(Patient.class::isInstance)
+                    .map(Patient.class::cast)
+                    .forEach(patient -> this.interceptIdentifiers(patient.getIdentifier()));
             return;
         }
 
-        bundle.getEntry().stream()
-                .map(Bundle.BundleEntryComponent::getResource)
-                .filter(Objects::nonNull)
-                .filter(Patient.class::isInstance)
-                .map(Patient.class::cast)
-                .forEach(patient -> this.interceptIdentifiers(patient.getIdentifier()));
+        final var patientList = (List<Patient>) message.getBody(List.class);
+        if (patientList != null) {
+            patientList.forEach(patient -> this.interceptIdentifiers(patient.getIdentifier()));
+            return;
+        }
+
+        log.warn("interceptBundleOfPatients: Unable to read a list of patients or a Bundle instance");
     }
 
     public void interceptIti83Parameters(final Message message) {
@@ -67,9 +73,9 @@ public class PatientIdInterceptor {
         String eprSpid = null;
         String xadPid = null;
         for (final var identifier : identifiers) {
-            if (EPR_SPID_OID.equals(identifier.getSystem())) {
+            if (("urn:oid:" + EPR_SPID_OID).equals(identifier.getSystem())) {
                 eprSpid = identifier.getValue();
-            } else if (this.xadMpiOid.equals(identifier.getSystem())) {
+            } else if (("urn:oid:" + this.xadMpiOid).equals(identifier.getSystem())) {
                 xadPid = identifier.getValue();
             }
         }
