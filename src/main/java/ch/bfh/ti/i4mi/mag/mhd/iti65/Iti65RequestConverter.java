@@ -479,14 +479,14 @@ public class Iti65RequestConverter extends BaseRequestConverter {
         if (reference.hasReference()) {
             String targetRef = reference.getReference();
             if (targetRef.startsWith("#")) {
-//				targetRef = targetRef.substring(1);  note: resource.getId() return the id wit the # prefix for the contained resources
+				targetRef = targetRef.substring(1);
                 List<Resource> resources = container.getContained();
-                for (Resource resource : resources) {
+                for (final Resource resource : resources) {
                     if (targetRef.equals(resource.getId())) {
-                        if (resource instanceof Patient) {
-                            return transform(((Patient) resource).getIdentifierFirstRep());
-                        } else if (resource instanceof Encounter) {
-                            return transform(((Encounter) resource).getIdentifierFirstRep());
+                        if (resource instanceof final Patient patient) {
+                            return transform(patient.getIdentifierFirstRep());
+                        } else if (resource instanceof final Encounter encounter) {
+                            return transform(encounter.getIdentifierFirstRep());
                         }
                     }
                 }
