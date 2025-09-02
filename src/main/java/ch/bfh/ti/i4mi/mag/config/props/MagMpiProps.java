@@ -6,14 +6,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class MagMpiProps {
 
     private boolean https;
-    private UrlProps iti44;
-    private UrlProps iti45;
-    private UrlProps iti47;
+    private String iti44;
+    private String iti45;
+    private String iti47;
     private MagMpiOidsProps oids;
     private boolean chPixmConstraints;
     private boolean chPdqmConstraints;
     private boolean chEprspidAsPatientId;
-    private String localPatientIDAssigningAuthority;
+    private String localPatientIdAssigningAuthority;
 
     public boolean isHttps() {
         return this.https;
@@ -23,27 +23,27 @@ public class MagMpiProps {
         this.https = https;
     }
 
-    public UrlProps getIti44() {
+    public String getIti44() {
         return this.iti44;
     }
 
-    public void setIti44(final UrlProps iti44) {
+    public void setIti44(final String iti44) {
         this.iti44 = iti44;
     }
 
-    public UrlProps getIti45() {
+    public String getIti45() {
         return this.iti45;
     }
 
-    public void setIti45(final UrlProps iti45) {
+    public void setIti45(final String iti45) {
         this.iti45 = iti45;
     }
 
-    public UrlProps getIti47() {
+    public String getIti47() {
         return this.iti47;
     }
 
-    public void setIti47(final UrlProps iti47) {
+    public void setIti47(final String iti47) {
         this.iti47 = iti47;
     }
 
@@ -79,12 +79,12 @@ public class MagMpiProps {
         this.chEprspidAsPatientId = chEprspidAsPatientId;
     }
 
-    public String getLocalPatientIDAssigningAuthority() {
-        return this.localPatientIDAssigningAuthority;
+    public String getLocalPatientIdAssigningAuthority() {
+        return this.localPatientIdAssigningAuthority;
     }
 
-    public void setLocalPatientIDAssigningAuthority(final String localPatientIDAssigningAuthority) {
-        this.localPatientIDAssigningAuthority = localPatientIDAssigningAuthority;
+    public void setLocalPatientIdAssigningAuthority(final String localPatientIDAssigningAuthority) {
+        this.localPatientIdAssigningAuthority = localPatientIDAssigningAuthority;
     }
 
     @ConfigurationProperties(prefix = "mag.mpi.oids")

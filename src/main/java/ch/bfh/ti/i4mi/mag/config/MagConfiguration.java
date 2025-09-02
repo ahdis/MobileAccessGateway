@@ -4,6 +4,8 @@ import ca.uhn.fhir.rest.server.HardcodedServerAddressStrategy;
 import ca.uhn.fhir.rest.server.IServerAddressStrategy;
 import ca.uhn.fhir.rest.server.RestfulServer;
 import ca.uhn.fhir.rest.server.RestfulServerConfiguration;
+import ch.bfh.ti.i4mi.mag.config.props.MagAuthProps;
+import ch.bfh.ti.i4mi.mag.config.props.MagClientSslProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.fhir.MagCapabilityStatementProvider;
 import jakarta.servlet.Filter;
@@ -25,25 +27,20 @@ import java.util.Arrays;
 public class MagConfiguration {
 
     @Bean(name = "stsEndpoint")
-    public String getStsEndpoint(final @Value("${mag.iua.ap.url}") String assertionEndpointUrl,
-                                 final @Value("${mag.iua.ap.wsdl}") String wsdl,
-                                 final @Value("${mag.iua.ap.endpoint-name:}") String endpointName,
-                                 final @Value("${mag.client-ssl.enabled}") boolean clientSsl) {
+    public String getStsEndpoint(final MagAuthProps authProps,
+                                 final MagClientSslProps clientSslProps) {
         return String.format("cxf://%s?dataFormat=CXF_MESSAGE&wsdlURL=%s&loggingFeatureEnabled=true" +
-                                     ((endpointName != null && endpointName.length() > 0) ? "&endpointName=" + endpointName : "") +
                                      "&inInterceptors=#soapResponseLogger" +
                                      "&inFaultInterceptors=#soapResponseLogger" +
                                      "&outInterceptors=#soapRequestLogger" +
                                      "&outFaultInterceptors=#soapRequestLogger" +
-                                     (clientSsl ? "&sslContextParameters=#sslContext" : ""),
-                             assertionEndpointUrl, wsdl);
+                                     (clientSslProps.isEnabled() ? "&sslContextParameters=#wsTlsContext" : ""),
+                             authProps.getSts(), authProps.getStsWsdl());
     }
 
     @Bean
-    public MagCapabilityStatementProvider serverConformanceProvider(
-            final RestfulServer fhirServer,
-            @Value("${mag.baseurl}") final String baseUrl) {
-        return new MagCapabilityStatementProvider(fhirServer, baseUrl);
+    public MagCapabilityStatementProvider serverConformanceProvider(final RestfulServer fhirServer) {
+        return new MagCapabilityStatementProvider(fhirServer);
     }
 
     @Bean

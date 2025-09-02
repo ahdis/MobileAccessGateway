@@ -87,7 +87,7 @@ abstract public class PpqmFeedRouteBuilder extends PpqmRouteBuilder {
         from(getUriSchema() + ":stub")
                 .setHeader(FhirCamelValidators.VALIDATION_MODE, constant(FhirCamelValidators.MODEL))
                 .process(FhirCamelValidators.itiRequestValidator())
-                .process(RequestHeadersForwarder.checkAuthorization(this.ppqProps.isChPpqmConstraints()))
+                //.process(RequestHeadersForwarder.checkAuthorization(this.ppqProps.isChPpqmConstraints()))
                 .process(RequestHeadersForwarder.forward())
                 .process(exchange -> {
                     Object body = exchange.getMessage().getBody();
@@ -109,7 +109,7 @@ abstract public class PpqmFeedRouteBuilder extends PpqmRouteBuilder {
                     exchange.setProperty(PROP_XACML_REQUEST, ppqRequest);
                     log.debug("Created PPQ-1 {}", ppqRequest.getClass().getSimpleName());
                 })
-                .to("ch-ppq1://" + this.ppqProps.getPp1().getUrl())
+                .to("ch-ppq1://" + this.ppqProps.getPp1())
                 .process(TraceparentHandler.updateHeaderForFhir())
                 .process(exchange -> {
                     log.debug("Received PPQ-1 response, convert it to PPQm");
@@ -130,9 +130,9 @@ abstract public class PpqmFeedRouteBuilder extends PpqmRouteBuilder {
                     exchange.getMessage().setBody(ppqMessageCreator.createPolicyQuery(policySetIds));
                     log.debug("Created PPQ-2 request for {} policy set(s)", policySetIds.size());
                 })
-                .process(RequestHeadersForwarder.checkAuthorization(this.ppqProps.isChPpqmConstraints()))
+                //.process(RequestHeadersForwarder.checkAuthorization(this.ppqProps.isChPpqmConstraints()))
                 .process(RequestHeadersForwarder.forward())
-                .to("ch-ppq2://" + this.ppqProps.getPp2().getUrl())
+                .to("ch-ppq2://" + this.ppqProps.getPp2())
                 .process(TraceparentHandler.updateHeaderForFhir())
                 .process(exchange -> {
                     log.debug("Received PPQ-2 response");

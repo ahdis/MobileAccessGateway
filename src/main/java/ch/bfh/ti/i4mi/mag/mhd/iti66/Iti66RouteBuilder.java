@@ -55,21 +55,21 @@ class Iti66RouteBuilder extends RouteBuilder {
         log.debug("Iti66RouteBuilder configure");
         final String xds18Endpoint = String.format("xds-iti18://%s" +
                                                            "?secure=%s",
-                                                   this.xdsProps.getIti18().getUrl(),
+                                                   this.xdsProps.getIti18(),
                                                    this.xdsProps.isHttps() ? "true" : "false")
                 +
                 "&audit=true" +
-                "&auditContext=#myAuditContext" +
+                "&auditContext=#auditContext" +
                 //      "&sslContextParameters=#pixContext" +
                 "&inInterceptors=#soapResponseLogger" +
                 "&inFaultInterceptors=#soapResponseLogger" +
                 "&outInterceptors=#soapRequestLogger" +
                 "&outFaultInterceptors=#soapRequestLogger";
 
-        from("mhd-iti66:translation?audit=true&auditContext=#myAuditContext").routeId("mdh-documentmanifest-adapter")
+        from("mhd-iti66:translation?audit=true&auditContext=#auditContext").routeId("mdh-documentmanifest-adapter")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
-                .process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
+                //.process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
                 .process(RequestHeadersForwarder.forward()).choice()
                 .when(header(Constants.FHIR_REQUEST_PARAMETERS).isNotNull())
                 .bean(Utils.class, "searchParameterToBody")

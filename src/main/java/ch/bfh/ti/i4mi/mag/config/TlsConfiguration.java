@@ -13,25 +13,21 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-
 @Configuration
 public class TlsConfiguration {
 
     public static final String BEAN_TLS_CONTEXT_WS = "wsTlsContext";
-    public static final String BEAN_TLS_CONTEXT_ATNA = "auditTlsContext";
+    public static final String BEAN_CONTEXT_ATNA = "auditContext";
 
     @Bean(name = BEAN_TLS_CONTEXT_WS)
     @ConditionalOnProperty(
             value = "mag.client-ssl.enabled",
             havingValue = "true",
             matchIfMissing = false)
-    public SSLContextParameters getWsTlsContext(final MagClientSslProps magProps) throws KeyStoreException {
+    public SSLContextParameters getWsTlsContext(final MagClientSslProps magProps) {
         final var ksp = new KeyStoreParameters();
 
         // https://www.baeldung.com/java-keystore
-        final KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
         // Keystore file may be found at src/main/resources
         ksp.setResource(magProps.getKeyStore().getPath());
         ksp.setPassword(magProps.getKeyStore().getPassword());
@@ -56,11 +52,11 @@ public class TlsConfiguration {
         return scp;
     }
 
-    @Bean(name = BEAN_TLS_CONTEXT_ATNA)
+    @Bean(name = BEAN_CONTEXT_ATNA)
     public AuditContext getAuditContext(final IpfAtnaConfigurationProperties auditProps,
                                         final MagClientSslProps magProps) {
         final var context = new DefaultAuditContext();
-        if (auditProps.isAuditEnabled()) {
+        if (auditProps.isAuditEnabled() && magProps.getKeyStore() != null) {
             final var ksp = new KeyStoreParameters();
 
             // https://www.baeldung.com/java-keystore

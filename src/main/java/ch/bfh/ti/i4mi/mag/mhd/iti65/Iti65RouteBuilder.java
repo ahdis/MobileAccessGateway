@@ -34,7 +34,7 @@ import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslat
  * https://oehf.github.io/ipf-docs/docs/ihe/iti65/
  */
 @Component
-@ConditionalOnProperty("mag.xds.iti-41.url")
+@ConditionalOnProperty("mag.xds.iti-41")
 class Iti65RouteBuilder extends RouteBuilder {
 
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(Iti65RouteBuilder.class);
@@ -54,23 +54,23 @@ class Iti65RouteBuilder extends RouteBuilder {
 
         final String xds41Endpoint = String.format("xds-iti41://%s" +
                                                            "?secure=%s",
-                                                   this.xdsProps.getIti41().getUrl(),
+                                                   this.xdsProps.getIti41(),
                                                    this.xdsProps.isHttps() ? "true" : "false")
                 +
                 "&audit=true" +
-                "&auditContext=#myAuditContext" +
+                "&auditContext=#auditContext" +
                 //      "&sslContextParameters=#pixContext" +
                 "&inInterceptors=#soapResponseLogger" +
                 "&inFaultInterceptors=#soapResponseLogger" +
                 "&outInterceptors=#soapRequestLogger" +
                 "&outFaultInterceptors=#soapRequestLogger";
 
-        from("mhd-iti65:stub?audit=true&auditContext=#myAuditContext&fhirContext=#fhirContext").routeId(
+        from("mhd-iti65:stub?audit=true&auditContext=#auditContext&fhirContext=#fhirContext").routeId(
                         "mhd-providedocumentbundle")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 //.process(itiRequestValidator())
-                .process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
+                //.process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
                 .process(RequestHeadersForwarder.forward())
                 // translate, forward, translate back
                 .process(Utils.keepBody())

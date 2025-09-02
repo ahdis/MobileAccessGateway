@@ -262,7 +262,7 @@ public class Iti67ResponseConverter extends BaseQueryResponseConverter {
         // [0..1] [1..1
         // has to defined, for the PoC we define
         // $host:port/camel/$repositoryid/$uniqueid
-        attachment.setUrl(this.xdsProps.getRetrieve().getUrl() + "?uniqueId=" + documentEntry.getUniqueId()
+        attachment.setUrl(this.xdsProps.getRetrieve() + "?uniqueId=" + documentEntry.getUniqueId()
                                   + "&repositoryUniqueId=" + documentEntry.getRepositoryUniqueId());
 
         // size -> content.attachment.size integer [0..1] The size is calculated

@@ -44,7 +44,7 @@ public class PatientIdMappingService implements CamelContextAware {
         this.cache = new PassiveExpiringMap<>(5, TimeUnit.MINUTES);
         this.xadMpiOid = mpiProps.getOids().getMpiPid();
         this.pixv3Endpoint = "pixv3-iti45://%s?secure=%s&audit=%s".formatted(
-                mpiProps.getIti45().getUrl(),
+                mpiProps.getIti45(),
                 String.valueOf(mpiProps.isHttps()),
                 String.valueOf(true)
         );

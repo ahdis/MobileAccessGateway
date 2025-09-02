@@ -19,13 +19,13 @@ package ch.bfh.ti.i4mi.mag;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.annotation.Nullable;
 import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.Extension;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.AssigningAuthority;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Code;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Identifiable;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Timestamp;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -63,22 +63,26 @@ public class BaseRequestConverter {
 		return new Code(param.getValue(), null, getScheme(param.getSystem()));
 	}
 
-	public List<Code> codesFromTokens(TokenOrListParam params) {
+    @Nullable
+	public List<Code> codesFromTokens(final TokenOrListParam params) {
 		if (params == null)
 			return null;
-		List<Code> codes = new ArrayList<Code>();
-		for (TokenParam token : params.getValuesAsQueryTokens()) {
+        final var tokens = params.getValuesAsQueryTokens();
+		final List<Code> codes = new ArrayList<>(tokens.size());
+		for (final TokenParam token : tokens) {
 			codes.add(codeFromToken(token));
 		}
 		return codes;
 	}
 
 	// TODO is this the correct mapping for URIs?
-	public List<String> urisFromTokens(TokenOrListParam params) {
+    @Nullable
+	public List<String> urisFromTokens(final TokenOrListParam params) {
 		if (params == null)
 			return null;
-		List<String> result = new ArrayList<String>();
-		for (TokenParam token : params.getValuesAsQueryTokens()) {
+        final var tokens = params.getValuesAsQueryTokens();
+        final List<String> result = new ArrayList<>(tokens.size());
+		for (final TokenParam token : tokens) {
 			result.add(token.getValue());
 		}
 		return result;
@@ -89,7 +93,7 @@ public class BaseRequestConverter {
 		semanticsText.addMixed(text);
 		return semanticsText;
 	}
-	
+
 	public Identifiable transformReference(String targetRef) {
 		if (targetRef == null) return null;
 
@@ -104,13 +108,13 @@ public class BaseRequestConverter {
 		}
 		return null;
 	}
-	
+
 	private static volatile long currentId = System.currentTimeMillis();
-	
-	public String uniqueId() {		
+
+	public String uniqueId() {
 		return Long.toString(currentId++);
 	}
-	
+
 	public Extension getExtensionByUrl(DomainResource resource,String url) {
 		if (url != null && resource != null) {
 		    Extension ext = resource.getExtensionByUrl(url);

@@ -9,4 +9,4 @@
 
 # Camel registration for the pixm-iti104 component
  
-class=ch.bfh.ti.i4mi.mag.pixm.iti104.Iti104Component
+class=ch.bfh.ti.i4mi.mag.mpi.pixm.iti104.Iti104Component

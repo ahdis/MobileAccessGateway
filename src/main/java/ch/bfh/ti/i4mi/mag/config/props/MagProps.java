@@ -15,8 +15,8 @@ public class MagProps {
     private MagXdsProps xds;
     private MagMpiProps mpi;
     private MagPpqProps ppq;
-    private MagIuaProps iua;
     private IpfAtnaConfigurationProperties audit;
+    private MagAuthProps auth;
 
     public String getHomeCommunityId() {
         return this.homeCommunityId;
@@ -74,20 +74,20 @@ public class MagProps {
         this.ppq = ppq;
     }
 
-    public MagIuaProps getIua() {
-        return this.iua;
-    }
-
-    public void setIua(final MagIuaProps iua) {
-        this.iua = iua;
-    }
-
     public IpfAtnaConfigurationProperties getAudit() {
         return this.audit;
     }
 
     public void setAudit(final IpfAtnaConfigurationProperties audit) {
         this.audit = audit;
+    }
+
+    public MagAuthProps getAuth() {
+        return this.auth;
+    }
+
+    public void setAuth(final MagAuthProps auth) {
+        this.auth = auth;
     }
 
     public String getFhirBaseUrl() {

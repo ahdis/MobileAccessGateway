@@ -68,7 +68,7 @@ public class Iti65ResponseConverter extends BaseResponseConverter implements ToF
                         .setLastModified(new Date());
                 if (requestEntry.getResource() instanceof Binary) {
                     String uniqueId = (String) requestEntry.getResource().getUserData("masterIdentifier");
-                    response.setLocation(this.xdsProps.getRetrieve().getUrl() + "?uniqueId=" + uniqueId
+                    response.setLocation(this.xdsProps.getRetrieve() + "?uniqueId=" + uniqueId
                                                  + "&repositoryUniqueId=" + this.xdsProps.getRepositoryUniqueId());
                 } else if (requestEntry.getResource() instanceof ListResource) {
                     response.setLocation(this.magProps.getBaseUrl() + "/fhir/List/" + Iti65RequestConverter.noPrefix(prb.getSubmissionSet().getEntryUuid()));

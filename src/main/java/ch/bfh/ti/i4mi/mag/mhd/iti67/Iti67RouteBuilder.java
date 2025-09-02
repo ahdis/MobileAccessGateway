@@ -47,7 +47,7 @@ import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslat
  * IHE MHD: Find Document References [ITI-67] for Document Responder https://oehf.github.io/ipf-docs/docs/ihe/iti67/
  */
 @Component
-@ConditionalOnProperty({"mag.xds.iti-18.url", "mag.xds.iti-57.url"})
+@ConditionalOnProperty({"mag.xds.iti-18", "mag.xds.iti-57"})
 class Iti67RouteBuilder extends RouteBuilder {
 
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(Iti67RouteBuilder.class);
@@ -71,7 +71,7 @@ class Iti67RouteBuilder extends RouteBuilder {
         return schema + "://" + partialUrl +
                 "?secure=" + this.xdsProps.isHttps() +
                 "&audit=true" +
-                "&auditContext=#myAuditContext" +
+                "&auditContext=#auditContext" +
                 "&inInterceptors=#soapResponseLogger" +
                 "&inFaultInterceptors=#soapResponseLogger" +
                 "&outInterceptors=#soapRequestLogger" +
@@ -81,12 +81,12 @@ class Iti67RouteBuilder extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         log.debug("Iti67RouteBuilder configure");
-        final String metadataQueryEndpoint = createEndpointUri("xds-iti18", this.xdsProps.getIti18().getUrl());
-        final String metadataUpdateEndpoint = createEndpointUri("xds-iti57", this.xdsProps.getIti57().getUrl());
+        final String metadataQueryEndpoint = createEndpointUri("xds-iti18", this.xdsProps.getIti18());
+        final String metadataUpdateEndpoint = createEndpointUri("xds-iti57", this.xdsProps.getIti57());
 
-        from("mhd-iti67:translation?audit=true&auditContext=#myAuditContext").routeId("mdh-documentreference-adapter")
+        from("mhd-iti67:translation?audit=true&auditContext=#auditContext").routeId("mdh-documentreference-adapter")
                 .errorHandler(noErrorHandler())
-                .process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
+                //.process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
                 .process(RequestHeadersForwarder.forward())
                 .choice()
                 .when(header(Constants.FHIR_REQUEST_PARAMETERS).isNotNull())

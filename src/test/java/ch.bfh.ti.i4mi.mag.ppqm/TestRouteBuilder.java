@@ -119,7 +119,7 @@ public class TestRouteBuilder extends PpqmRouteBuilder {
                         }
                     }
 
-                    exchange.getMessage().setBody(ppqMessageCreator.createPositivePolicyQueryResponse(policySets));
+                    exchange.getMessage().setBody(ppqMessageCreator.createPositivePolicyQueryResponse(policySets, "a"));
                 })
                 .process(chPpq2ResponseValidator())
         ;

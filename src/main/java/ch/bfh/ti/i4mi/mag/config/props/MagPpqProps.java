@@ -5,23 +5,23 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "mag.ppq")
 public class MagPpqProps {
 
-    private UrlProps pp1;
-    private UrlProps pp2;
+    private String pp1;
+    private String pp2;
     private boolean chPpqmConstraints;
 
-    public UrlProps getPp1() {
+    public String getPp1() {
         return this.pp1;
     }
 
-    public void setPp1(final UrlProps pp1) {
+    public void setPp1(final String pp1) {
         this.pp1 = pp1;
     }
 
-    public UrlProps getPp2() {
+    public String getPp2() {
         return this.pp2;
     }
 
-    public void setPp2(final UrlProps pp2) {
+    public void setPp2(final String pp2) {
         this.pp2 = pp2;
     }
 

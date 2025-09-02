@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * @author Dmytro Rud
  */
 @Component
-@ConditionalOnProperty({"mag.ppq.ppq-1.url", "mag.ppq.ppq-2.url"})
+@ConditionalOnProperty({"mag.ppq.ppq-1", "mag.ppq.ppq-2"})
 public class Ppq4RouteBuilder extends PpqmFeedRouteBuilder {
 
     private final String uriSchema = "ch-ppq4";

@@ -3,12 +3,10 @@ package ch.bfh.ti.i4mi.mag.fhir;
 import ca.uhn.fhir.interceptor.api.Interceptor;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 import ca.uhn.fhir.rest.server.RestfulServer;
+import jakarta.servlet.http.HttpServletRequest;
 import org.hl7.fhir.instance.model.api.IBaseConformance;
 import org.hl7.fhir.r4.model.CapabilityStatement;
 import org.openehealth.ipf.commons.ihe.fhir.support.NullsafeServerCapabilityStatementProvider;
-import org.springframework.beans.factory.annotation.Value;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * A customized provider of the server CapabilityStatement that adds the OAuth URIs extension.
@@ -18,13 +16,9 @@ import jakarta.servlet.http.HttpServletRequest;
 @Interceptor
 public class MagCapabilityStatementProvider extends NullsafeServerCapabilityStatementProvider {
 
-    private final String baseUrl;
-
-    public MagCapabilityStatementProvider(final RestfulServer fhirServer,
-                                          @Value("${mag.baseurl}") final String baseUrl) {
+    public MagCapabilityStatementProvider(final RestfulServer fhirServer) {
         super(fhirServer);
         fhirServer.setServerConformanceProvider(this);
-        this.baseUrl = baseUrl + "/camel/";
     }
 
     @Override
@@ -34,13 +28,17 @@ public class MagCapabilityStatementProvider extends NullsafeServerCapabilityStat
         // reduce [ "application/fhir+xml", "xml", "application/fhir+json", "json", "html/json", "html/xml" ],
         // see https://ehealthsuisse.ihe-europe.net/evs/default/validator.seam?standard=59
         // the last two come from ResponseHighlighterInterceptor, they should be valid?
+        conformance.setName("MobileAccessGateway");
+        conformance.setPublisher("ahdis ag");
 
         var resources = conformance.getRestFirstRep().getResource();
-        for (var resource: resources) {
+        for (final var resource : resources) {
             if (resource.getType().equals("Patient")) {
-                for (var op : resource.getOperation()) {
-                    if (op.getName().equals("ihe-pix")) {
-                        op.setDefinition("http://fhir.ch/ig/ch-epr-fhir/OperationDefinition/CH.PIXm");
+                for (final var op : resource.getOperation()) {
+                    switch (op.getName()) {
+                        case "ihe-pix" -> op.setDefinition("http://fhir.ch/ig/ch-epr-fhir/OperationDefinition/CH.PIXm");
+                        case "match" -> op.setDefinition("http://fhir.ch/ig/ch-epr-fhir/OperationDefinition/CHPDQmMatch");
+                        default -> {}
                     }
                 }
             }

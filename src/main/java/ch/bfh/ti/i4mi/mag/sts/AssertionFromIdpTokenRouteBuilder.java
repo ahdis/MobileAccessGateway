@@ -16,6 +16,8 @@
 
 package ch.bfh.ti.i4mi.mag.sts;
 
+import ch.bfh.ti.i4mi.mag.config.props.MagAuthProps;
+import ch.bfh.ti.i4mi.mag.config.props.MagClientSslProps;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.cxf.common.message.CxfConstants;
@@ -27,32 +29,29 @@ import ch.bfh.ti.i4mi.mag.mhd.Utils;
 
 @Component
 public class AssertionFromIdpTokenRouteBuilder extends RouteBuilder {
-	@Value("${mag.iua.ap.url}")
-	private String assertionEndpointUrl;
-	
-	@Value("${mag.iua.ap.wsdl}")
-	private String wsdl;
-	
-	@Value("${mag.iua.ap.endpoint-name:}")
-	private String endpointName;
-	
-	@Value("${mag.client-ssl.enabled}")
-	private boolean clientSsl;
 
-    @Autowired
-    private StsUtils utils;
+    private final StsUtils utils;
+    private final MagAuthProps authProps;
+    private final boolean clientSsl;
+
+    public AssertionFromIdpTokenRouteBuilder(final StsUtils utils,
+                                             final MagAuthProps authProps,
+                                             final MagClientSslProps clientSslProps) {
+        this.utils = utils;
+        this.authProps = authProps;
+        this.clientSsl = clientSslProps.isEnabled();
+    }
 	
 	@Override
 	public void configure() throws Exception {
 				
 		final String assertionEndpoint = String.format("cxf://%s?dataFormat=CXF_MESSAGE&wsdlURL=%s&loggingFeatureEnabled=true"+
-		        ((endpointName!=null && endpointName.length()>0) ? "&endpointName="+endpointName : "")+
-                "&inInterceptors=#soapResponseLogger" + 
+                "&inInterceptors=#soapResponseLogger" +
                 "&inFaultInterceptors=#soapResponseLogger"+
                 "&outInterceptors=#soapRequestLogger" + 
                 "&outFaultInterceptors=#soapRequestLogger"+
-                (clientSsl ? "&sslContextParameters=#sslContext" : ""),
-				assertionEndpointUrl, wsdl);
+                (clientSsl ? "&sslContextParameters=#wsTlsContext" : ""),
+				this.authProps.getSts(), this.authProps.getStsWsdl());
 			
 		from("servlet://assertion?httpMethodRestrict=POST&matchOnUriPrefix=true")
             .routeId("sts")

@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
  * https://oehf.github.io/ipf-docs/docs/boot-fhir/ https://camel.apache.org/components/latest/servlet-component.html
  */
 @Component
-@ConditionalOnProperty("mag.xds.iti-43.url")
+@ConditionalOnProperty("mag.xds.iti-43")
 class Iti68RouteBuilder extends RouteBuilder {
     private static final Logger log = LoggerFactory.getLogger(Iti68RouteBuilder.class);
 
@@ -49,20 +49,20 @@ class Iti68RouteBuilder extends RouteBuilder {
         log.debug("Iti68RouteBuilder configure");
         final String xds43Endpoint = String.format("xds-iti43://%s" +
                                                            "?secure=%s",
-                                                   this.xdsProps.getIti43().getUrl(),
+                                                   this.xdsProps.getIti43(),
                                                    this.xdsProps.isHttps() ? "true" : "false")
                 +
                 "&audit=true" +
-                "&auditContext=#myAuditContext" +
+                "&auditContext=#auditContext" +
                 //  "&sslContextParameters=#pixContext" +
                 "&inInterceptors=#soapResponseLogger" +
                 "&inFaultInterceptors=#soapResponseLogger" +
                 "&outInterceptors=#soapRequestLogger" +
                 "&outFaultInterceptors=#soapRequestLogger";
-        from("mhd-iti68:camel/xdsretrieve?audit=true&auditContext=#myAuditContext").routeId("ddh-retrievedoc-adapter")
+        from("mhd-iti68:camel/xdsretrieve?audit=true&auditContext=#auditContext").routeId("ddh-retrievedoc-adapter")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
-                .process(RequestHeadersForwarder.checkAuthorization(this.isChMhdConstraints))
+                //.process(RequestHeadersForwarder.checkAuthorization(this.isChMhdConstraints))
                 .process(RequestHeadersForwarder.forward())
 
                 // translate, forward, translate back

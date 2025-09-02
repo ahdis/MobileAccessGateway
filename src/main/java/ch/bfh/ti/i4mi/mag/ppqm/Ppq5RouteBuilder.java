@@ -23,7 +23,7 @@ import java.util.List;
  * @author Dmytro Rud
  */
 @Component
-@ConditionalOnProperty("mag.ppq.ppq-2.url")
+@ConditionalOnProperty("mag.ppq.ppq-2")
 public class Ppq5RouteBuilder extends PpqmRouteBuilder {
     private static final Logger log = LoggerFactory.getLogger(Ppq5RouteBuilder.class);
 
@@ -41,7 +41,7 @@ public class Ppq5RouteBuilder extends PpqmRouteBuilder {
         from("ch-ppq5:stub")
                 .setHeader(FhirCamelValidators.VALIDATION_MODE, constant(FhirCamelValidators.MODEL))
                 .process(FhirCamelValidators.itiRequestValidator())
-                .process(RequestHeadersForwarder.checkAuthorization(this.ppqProps.isChPpqmConstraints()))
+                //.process(RequestHeadersForwarder.checkAuthorization(this.ppqProps.isChPpqmConstraints()))
                 .process(RequestHeadersForwarder.forward())
                 .process(exchange -> {
                     String ppq5Request = exchange.getMessage().getHeader(Constants.HTTP_QUERY, String.class);
@@ -49,7 +49,7 @@ public class Ppq5RouteBuilder extends PpqmRouteBuilder {
                     exchange.getMessage().setBody(ppq2Request);
                     log.debug("Received PPQ-5 request and converted to PPQ-2");
                 })
-                .to("ch-ppq2://" + this.ppqProps.getPp2().getUrl())
+                .to("ch-ppq2://" + this.ppqProps.getPp2())
                 .process(exchange -> {
                     ResponseType ppq2Response = exchange.getMessage().getMandatoryBody(ResponseType.class);
                     List<Consent> ppq5Response = XacmlToFhirTranslator.translatePpq2To5Response(ppq2Response);

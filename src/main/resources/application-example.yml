@@ -1,0 +1,64 @@
+server:
+  ssl:
+    key-store: classpath:example-server-certificate.p12
+    key-store-password: a1b2c3
+    key-store-type: pkcs12
+    key-alias: server
+  port: 9091 # Application listening port for HTTPS<
+
+mag:
+  homeCommunityId: urn:oid:1.2.3.5
+  baseUrl: http://mag.ahdis.ch
+  documentSourceId: urn:oid:1.3.6.1.4.1.12559.11.13.2.5
+
+  client-ssl:
+    enabled: true
+    key-store:
+      path: keystore.jks
+      password: a1b2c3
+    truststore:
+      path: example-client-certificate.jks
+      password: a1b2c3
+    cert-alias: gateway
+
+  xds:
+    https: true
+    repositoryUniqueId: 1.1.4567332.1.2
+    iti-18: ehealthsuisse.ihe-europe.net:10443/xdstools7/sim/default__ahdis/reg/sq
+    iti-43: ehealthsuisse.ihe-europe.net:10443/xdstools7/sim/default__ahdis/rep/ret
+    iti-41: ehealthsuisse.ihe-europe.net:10443/xdstools7/sim/default__ahdis/rep/prb
+    iti-57: ehealthsuisse.ihe-europe.net:10443/xdstools7/sim/default__ahdis/rep/prb
+    retrieve: ${DOCUMENT_RETRIEVE_URL:/camel/xdsretrieve}
+
+  mpi:
+    https: true
+    iti-45: ehealthsuisse.ihe-europe.net:10443/PAMSimulator-ejb/PIXManager_Service/PIXManager_PortType
+    iti-44: ehealthsuisse.ihe-europe.net:10443/PAMSimulator-ejb/PIXManager_Service/PIXManager_PortType
+    iti-47: ehealthsuisse.ihe-europe.net:10443/PAMSimulator-ejb/PDQSupplier_Service/PDQSupplier_PortType
+    oids:
+      sender: 1.3.6.1.4.1.21367.2017.2.2.108
+      receiver: 1.3.6.1.4.1.12559.11.25.1.10
+      custodian: 1.3.6.1.4.1.21367.2017.2.5.83
+      mpi-pid: 1.3.6.1.4.1.12559.11.20.1
+
+  audit:
+    audit-enabled: true
+    audit-tls-enabled: true
+    audit-enterprise-site-id: 1.3.6.1.4.1.21367.2017.2.7.109
+    audit-repository-host: 147.135.232.177
+    audit-repository-port: 7003
+    audit-repository-transport: TCP
+
+  auth:
+    sts: https://epdplayground.i4mi.bfh.ch:7443/EPDSTS/services/SecurityTokenService
+    sts-wsdl: classpath:/local-WSDL/wsdl/ws-trust-1.3.wsdl
+
+logging:
+  level:
+    org.springframework.security: debug
+    org.openehealth.ipf.commons.ihe: debug  # Ensure the IPF logs are at the desired level
+    ch.bfh.ti.i4mi: debug
+    org.eclipse.jetty.server.RequestLog: debug
+    org.springframework.web.servlet.DispatcherServlet: debug
+    org.springframework.web: debug
+    org.springframework.http: debug

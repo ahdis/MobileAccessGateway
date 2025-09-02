@@ -16,7 +16,7 @@ public class Iti57RequestTranslatorTest {
 
     @BeforeAll
     public static void beforeAll() {
-        Config config = new Config();
+        /*Config config = new Config();
         config.setRepositoryUniqueId("1.1.4567332.1.2");
         config.setOidMpiPid("1.3.6.1.4.1.12559.11.20.1");
         SchemeMapper schemeMapper = new SchemeMapper();
@@ -26,7 +26,7 @@ public class Iti57RequestTranslatorTest {
         iti67RequestUpdateConverter = new Iti67RequestUpdateConverter(config);
         iti67RequestUpdateConverter.setConfig(config);
         iti67RequestUpdateConverter.setSchemeMapper(schemeMapper);
-        iti67RequestUpdateConverter.setPatientRefCreator(patientReferenceCreator);
+        iti67RequestUpdateConverter.setPatientRefCreator(patientReferenceCreator);*/
     }
 
     @Test

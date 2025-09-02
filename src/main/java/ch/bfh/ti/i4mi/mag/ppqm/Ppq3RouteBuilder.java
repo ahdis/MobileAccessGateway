@@ -23,7 +23,7 @@ import java.util.List;
  * @author Dmytro Rud
  */
 @Component
-@ConditionalOnProperty({"mag.ppq.ppq-1.url", "mag.ppq.ppq-2.url"})
+@ConditionalOnProperty({"mag.ppq.ppq-1", "mag.ppq.ppq-2"})
 public class Ppq3RouteBuilder extends PpqmFeedRouteBuilder {
     private static final Logger log = LoggerFactory.getLogger(Ppq3RouteBuilder.class);
 

@@ -28,7 +28,6 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Offers an optional additional HTTP server if HTTPS is used
  * @author alexander kreutz
- *
  */
 @Configuration
 public class HttpServer implements WebServerFactoryCustomizer<JettyServletWebServerFactory> {
@@ -51,38 +50,20 @@ public class HttpServer implements WebServerFactoryCustomizer<JettyServletWebSer
 
     @Bean
     public WebServerFactoryCustomizer<JettyServletWebServerFactory> webServerFactoryCustomizer() {
-    	//JettyComponent jettyComponent = getContext().getComponent("jetty", JettyComponent.class);
-    	//jettyComponent.setSslContextParameters(scp);
-    	
-        return new WebServerFactoryCustomizer<JettyServletWebServerFactory>() {
-
-            @Override
-            public void customize(JettyServletWebServerFactory factory) {
-
-                if (httpPort > 0) {
-	                factory.addServerCustomizers(new JettyServerCustomizer() {
-
-	                    @Override
-	                    public void customize(Server server) {
-
-	                        ServerConnector httpConnector = new ServerConnector(server);
-	                        httpConnector.setPort(httpPort);
-	                        server.addConnector(httpConnector);
-
-
-	                        if (maxHttpHeaderSize > 0) {
-		                        for (ConnectionFactory factory : httpConnector.getConnectionFactories()) {
-		                        	if (factory instanceof HttpConfiguration.ConnectionFactory) {
-		                				((HttpConfiguration.ConnectionFactory) factory).getHttpConfiguration()
-		                						.setRequestHeaderSize(maxHttpHeaderSize);
-		                			}
-		                        }
-	                        }
-
-
-	                    }
-	                });
-                }
+        return factory -> {
+            if (httpPort > 0) {
+                factory.addServerCustomizers(server -> {
+                    ServerConnector httpConnector = new ServerConnector(server);
+                    httpConnector.setPort(httpPort);
+                    server.addConnector(httpConnector);
+                    if (maxHttpHeaderSize > 0) {
+                        for (ConnectionFactory factory1 : httpConnector.getConnectionFactories()) {
+                            if (factory1 instanceof final HttpConfiguration.ConnectionFactory cf) {
+                                cf.getHttpConfiguration().setRequestHeaderSize(maxHttpHeaderSize);
+                            }
+                        }
+                    }
+                });
             }
         };
     }
