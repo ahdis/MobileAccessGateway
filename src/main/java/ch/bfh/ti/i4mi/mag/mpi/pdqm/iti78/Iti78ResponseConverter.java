@@ -285,9 +285,7 @@ public class Iti78ResponseConverter extends BasePMIRResponseConverter implements
 			if (patient.getId().isEmpty()) continue;
 			
 			Patient result = new Patient();
-			
-			boolean idadded = false;
-			
+
 			for (II patientId : patient.getId()) {
 				if (patientId.getRoot()==null && patientId.getExtension()==null) continue;
 
@@ -295,7 +293,7 @@ public class Iti78ResponseConverter extends BasePMIRResponseConverter implements
 					if (this.mpiProps.getOids().getMpiPid().equals(patientId.getRoot()) || EPR_SPID_OID.equals(patientId.getRoot())) {
 						result.addIdentifier().setSystem(getSystem(patientId.getRoot())).setValue(patientId.getExtension());
 					} else {
-						log.warn("Ignoring patient identifier "+patientId.getRoot());
+						log.debug("Ignoring patient identifier "+patientId.getRoot());
 					}
 				} else	{							
 					result.addIdentifier().setSystem(getSystem(patientId.getRoot())).setValue(patientId.getExtension());
@@ -319,7 +317,7 @@ public class Iti78ResponseConverter extends BasePMIRResponseConverter implements
 						if (this.mpiProps.getOids().getMpiPid().equals(patientId.getRoot()) || EPR_SPID_OID.equals(patientId.getRoot())) {
 							result.addIdentifier().setSystem(getSystem(patientId.getRoot())).setValue(patientId.getExtension());
 						} else {
-							log.warn("Ignoring patient identifier "+patientId.getRoot());
+							log.debug("Ignoring patient identifier "+patientId.getRoot());
 						}
 					} else	{							
 						result.addIdentifier().setSystem(getSystem(patientId.getRoot())).setValue(patientId.getExtension());
