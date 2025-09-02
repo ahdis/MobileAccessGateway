@@ -39,6 +39,8 @@ import org.openehealth.ipf.commons.ihe.xds.core.requests.query.QueryReturnType;
 import java.util.ArrayList;
 import java.util.List;
 
+import static ch.bfh.ti.i4mi.mag.mhd.iti65.Iti65RequestConverter.noPrefix;
+
 /**
  * ITI-66 to ITI-18 request converter
  *
@@ -96,7 +98,7 @@ public class Iti66RequestConverter extends BaseRequestConverter {
             // patient or patient.identifier -> $XDSSubmissionSetPatientId
             TokenParam tokenIdentifier = searchParameter.getPatientIdentifier();
             if (tokenIdentifier != null) {
-                String system = getScheme(tokenIdentifier.getSystem());
+                String system = noPrefix(tokenIdentifier.getSystem());
                 if (system == null) throw new InvalidRequestException("Missing OID for patient");
 	         	/*if (system.startsWith("urn:oid:")) {
 	                 system = system.substring(8);

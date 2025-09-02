@@ -85,6 +85,8 @@ import net.ihe.gazelle.hl7v3.voc.RoleClassContact;
 import net.ihe.gazelle.hl7v3.voc.XActMoodIntentEvent;
 import net.ihe.gazelle.hl7v3transformer.HL7V3Transformer;
 
+import static ch.bfh.ti.i4mi.mag.mhd.iti65.Iti65RequestConverter.noPrefix;
+
 /**
  * ITI-93 Patient Feed (add a new patient)
  * @author alexander kreutz
@@ -215,7 +217,7 @@ public class Iti93AddRequestConverter extends PMIRRequestConverter {
 		        Organization managingOrg = getManagingOrganization(in);
 		        // NULL POINTER CHECK
 		        for (Identifier id : managingOrg.getIdentifier()) {
-		        	orgIds.add(new II(getScheme(id.getSystem()), null));
+		        	orgIds.add(new II(noPrefix(id.getSystem()), null));
 		        }
 		        
 		        if (in.hasDeceasedBooleanType()) {
@@ -285,7 +287,7 @@ public class Iti93AddRequestConverter extends PMIRRequestConverter {
 				assignedEntity.setClassCode(RoleClassAssignedEntity.ASSIGNED);
 				
 				List<II> custIds = new ArrayList<>(1);
-			    custIds.add(new II(getScheme(this.mpiOidsProps.getCustodian()), null));
+			    custIds.add(new II(noPrefix(this.mpiOidsProps.getCustodian()), null));
 				
 				assignedEntity.setId(custIds);
 				//assignedEntity.setId(orgIds);
@@ -339,10 +341,10 @@ public class Iti93AddRequestConverter extends PMIRRequestConverter {
 	public II patientIdentifier(Identifier id) {
 		String assigner = null;
 		if (id.hasAssigner()) assigner = id.getAssigner().getDisplay();
-		return new II(getScheme(id.getSystem()),id.getValue(), assigner);
+		return new II(noPrefix(id.getSystem()),id.getValue(), assigner);
 	}
 	
 	public PRPAMT201302UV02PatientId patientIdentifierUpd(Identifier id) {
-		return new PRPAMT201302UV02PatientId(getScheme(id.getSystem()),id.getValue());
+		return new PRPAMT201302UV02PatientId(noPrefix(id.getSystem()), id.getValue());
 	}
 }

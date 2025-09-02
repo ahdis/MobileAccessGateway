@@ -69,6 +69,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import static ch.bfh.ti.i4mi.mag.MagConstants.EPR_SPID_OID;
+import static ch.bfh.ti.i4mi.mag.mhd.iti65.Iti65RequestConverter.noPrefix;
 
 /**
  * Convert ITI-78 to ITI-43 request
@@ -363,14 +364,14 @@ public class Iti78RequestConverter extends PMIRRequestConverter {
     public PRPAMT201306UV02LivingSubjectId createSubjectId(final String system,
                                                            final String value) {
         final var livingSubjectId = new PRPAMT201306UV02LivingSubjectId();
-        livingSubjectId.addValue(new II(this.getScheme(system), value));
+        livingSubjectId.addValue(new II(noPrefix(system), value));
         livingSubjectId.setSemanticsText(ST("LivingSubject.id"));
         return livingSubjectId;
     }
 
     public PRPAMT201306UV02OtherIDsScopingOrganization createOtherIDsScopingOrganization(final String system) {
         final var otherIDsScopingOrganization = new PRPAMT201306UV02OtherIDsScopingOrganization();
-        otherIDsScopingOrganization.addValue(new II(this.getScheme(system), null));
+        otherIDsScopingOrganization.addValue(new II(noPrefix(system), null));
         otherIDsScopingOrganization.setSemanticsText(ST("OtherIDs.scopingOrganization.id"));
         return otherIDsScopingOrganization;
     }

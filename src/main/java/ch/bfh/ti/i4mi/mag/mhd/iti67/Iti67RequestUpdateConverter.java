@@ -103,8 +103,8 @@ public class Iti67RequestUpdateConverter extends Iti65RequestConverter {
         Extension source =
                 getExtensionByUrl(documentReference,
                                   "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-sourceId");
-        if (source != null && source.getValue() instanceof Identifier) {
-            submissionSet.setSourceId(noPrefix(((Identifier) source.getValue()).getValue()));
+        if (source != null && source.getValue() instanceof final Identifier identifier) {
+            submissionSet.setSourceId(noPrefix(identifier.getValue()));
         } else {
             submissionSet.setSourceId(noPrefix(this.magProps.getDocumentSourceId()));
         }
@@ -112,8 +112,8 @@ public class Iti67RequestUpdateConverter extends Iti65RequestConverter {
         Extension designationType =
                 getExtensionByUrl(documentReference,
                                   "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-designationType");
-        if (designationType != null && designationType.getValue() instanceof CodeableConcept) {
-            submissionSet.setContentTypeCode(transformCodeableConcept((CodeableConcept) designationType.getValue()));
+        if (designationType != null && designationType.getValue() instanceof final CodeableConcept cc) {
+            submissionSet.setContentTypeCode(transform(cc));
         } else {
             submissionSet.setContentTypeCode(new Code("71388002",
                                                       new LocalizedString("Procedure"),

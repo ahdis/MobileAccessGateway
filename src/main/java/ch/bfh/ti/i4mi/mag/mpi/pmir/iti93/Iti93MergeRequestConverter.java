@@ -92,6 +92,8 @@ import net.ihe.gazelle.hl7v3.voc.RoleClassContact;
 import net.ihe.gazelle.hl7v3.voc.XActMoodIntentEvent;
 import net.ihe.gazelle.hl7v3transformer.HL7V3Transformer;
 
+import static ch.bfh.ti.i4mi.mag.mhd.iti65.Iti65RequestConverter.noPrefix;
+
 /**
  * ITI-93 Patient Feed : Merge Request
  * @author alexander
@@ -236,7 +238,7 @@ public class Iti93MergeRequestConverter extends Iti93UpdateRequestConverter {
 			  patient.setPatientPerson(patientPerson );
 			  Organization managingOrg = getManagingOrganization(in, basePatient.getContained());
 			  for (Identifier id : managingOrg.getIdentifier()) {
-					orgIds.add(new II(getScheme(id.getSystem()), null));
+					orgIds.add(new II(noPrefix(id.getSystem()), null));
 					mainIds.add(id.getSystem());
 			  }
 			  if (managingOrg==null) managingOrg = getManagingOrganization(basePatient, basePatient.getContained());
@@ -244,7 +246,7 @@ public class Iti93MergeRequestConverter extends Iti93UpdateRequestConverter {
 
 			  // TODO How is the correct mapping done?
 			    for (Identifier id : in.getIdentifier()) {
-			    	PRPAMT201302UV02PatientId patientId = new PRPAMT201302UV02PatientId(getScheme(id.getSystem()),id.getValue());
+			    	PRPAMT201302UV02PatientId patientId = new PRPAMT201302UV02PatientId(noPrefix(id.getSystem()),id.getValue());
 					patient.addId(patientId );
 			    }
 
@@ -336,7 +338,7 @@ public class Iti93MergeRequestConverter extends Iti93UpdateRequestConverter {
 				assignedEntity.setClassCode(RoleClassAssignedEntity.ASSIGNED);
 
 				List<II> custIds = new ArrayList<>(1);
-			    custIds.add(new II(getScheme(this.mpiOidsProps.getCustodian()), null));
+			    custIds.add(new II(noPrefix(this.mpiOidsProps.getCustodian()), null));
 
 				assignedEntity.setId(custIds);
 				//assignedEntity.setId(orgIds);

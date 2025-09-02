@@ -81,6 +81,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static ch.bfh.ti.i4mi.mag.mhd.iti65.Iti65RequestConverter.noPrefix;
+
 /**
  * ITI-104 Patient Identity Feed (add a new patient)
  *
@@ -219,12 +221,12 @@ public class Iti104AddRequestConverter extends PMIRRequestConverter {
         // NULL POINTER CHECK
         if (managingOrg != null) {
             for (Identifier id : managingOrg.getIdentifier()) {
-                orgIds.add(new II(getScheme(id.getSystem()), null));
+                orgIds.add(new II(noPrefix(id.getSystem()), null));
             }
         } else {
             Reference org = in.getManagingOrganization();
             if (org != null && org.getIdentifier() != null) {
-                orgIds.add(new II(getScheme(org.getIdentifier().getSystem()), org.getIdentifier().getValue()));
+                orgIds.add(new II(noPrefix(org.getIdentifier().getSystem()), org.getIdentifier().getValue()));
             }
         }
 
@@ -298,7 +300,7 @@ public class Iti104AddRequestConverter extends PMIRRequestConverter {
             assignedEntity.setClassCode(RoleClassAssignedEntity.ASSIGNED);
 
             List<II> custIds = new ArrayList<II>();
-            custIds.add(new II(getScheme(this.mpiOidsProps.getCustodian()), null));
+            custIds.add(new II(noPrefix(this.mpiOidsProps.getCustodian()), null));
 
             assignedEntity.setId(custIds);
             // assignedEntity.setId(orgIds);
@@ -353,10 +355,10 @@ public class Iti104AddRequestConverter extends PMIRRequestConverter {
         String assigner = null;
         if (id.hasAssigner())
             assigner = id.getAssigner().getDisplay();
-        return new II(getScheme(id.getSystem()), id.getValue(), assigner);
+        return new II(noPrefix(id.getSystem()), id.getValue(), assigner);
     }
 
     public PRPAMT201302UV02PatientId patientIdentifierUpd(Identifier id) {
-        return new PRPAMT201302UV02PatientId(getScheme(id.getSystem()), id.getValue());
+        return new PRPAMT201302UV02PatientId(noPrefix(id.getSystem()), id.getValue());
     }
 }

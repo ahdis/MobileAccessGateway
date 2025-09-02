@@ -93,10 +93,6 @@ public class Iti78ResponseConverter extends BasePMIRResponseConverter implements
 		return result;
 	}
 	
-	public String getSystem(String schemeName) {
-    	return schemeMapper.getSystem(schemeName);        
-    }
-	
 	public void errorFromException(Exception e) {
 		throw new UnclassifiedServerFailureException(500, e.getMessage());		
 	}
@@ -137,7 +133,7 @@ public class Iti78ResponseConverter extends BasePMIRResponseConverter implements
 	public CodeableConcept transform(CE in) {
 		if (in == null) return null;
 		CodeableConcept cc = new CodeableConcept();
-		cc.addCoding().setSystem(getSystem(in.getCodeSystem())).setCode(in.getCode()).setDisplay(in.getDisplayName());
+		cc.addCoding(this.schemeMapper.toFhirCoding(in.getCode(), in.getCodeSystem()).setDisplay(in.getDisplayName()));
 		return cc;
 	}
 	
@@ -291,12 +287,12 @@ public class Iti78ResponseConverter extends BasePMIRResponseConverter implements
 
 				if (this.mpiProps.isChPdqmConstraints()) {
 					if (this.mpiProps.getOids().getMpiPid().equals(patientId.getRoot()) || EPR_SPID_OID.equals(patientId.getRoot())) {
-						result.addIdentifier().setSystem(getSystem(patientId.getRoot())).setValue(patientId.getExtension());
+						result.addIdentifier(this.schemeMapper.toFhirIdentifier(patientId.getRoot(), patientId.getExtension(), null));
 					} else {
 						log.debug("Ignoring patient identifier "+patientId.getRoot());
 					}
-				} else	{							
-					result.addIdentifier().setSystem(getSystem(patientId.getRoot())).setValue(patientId.getExtension());
+				} else	{
+                    result.addIdentifier(this.schemeMapper.toFhirIdentifier(patientId.getRoot(), patientId.getExtension(), null));
 				}
 
                 if (this.mpiProps.isChEprspidAsPatientId() && EPR_SPID_OID.equals(patientId.getRoot())) {
@@ -315,12 +311,12 @@ public class Iti78ResponseConverter extends BasePMIRResponseConverter implements
 
 				   if (this.mpiProps.isChPdqmConstraints()) {
 						if (this.mpiProps.getOids().getMpiPid().equals(patientId.getRoot()) || EPR_SPID_OID.equals(patientId.getRoot())) {
-							result.addIdentifier().setSystem(getSystem(patientId.getRoot())).setValue(patientId.getExtension());
+                            result.addIdentifier(this.schemeMapper.toFhirIdentifier(patientId.getRoot(), patientId.getExtension(), null));
 						} else {
 							log.debug("Ignoring patient identifier "+patientId.getRoot());
 						}
-					} else	{							
-						result.addIdentifier().setSystem(getSystem(patientId.getRoot())).setValue(patientId.getExtension());
+					} else	{
+                       result.addIdentifier(this.schemeMapper.toFhirIdentifier(patientId.getRoot(), patientId.getExtension(), null));
 					}
 				}
 			}

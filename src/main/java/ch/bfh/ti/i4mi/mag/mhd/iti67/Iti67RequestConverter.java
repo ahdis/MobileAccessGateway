@@ -46,6 +46,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static ch.bfh.ti.i4mi.mag.mhd.iti65.Iti65RequestConverter.noPrefix;
+
 /**
  * ITI-67 to ITI-18 request converter
  *
@@ -91,10 +93,10 @@ public class Iti67RequestConverter extends BaseRequestConverter {
             if (related != null) {
                 FindDocumentsByReferenceIdQuery referenceIdQuery = new FindDocumentsByReferenceIdQuery();
                 ;
-                QueryList<ReferenceId> outerReferences = new QueryList<ReferenceId>();
-                List<ReferenceId> references = new ArrayList<ReferenceId>();
+                QueryList<ReferenceId> outerReferences = new QueryList<>();
+                List<ReferenceId> references = new ArrayList<>();
                 for (TokenParam token : related.getValuesAsQueryTokens()) {
-                    references.add(new ReferenceId(token.getValue(), null, getScheme(token.getSystem())));
+                    references.add(this.schemeMapper.toXdsReferenceId(token));
                 }
                 outerReferences.getOuterList().add(references);
                 referenceIdQuery.setTypedReferenceIds(outerReferences);
@@ -119,9 +121,9 @@ public class Iti67RequestConverter extends BaseRequestConverter {
             // patient or patient.identifier  -->  $XDSDocumentEntryPatientId
             TokenParam tokenIdentifier = searchParameter.getPatientIdentifier();
             if (tokenIdentifier != null) {
-                String system = getScheme(tokenIdentifier.getSystem());
-                if (system == null) throw new InvalidRequestException("Missing OID for patient");
-                query.setPatientId(new Identifiable(tokenIdentifier.getValue(), new AssigningAuthority(system)));
+                if (tokenIdentifier.getSystem() == null) throw new InvalidRequestException("Missing OID for patient");
+                query.setPatientId(this.schemeMapper.toXdsIdentifiable(tokenIdentifier.getValue(),
+                                                                       tokenIdentifier.getSystem()));
             }
             ReferenceParam patientRef = searchParameter.getPatientReference();
             if (patientRef != null) {

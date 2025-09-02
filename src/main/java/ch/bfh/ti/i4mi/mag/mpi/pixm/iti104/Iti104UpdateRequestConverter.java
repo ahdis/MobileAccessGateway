@@ -81,6 +81,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static ch.bfh.ti.i4mi.mag.mhd.iti65.Iti65RequestConverter.noPrefix;
+
 public class Iti104UpdateRequestConverter extends Iti104AddRequestConverter {
 
     public Iti104UpdateRequestConverter(final SchemeMapper schemeMapper,
@@ -162,13 +164,13 @@ public class Iti104UpdateRequestConverter extends Iti104AddRequestConverter {
         // NULL POINTER CHECK
         if (managingOrg != null) {
             for (Identifier id : managingOrg.getIdentifier()) {
-                orgIds.add(new II(getScheme(id.getSystem()), null));
+                orgIds.add(new II(noPrefix(id.getSystem()), null));
                 mainIds.add(id.getSystem());
             }
         } else {
             Reference org = in.getManagingOrganization();
             if (org != null && org.getIdentifier() != null) {
-                orgIds.add(new II(getScheme(org.getIdentifier().getSystem()), null));
+                orgIds.add(new II(noPrefix(org.getIdentifier().getSystem()), null));
                 mainIds.add(org.getIdentifier().getSystem());
             }
         }
@@ -181,7 +183,7 @@ public class Iti104UpdateRequestConverter extends Iti104AddRequestConverter {
             else {
                 PRPAMT201302UV02OtherIDs asOtherIDs = new PRPAMT201302UV02OtherIDs();
                 PRPAMT201302UV02OtherIDsId id2 = new PRPAMT201302UV02OtherIDsId();
-                id2.setRoot(getScheme(id.getSystem()));
+                id2.setRoot(noPrefix(id.getSystem()));
                 id2.setExtension(id.getValue());
 
 
@@ -191,7 +193,7 @@ public class Iti104UpdateRequestConverter extends Iti104AddRequestConverter {
                 scopingOrganization.setClassCode(EntityClassOrganization.ORG);
                 scopingOrganization.setDeterminerCode(EntityDeterminer.INSTANCE);
                 List<II> scopeOrgIds = new ArrayList<II>();
-                scopeOrgIds.add(new II(getScheme(id.getSystem()), null));
+                scopeOrgIds.add(new II(noPrefix(id.getSystem()), null));
                 scopingOrganization.setId(scopeOrgIds);
                 asOtherIDs.setScopingOrganization(scopingOrganization);
                 patientPerson.addAsOtherIDs(asOtherIDs);
@@ -300,7 +302,7 @@ public class Iti104UpdateRequestConverter extends Iti104AddRequestConverter {
         assignedEntity.setClassCode(RoleClassAssignedEntity.ASSIGNED);
 
         List<II> custIds = new ArrayList<>(1);
-        custIds.add(new II(getScheme(this.mpiOidsProps.getCustodian()), null));
+        custIds.add(new II(noPrefix(this.mpiOidsProps.getCustodian()), null));
 
         assignedEntity.setId(custIds);
         //assignedEntity.setId(orgIds);

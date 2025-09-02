@@ -87,6 +87,8 @@ import net.ihe.gazelle.hl7v3.voc.RoleClassContact;
 import net.ihe.gazelle.hl7v3.voc.XActMoodIntentEvent;
 import net.ihe.gazelle.hl7v3transformer.HL7V3Transformer;
 
+import static ch.bfh.ti.i4mi.mag.mhd.iti65.Iti65RequestConverter.noPrefix;
+
 public class Iti93UpdateRequestConverter extends Iti93AddRequestConverter { 
 
     public Iti93UpdateRequestConverter(final SchemeMapper schemeMapper,
@@ -174,7 +176,7 @@ public class Iti93UpdateRequestConverter extends Iti93AddRequestConverter {
 			  Set<String> mainIds = new HashSet<String>();
 		      Organization managingOrg = getManagingOrganization(in);
 		      for (Identifier id : managingOrg.getIdentifier()) {
-		        	orgIds.add(new II(getScheme(id.getSystem()), null));
+		        	orgIds.add(new II(noPrefix(id.getSystem()), null));
 		        	mainIds.add(id.getSystem());
 		      }
 			  
@@ -186,7 +188,7 @@ public class Iti93UpdateRequestConverter extends Iti93AddRequestConverter {
 					else {
 					PRPAMT201302UV02OtherIDs asOtherIDs = new PRPAMT201302UV02OtherIDs();
 					PRPAMT201302UV02OtherIDsId id2 = new PRPAMT201302UV02OtherIDsId();
-					id2.setRoot(getScheme(id.getSystem()));
+					id2.setRoot(noPrefix(id.getSystem()));
 					id2.setExtension(id.getValue());
 					   
 					
@@ -196,7 +198,7 @@ public class Iti93UpdateRequestConverter extends Iti93AddRequestConverter {
 					scopingOrganization.setClassCode(EntityClassOrganization.ORG);
 					scopingOrganization.setDeterminerCode(EntityDeterminer.INSTANCE);
 					List<II> scopeOrgIds = new ArrayList<II>();
-					scopeOrgIds.add(new II(getScheme(id.getSystem()), null));
+					scopeOrgIds.add(new II(noPrefix(id.getSystem()), null));
 					scopingOrganization.setId(scopeOrgIds);
 					asOtherIDs.setScopingOrganization(scopingOrganization );
 					patientPerson.addAsOtherIDs(asOtherIDs );
@@ -298,7 +300,7 @@ public class Iti93UpdateRequestConverter extends Iti93AddRequestConverter {
 				assignedEntity.setClassCode(RoleClassAssignedEntity.ASSIGNED);
 				
 				List<II> custIds = new ArrayList<>(1);
-			    custIds.add(new II(getScheme(this.mpiOidsProps.getCustodian()), null));
+			    custIds.add(new II(noPrefix(this.mpiOidsProps.getCustodian()), null));
 				
 				assignedEntity.setId(custIds);
 				//assignedEntity.setId(orgIds);								

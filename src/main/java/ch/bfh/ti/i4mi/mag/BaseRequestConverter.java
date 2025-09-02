@@ -47,10 +47,6 @@ public class BaseRequestConverter {
         this.schemeMapper = schemeMapper;
     }
 
-	public String getScheme(String system) {
-		return this.schemeMapper.getScheme(system);
-	}
-
 	public Timestamp timestampFromDateParam(DateParam dateParam) {
 		if (dateParam == null)
 			return null;
@@ -60,7 +56,7 @@ public class BaseRequestConverter {
 	}
 
 	public Code codeFromToken(TokenParam param) {
-		return new Code(param.getValue(), null, getScheme(param.getSystem()));
+		return this.schemeMapper.toXdsCode(param);
 	}
 
     @Nullable
@@ -103,7 +99,7 @@ public class BaseRequestConverter {
 			if (ids == null) return null;
 			String[] identifier = ids.split("\\|");
 			if (identifier.length == 2) {
-				return new Identifiable(identifier[1], new AssigningAuthority(getScheme(identifier[0])));
+				return this.schemeMapper.toXdsIdentifiable(identifier[1], identifier[0]);
 			}
 		}
 		return null;

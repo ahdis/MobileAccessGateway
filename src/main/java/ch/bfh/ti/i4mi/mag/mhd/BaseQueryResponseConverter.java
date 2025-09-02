@@ -80,16 +80,6 @@ public abstract class BaseQueryResponseConverter extends BaseResponseConverter i
         this.patientIdMappingService = patientIdMappingService;
     }
 
-    /**
-     * XDS scheme name -> FHIR system
-     *
-     * @param schemeName
-     * @return
-     */
-    public String getSystem(String schemeName) {
-        return schemeMapper.getSystem(schemeName);
-    }
-
     public String asUuid(String urn) {
         if (urn == null) return null;
         if (urn.startsWith("urn:uuid:")) return urn;
@@ -115,8 +105,7 @@ public abstract class BaseQueryResponseConverter extends BaseResponseConverter i
      * @return
      */
     public CodeableConcept transform(Code code) {
-        return new CodeableConcept().addCoding(new Coding().setCode(code.getCode())
-                                                       .setSystem(getSystem(code.getSchemeName())).setDisplay(code.getDisplayName() == null ? "" : code.getDisplayName().getValue()));
+        return this.schemeMapper.toFhirCodeableConcept(code);
     }
 
     /**
@@ -129,8 +118,7 @@ public abstract class BaseQueryResponseConverter extends BaseResponseConverter i
         CodeableConcept cc = new CodeableConcept();
         if (codes != null) {
             for (Code code : codes) {
-                cc.addCoding(new Coding().setCode(code.getCode()).setSystem(getSystem(code.getSchemeName())).setDisplay(
-                        code.getDisplayName() == null ? "" : code.getDisplayName().getValue()));
+                cc.addCoding(this.schemeMapper.toFhirCoding(code));
             }
         }
         return cc;
@@ -225,11 +213,10 @@ public abstract class BaseQueryResponseConverter extends BaseResponseConverter i
     public Reference transform(ReferenceId ref) {
         String id = ref.getId();
         CXiAssigningAuthority authority = ref.getAssigningAuthority();
-        // TODO handle authority not given
         if (authority != null) {
-            return new Reference().setIdentifier(new Identifier().setValue(id).setSystem(getSystem(authority.getUniversalId())));
+            return new Reference().setIdentifier(this.schemeMapper.toFhirIdentifier(authority.getUniversalId(), id, null));
         } else {
-            return new Reference().setIdentifier(new Identifier().setValue(id));
+            return new Reference().setIdentifier(this.schemeMapper.toFhirIdentifier(null, id, null));
         }
     }
 

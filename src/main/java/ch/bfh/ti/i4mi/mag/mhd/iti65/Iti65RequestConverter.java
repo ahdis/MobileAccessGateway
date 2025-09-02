@@ -29,67 +29,20 @@ import jakarta.activation.DataHandler;
 import jakarta.annotation.Nullable;
 import org.apache.camel.Body;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang3.StringUtils;
+import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.Address;
-import org.hl7.fhir.r4.model.Annotation;
-import org.hl7.fhir.r4.model.Attachment;
-import org.hl7.fhir.r4.model.Binary;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CanonicalType;
-import org.hl7.fhir.r4.model.CodeableConcept;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.ContactPoint;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
-import org.hl7.fhir.r4.model.DateTimeType;
-import org.hl7.fhir.r4.model.DateType;
-import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.DocumentReference.DocumentReferenceContentComponent;
 import org.hl7.fhir.r4.model.DocumentReference.DocumentReferenceContextComponent;
 import org.hl7.fhir.r4.model.DocumentReference.DocumentReferenceRelatesToComponent;
 import org.hl7.fhir.r4.model.DocumentReference.DocumentRelationshipType;
-import org.hl7.fhir.r4.model.DomainResource;
-import org.hl7.fhir.r4.model.Encounter;
-import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.Enumerations.DocumentReferenceStatus;
-import org.hl7.fhir.r4.model.Extension;
-import org.hl7.fhir.r4.model.HumanName;
-import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.Identifier;
-import org.hl7.fhir.r4.model.InstantType;
-import org.hl7.fhir.r4.model.ListResource;
 import org.hl7.fhir.r4.model.ListResource.ListEntryComponent;
-import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Organization;
-import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.Period;
-import org.hl7.fhir.r4.model.Practitioner;
-import org.hl7.fhir.r4.model.PractitionerRole;
-import org.hl7.fhir.r4.model.Reference;
-import org.hl7.fhir.r4.model.RelatedPerson;
-import org.hl7.fhir.r4.model.Resource;
-import org.hl7.fhir.r4.model.StringType;
 import org.ietf.jgss.Oid;
 import org.openehealth.ipf.commons.ihe.fhir.support.FhirUtils;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.AssigningAuthority;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.Association;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.AssociationType;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.Author;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.AvailabilityStatus;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.CXiAssigningAuthority;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.Code;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.Document;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.DocumentEntry;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.Identifiable;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.LocalizedString;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.Name;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.PatientInfo;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.*;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Person;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.Recipient;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.ReferenceId;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.SubmissionSet;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.Telecom;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.Timestamp;
-import org.openehealth.ipf.commons.ihe.xds.core.metadata.XpnName;
 import org.openehealth.ipf.commons.ihe.xds.core.requests.ProvideAndRegisterDocumentSet;
 import org.openehealth.ipf.commons.ihe.xds.core.requests.builder.ProvideAndRegisterDocumentSetBuilder;
 import org.slf4j.Logger;
@@ -97,8 +50,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -142,7 +93,7 @@ public class Iti65RequestConverter extends BaseRequestConverter {
         ProvideAndRegisterDocumentSetBuilder builder = new ProvideAndRegisterDocumentSetBuilder(true, submissionSet);
 
         // create mapping fullUrl -> resource for each resource in bundle
-        Map<String, Resource> resources = new HashMap<String, Resource>();
+        Map<String, Resource> resources = new HashMap<>();
 
         ListResource manifestNeu = null;
 
@@ -273,20 +224,6 @@ public class Iti65RequestConverter extends BaseRequestConverter {
     }
 
     /**
-     * FHIR CodeableConcept -> XDS Code
-     *
-     * @param cc
-     * @return
-     */
-    public Code transformCodeableConcept(CodeableConcept cc) {
-        if (cc == null) return null;
-        if (!cc.hasCoding()) return null;
-        Coding coding = cc.getCodingFirstRep();
-        String displayName = StringUtils.isEmpty(coding.getDisplay()) ? coding.getCode() : coding.getDisplay();
-        return new Code(coding.getCode(), localizedString(displayName), schemeMapper.getScheme(coding.getSystem()));
-    }
-
-    /**
      * FHIR CodeableConcept list -> XDS code list
      *
      * @param ccs
@@ -295,7 +232,7 @@ public class Iti65RequestConverter extends BaseRequestConverter {
     public void transformCodeableConcepts(List<CodeableConcept> ccs, List<Code> target) {
         if (ccs == null || ccs.isEmpty()) return;
         for (CodeableConcept cc : ccs) {
-            Code code = transformCodeableConcept(cc);
+            Code code = transform(cc);
             if (code != null) target.add(code);
         }
     }
@@ -360,8 +297,7 @@ public class Iti65RequestConverter extends BaseRequestConverter {
      */
     public Code transform(Coding coding) {
         if (coding == null) return null;
-        String displayName = StringUtils.isEmpty(coding.getDisplay()) ? coding.getCode() : coding.getDisplay();
-        return new Code(coding.getCode(), localizedString(displayName), schemeMapper.getScheme(coding.getSystem()));
+        return this.schemeMapper.toXdsCode(coding);
     }
 
     /**
@@ -372,8 +308,7 @@ public class Iti65RequestConverter extends BaseRequestConverter {
      */
     public Code transform(CodeableConcept cc) {
         if (cc == null) return null;
-        Coding coding = cc.getCodingFirstRep();
-        return transform(coding);
+        return this.schemeMapper.toXdsCode(cc.getCodingFirstRep());
     }
 
     /**
@@ -384,6 +319,7 @@ public class Iti65RequestConverter extends BaseRequestConverter {
      */
     public Code transform(List<CodeableConcept> ccs) {
         if (ccs == null || ccs.isEmpty()) return null;
+        // TODO: what is going on here?
         return transform(ccs.get(0));
     }
 
@@ -394,9 +330,8 @@ public class Iti65RequestConverter extends BaseRequestConverter {
      * @return
      */
     public Identifiable transformToIdentifiable(CodeableConcept cc) {
-        Code code = transform(cc);
-        String system = code.getSchemeName();
-        return new Identifiable(code.getCode(), new AssigningAuthority(system));
+        if (cc == null) return null;
+        return this.schemeMapper.toXdsIdentifiable(cc.getCodingFirstRep());
     }
 
     /**
@@ -453,11 +388,8 @@ public class Iti65RequestConverter extends BaseRequestConverter {
      * @return
      */
     public Identifiable transform(Identifier identifier) {
-        String system = noPrefix(identifier.getSystem());
-        if (identifier.hasSystem()) {
-            return new Identifiable(identifier.getValue(), new AssigningAuthority(system));
-        }
-        return new Identifiable(identifier.getValue());
+        if (identifier == null) return null;
+        return this.schemeMapper.toXdsIdentifiable(identifier);
     }
 
     /**
@@ -472,7 +404,7 @@ public class Iti65RequestConverter extends BaseRequestConverter {
         if (reference.hasReference()) {
             String targetRef = reference.getReference();
             if (targetRef.startsWith("#")) {
-				targetRef = targetRef.substring(1);
+                targetRef = targetRef.substring(1);
                 List<Resource> resources = container.getContained();
                 for (final Resource resource : resources) {
                     if (targetRef.equals(resource.getId())) {
@@ -600,8 +532,8 @@ public class Iti65RequestConverter extends BaseRequestConverter {
         Extension designationType = getExtensionByUrl(manifest,
                                                       "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-designationType");
 
-        if (designationType != null && designationType.getValue() instanceof CodeableConcept) {
-            submissionSet.setContentTypeCode(transformCodeableConcept((CodeableConcept) designationType.getValue()));
+        if (designationType != null && designationType.getValue() instanceof final CodeableConcept cc) {
+            submissionSet.setContentTypeCode(transform(cc));
         }
 
         DateTimeType created = manifest.getDateElement();
@@ -881,10 +813,10 @@ public class Iti65RequestConverter extends BaseRequestConverter {
 
         // healthcareFacilityTypeCode -> context.facilityType CodeableConcept
         // [0..1]
-        entry.setHealthcareFacilityTypeCode(transformCodeableConcept(context.getFacilityType()));
+        entry.setHealthcareFacilityTypeCode(transform(context.getFacilityType()));
 
         // practiceSettingCode -> context.practiceSetting CodeableConcept [0..1]
-        entry.setPracticeSettingCode(transformCodeableConcept(context.getPracticeSetting()));
+        entry.setPracticeSettingCode(transform(context.getPracticeSetting()));
 
         Extension originalRole = reference.getExtensionByUrl(MagConstants.FhirExtensionUrls.CH_AUTHOR_ROLE);
         if (originalRole != null) {
@@ -1141,15 +1073,6 @@ public class Iti65RequestConverter extends BaseRequestConverter {
         } else throw new InvalidRequestException("Author role not supported.");
 
         //return null;
-    }
-
-    public String SHAsum(byte[] convertme) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-1");
-            return Hex.encodeHexString(md.digest(convertme));
-        } catch (NoSuchAlgorithmException e) {
-            return "";
-        }
     }
 
     @Nullable

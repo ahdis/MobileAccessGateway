@@ -60,6 +60,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static ch.bfh.ti.i4mi.mag.MagConstants.EPR_SPID_OID;
+import static ch.bfh.ti.i4mi.mag.mhd.iti65.Iti65RequestConverter.noPrefix;
 
 /**
  * ITI-83 to ITI-45 request converter
@@ -200,7 +201,7 @@ public class Iti83RequestConverter extends BaseRequestConverter {
 
         PRPAMT201307UV02PatientIdentifier patientIdentifier = new PRPAMT201307UV02PatientIdentifier();
         parameterList.addPatientIdentifier(patientIdentifier);
-        String system = getScheme(sourceIdentifier.getSystem());
+        String system = noPrefix(sourceIdentifier.getSystem());
 
         patientIdentifier.setValue(Collections.singletonList(new II(system, sourceIdentifier.getValue())));
         patientIdentifier.setSemanticsText(ST("Patient.id"));
@@ -208,7 +209,7 @@ public class Iti83RequestConverter extends BaseRequestConverter {
         if (targetSystemList != null && (targetSystemList.size() > 0)) {
             for (Parameters.ParametersParameterComponent targetSystemType : targetSystemList) {
                 UriType targetSystem = (UriType) targetSystemType.getValue();
-                String sourceSystem = getScheme(targetSystem.getValue());
+                String sourceSystem = noPrefix(targetSystem.getValue());
                 PRPAMT201307UV02DataSource dataSource = new PRPAMT201307UV02DataSource();
                 parameterList.addDataSource(dataSource);
                 dataSource.setValue(Collections.singletonList(new II(sourceSystem, null, null)));
