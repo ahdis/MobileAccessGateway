@@ -1,0 +1,17 @@
+<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+    <env:Header xmlns:wsa="http://www.w3.org/2005/08/addressing">
+        <wsa:Action>http://docs.oasis-open.org/ws-sx/ws-trust/200512/RST/Issue</wsa:Action>
+    </env:Header>
+    <env:Body>
+        <wst:RequestSecurityToken xmlns:wst="http://docs.oasis-open.org/ws-sx/ws-trust/200512">
+            <wst:RequestType>http://docs.oasis-open.org/ws-sx/ws-trust/200512/Issue</wst:RequestType>
+            <wsp:AppliesTo xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy">
+                <wsa:EndpointReference xmlns:wsa="http://www.w3.org/2005/08/addressing">
+                    <wsa:Address></wsa:Address>
+                </wsa:EndpointReference>
+            </wsp:AppliesTo>
+            <wst:TokenType>http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0</wst:TokenType>
+            <wst:Claims Dialect="http://www.bag.admin.ch/epr/2017/annex/5/amendment/2"></wst:Claims>
+        </wst:RequestSecurityToken>
+    </env:Body>
+</env:Envelope>

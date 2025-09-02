@@ -6,7 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class MagAuthProps {
 
     private String sts;
-    private String stsWsdl;
+    private String stsIssuer;
+    private MagAuthTcuProps tcu;
 
     public String getSts() {
         return this.sts;
@@ -16,11 +17,50 @@ public class MagAuthProps {
         this.sts = sts;
     }
 
-    public String getStsWsdl() {
-        return this.stsWsdl;
+    public String getStsIssuer() {
+        return this.stsIssuer;
     }
 
-    public void setStsWsdl(final String stsWsdl) {
-        this.stsWsdl = stsWsdl;
+    public void setStsIssuer(final String stsIssuer) {
+        this.stsIssuer = stsIssuer;
+    }
+
+    public MagAuthTcuProps getTcu() {
+        return this.tcu;
+    }
+
+    public void setTcu(final MagAuthTcuProps tcu) {
+        this.tcu = tcu;
+    }
+
+    public static class MagAuthTcuProps {
+
+        private String generatorUrl;
+        private String principalName;
+        private String principalGln;
+
+        public String getGeneratorUrl() {
+            return this.generatorUrl;
+        }
+
+        public void setGeneratorUrl(final String generatorUrl) {
+            this.generatorUrl = generatorUrl;
+        }
+
+        public String getPrincipalName() {
+            return this.principalName;
+        }
+
+        public void setPrincipalName(final String principalName) {
+            this.principalName = principalName;
+        }
+
+        public String getPrincipalGln() {
+            return this.principalGln;
+        }
+
+        public void setPrincipalGln(final String principalGln) {
+            this.principalGln = principalGln;
+        }
     }
 }
