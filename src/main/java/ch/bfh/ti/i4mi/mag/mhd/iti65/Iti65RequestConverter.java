@@ -29,6 +29,7 @@ import jakarta.activation.DataHandler;
 import jakarta.annotation.Nullable;
 import org.apache.camel.Body;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.jena.sparql.function.library.context;
 import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.Address;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
@@ -441,48 +442,40 @@ public class Iti65RequestConverter extends BaseRequestConverter {
      */
     public PatientInfo transformReferenceToPatientInfo(Reference ref, DomainResource container) {
         if (ref == null) return null;
-        if (!ref.hasReference()) return null;
-        List<Resource> resources = container.getContained();
-        for (Resource resource : resources) {
-            String targetRef = ref.getReference();
-
-            if (targetRef.equals(resource.getId())) {
-                Patient patient = ((Patient) resource);
-
-                PatientInfo patientInfo = new PatientInfo();
-                patientInfo.setDateOfBirth(timestampFromDate(patient.getBirthDateElement()));
-                Enumerations.AdministrativeGender gender = patient.getGender();
-                if (gender != null) {
-                    switch (gender) {
-                        case MALE:
-                            patientInfo.setGender("M");
-                            break;
-                        case FEMALE:
-                            patientInfo.setGender("F");
-                            break;
-                        case OTHER:
-                            patientInfo.setGender("A");
-                            break;
-                        default:
-                            patientInfo.setGender("U");
-                            break;
-                    }
+        if (ref.getResource() instanceof final Patient patient) {
+            PatientInfo patientInfo = new PatientInfo();
+            patientInfo.setDateOfBirth(timestampFromDate(patient.getBirthDateElement()));
+            Enumerations.AdministrativeGender gender = patient.getGender();
+            if (gender != null) {
+                switch (gender) {
+                    case MALE:
+                        patientInfo.setGender("M");
+                        break;
+                    case FEMALE:
+                        patientInfo.setGender("F");
+                        break;
+                    case OTHER:
+                        patientInfo.setGender("A");
+                        break;
+                    default:
+                        patientInfo.setGender("U");
+                        break;
                 }
-
-                for (HumanName name : patient.getName()) {
-                    patientInfo.getNames().add(transform(name));
-                }
-
-                for (Address address : patient.getAddress()) {
-                    patientInfo.getAddresses().add(transform(address));
-                }
-
-                for (Identifier id : patient.getIdentifier()) {
-                    patientInfo.getIds().add(transform(id));
-                }
-
-                return patientInfo;
             }
+
+            for (HumanName name : patient.getName()) {
+                patientInfo.getNames().add(transform(name));
+            }
+
+            for (Address address : patient.getAddress()) {
+                patientInfo.getAddresses().add(transform(address));
+            }
+
+            for (Identifier id : patient.getIdentifier()) {
+                patientInfo.getIds().add(transform(id));
+            }
+
+            return patientInfo;
         }
         return null;
     }
