@@ -240,22 +240,15 @@ public class Iti65RequestConverter extends BaseRequestConverter {
                 if (attachment.hasData()) {
                     doc.setDataHandler(new DataHandler(new ByteArrayDataSource(attachment.getData(),
                                                                                attachment.getContentType())));
-                    byte[] decoded = attachment.getData();
-                    entry.setSize((long) decoded.length);
-                    entry.setHash(SHAsum(decoded));
                 } else if (attachment.hasUrl()) {
                     String contentURL = attachment.getUrl();
                     Resource binaryContent = resources.get(contentURL);
-                    if (binaryContent instanceof Binary) {
+                    if (binaryContent instanceof final Binary binary) {
                         String contentType = attachment.getContentType();
-                        Binary binary = (Binary) binaryContent;
                         if (binary.hasContentType() && !binary.getContentType().equals(contentType))
                             throw new InvalidRequestException(
                                     "ContentType in Binary and in DocumentReference must match");
                         doc.setDataHandler(new DataHandler(new ByteArrayDataSource(binary.getData(), contentType)));
-                        byte[] decoded = binary.getData();
-                        entry.setSize((long) decoded.length);
-                        entry.setHash(SHAsum(decoded));
                         Identifier masterIdentifier = documentReference.getMasterIdentifier();
                         binary.setUserData("masterIdentifier", masterIdentifier.getValue());
                     }
