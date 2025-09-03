@@ -5,8 +5,6 @@ import ca.uhn.fhir.rest.server.IServerAddressStrategy;
 import ca.uhn.fhir.rest.server.RestfulServer;
 import ca.uhn.fhir.rest.server.RestfulServerConfiguration;
 import ch.bfh.ti.i4mi.mag.common.TcpSyslogSender;
-import ch.bfh.ti.i4mi.mag.config.props.MagAuthProps;
-import ch.bfh.ti.i4mi.mag.config.props.MagClientSslProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.fhir.MagCapabilityStatementProvider;
 import jakarta.servlet.Filter;
@@ -27,18 +25,6 @@ import java.util.Arrays;
 
 @Configuration
 public class MagConfiguration {
-
-    @Bean(name = "stsEndpoint")
-    public String getStsEndpoint(final MagAuthProps authProps,
-                                 final MagClientSslProps clientSslProps) {
-        return String.format("cxf://%s?dataFormat=CXF_MESSAGE&wsdlURL=%s&loggingFeatureEnabled=true" +
-                                     "&inInterceptors=#soapResponseLogger" +
-                                     "&inFaultInterceptors=#soapResponseLogger" +
-                                     "&outInterceptors=#soapRequestLogger" +
-                                     "&outFaultInterceptors=#soapRequestLogger" +
-                                     (clientSslProps.isEnabled() ? "&sslContextParameters=#wsTlsContext" : ""),
-                             authProps.getSts(), authProps.getStsWsdl());
-    }
 
     @Bean
     public MagCapabilityStatementProvider serverConformanceProvider(final RestfulServer fhirServer) {

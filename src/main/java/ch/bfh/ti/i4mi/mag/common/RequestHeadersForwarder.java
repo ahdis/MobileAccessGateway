@@ -1,8 +1,8 @@
 package ch.bfh.ti.i4mi.mag.common;
 
+import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
-import org.apache.camel.util.CastUtils;
 import org.apache.cxf.binding.soap.SoapHeader;
 import org.apache.cxf.headers.Header;
 import org.apache.cxf.staxutils.StaxUtils;
@@ -12,12 +12,13 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
-
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import java.io.StringReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Map;
 
 import static org.openehealth.ipf.platform.camel.ihe.ws.AbstractWsEndpoint.OUTGOING_SOAP_HEADERS;
 import static org.opensaml.common.xml.SAMLConstants.SAML20_NS;
@@ -30,7 +31,7 @@ import static org.opensaml.common.xml.SAMLConstants.SAML20_NS;
  **/
 public class RequestHeadersForwarder {
     private static final Logger log = LoggerFactory.getLogger(RequestHeadersForwarder.class);
-    private static final String AUTHORIZATION_HEADER = "Authorization";
+    public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String OASIS_WSSECURITY_NS = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
 
     public static Processor forward() {
@@ -54,11 +55,40 @@ public class RequestHeadersForwarder {
         };
     }
 
+    public static void setWsseHeader(final Exchange exchange,
+                                     final String assertion) throws XMLStreamException {
+        final var securityXml = String.format("<wsse:Security xmlns:wsse=\"%s\">%s</wsse:Security>",
+                                              OASIS_WSSECURITY_NS,
+                                              assertion);
+
+        final Element security = StaxUtils.read(new StringReader(securityXml)).getDocumentElement();
+
+        final String alias = getAttrValue(security, SAML20_NS, "NameID", "SPProvidedID");
+        final String user = getNodeValue(security, SAML20_NS, "NameID");
+        final String issuer = getNodeValue(security, SAML20_NS, "Issuer");
+        final String userName = alias + "<" + user + "@" + issuer + ">";
+        exchange.setProperty("UserName", userName);
+
+        final var newHeader = new SoapHeader(new QName(OASIS_WSSECURITY_NS, "Security"), security);
+        newHeader.setDirection(Header.Direction.DIRECTION_OUT);
+
+        Object soapHeaders = exchange.getIn().getHeader(OUTGOING_SOAP_HEADERS);
+        if (soapHeaders instanceof final Collection collection) {
+            ((Collection<SoapHeader>) collection).add(newHeader);
+        } else if (soapHeaders instanceof final Map map) {
+            ((Map<QName, SoapHeader>) map).put(newHeader.getName(), newHeader);
+        } else if (soapHeaders == null) {
+            soapHeaders = new ArrayList<>(1);
+            ((ArrayList<SoapHeader>) soapHeaders).add(newHeader);
+            exchange.getMessage().setHeader(OUTGOING_SOAP_HEADERS, soapHeaders);
+        }
+    }
+
     /**
      * Forwards the Authorization header to the next hop.
      * <p>
-     * If the Authorization header contains a base64-encoded SAML assertion, it is decoded and
-     * a WS-Security header is created from it.
+     * If the Authorization header contains a base64-encoded SAML assertion, it is decoded and a WS-Security header is
+     * created from it.
      * </p>
      * <p>
      * If the Authorization header is a JWT or something else, it is forwarded as is.
@@ -87,31 +117,8 @@ public class RequestHeadersForwarder {
             if (converted.startsWith("<?xml")) {
                 converted = converted.substring(converted.indexOf(">") + 1);
             }
-            converted = String.format("<wsse:Security xmlns:wsse=\"%s\">%s</wsse:Security>",
-                                      OASIS_WSSECURITY_NS,
-                                      converted);
 
-            List<SoapHeader> soapHeaders =
-                    CastUtils.cast((List<?>) exchange.getIn().getHeader(Header.HEADER_LIST));
-
-            if (soapHeaders == null) {
-                soapHeaders = new ArrayList<>(1);
-            }
-            final Element headerDocument = StaxUtils.read(new StringReader(converted)).getDocumentElement();
-
-            String alias = getAttrValue(headerDocument, SAML20_NS, "NameID", "SPProvidedID");
-            String user = getNodeValue(headerDocument, SAML20_NS, "NameID");
-            String issuer = getNodeValue(headerDocument, SAML20_NS, "Issuer");
-
-            String userName = alias + "<" + user + "@" + issuer + ">";
-
-            final var newHeader = new SoapHeader(new QName(OASIS_WSSECURITY_NS, "Security"), headerDocument);
-            newHeader.setDirection(Header.Direction.DIRECTION_OUT);
-
-            soapHeaders.add(newHeader);
-
-            exchange.getMessage().setHeader(OUTGOING_SOAP_HEADERS, soapHeaders);
-            exchange.setProperty("UserName", userName);
+            setWsseHeader(exchange, converted);
         } else {
             // It is a JWT or something else, just forward it
             log.debug("Forwarding Authorization header: {}", authorizationHeader);

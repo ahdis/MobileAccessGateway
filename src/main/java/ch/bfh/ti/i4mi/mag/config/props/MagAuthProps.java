@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class MagAuthProps {
 
     private String sts;
+    private String stsWsdl;
     private String stsIssuer;
     private MagAuthTcuProps tcu;
 
@@ -15,6 +16,14 @@ public class MagAuthProps {
 
     public void setSts(final String sts) {
         this.sts = sts;
+    }
+
+    public String getStsWsdl() {
+        return this.stsWsdl;
+    }
+
+    public void setStsWsdl(final String stsWsdl) {
+        this.stsWsdl = stsWsdl;
     }
 
     public String getStsIssuer() {
@@ -38,6 +47,7 @@ public class MagAuthProps {
         private String generatorUrl;
         private String principalName;
         private String principalGln;
+        private boolean autoInjectInIti65;
 
         public String getGeneratorUrl() {
             return this.generatorUrl;
@@ -61,6 +71,14 @@ public class MagAuthProps {
 
         public void setPrincipalGln(final String principalGln) {
             this.principalGln = principalGln;
+        }
+
+        public boolean isAutoInjectInIti65() {
+            return this.autoInjectInIti65;
+        }
+
+        public void setAutoInjectInIti65(final boolean autoInjectInIti65) {
+            this.autoInjectInIti65 = autoInjectInIti65;
         }
     }
 }

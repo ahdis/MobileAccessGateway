@@ -16,19 +16,28 @@
 
 package ch.bfh.ti.i4mi.mag.mhd.iti65;
 
+import ch.bfh.ti.i4mi.mag.auth.TcuXuaService;
 import ch.bfh.ti.i4mi.mag.common.MagRouteBuilder;
+import ch.bfh.ti.i4mi.mag.common.PatientIdMappingService;
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagXdsProps;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
-import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.Body;
+import org.apache.camel.Processor;
 import org.openehealth.ipf.commons.ihe.xds.core.ebxml.ebxml30.ProvideAndRegisterDocumentSetRequestType;
+import org.openehealth.ipf.commons.ihe.xds.core.requests.ProvideAndRegisterDocumentSet;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.Response;
 import org.slf4j.Logger;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.springframework.web.method.annotation.RequestHeaderMethodArgumentResolver;
+import org.w3c.dom.Element;
 
+import java.util.Optional;
+
+import static ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder.AUTHORIZATION_HEADER;
 import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslators.translateToFhir;
 
 /**
@@ -42,12 +51,18 @@ class Iti65RouteBuilder extends MagRouteBuilder {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(Iti65RouteBuilder.class);
     private final MagXdsProps xdsProps;
     private final Iti65ResponseConverter iti65ResponseConverter;
+    private final TcuXuaService tcuXuaService;
+    private final PatientIdMappingService patientIdMappingService;
 
     public Iti65RouteBuilder(final MagProps magProps,
-                             final Iti65ResponseConverter iti65ResponseConverter) {
+                             final Iti65ResponseConverter iti65ResponseConverter,
+                             final Optional<TcuXuaService> tcuXuaService,
+                             final PatientIdMappingService patientIdMappingService) {
         super(magProps);
         this.xdsProps = magProps.getXds();
         this.iti65ResponseConverter = iti65ResponseConverter;
+        this.tcuXuaService = tcuXuaService.orElse(null);
+        this.patientIdMappingService = patientIdMappingService;
     }
 
     @Override
@@ -70,12 +85,31 @@ class Iti65RouteBuilder extends MagRouteBuilder {
                 .process(Utils.storeBodyToHeader("BundleRequest"))
                 .bean(Iti65RequestConverter.class)
                 .process(Utils.storeBodyToHeader("ProvideAndRegisterDocumentSet"))
-                .convertBodyTo(ProvideAndRegisterDocumentSetRequestType.class)
+                .choice()
+                    .when(header(AUTHORIZATION_HEADER).isNull())
+                        .log("No Authorization header present, forwarding without")
+                        .process(injectTcuXuaProcessor())
+                .end()
+                //.convertBodyTo(ProvideAndRegisterDocumentSetRequestType.class)
                 //.process(iti41RequestValidator())
                 .to(xds41Endpoint)
                 .convertBodyTo(Response.class)
                 .process(TraceparentHandler.updateHeaderForFhir())
                 .process(translateToFhir(this.iti65ResponseConverter, Response.class));
+    }
+
+    private Processor injectTcuXuaProcessor() {
+        if (this.tcuXuaService != null) {
+            return exchange -> {
+                final var body = exchange.getIn().getBody(ProvideAndRegisterDocumentSet.class);
+                final var xadPid = body.getSubmissionSet().getPatientId().getId();
+                final var eprSpid = "761337614808965105"; //this.patientIdMappingService.getEprSpid(xadPid);
+                log.debug("EPR SPID: {}", eprSpid);
+                final var tcuXua = this.tcuXuaService.getXuaToken(eprSpid);
+                RequestHeadersForwarder.setWsseHeader(exchange, tcuXua);
+            };
+        }
+        return exchange -> {};
     }
 
      /*

@@ -177,6 +177,16 @@
 
 
 
+        <dependency>
+            <groupId>jakarta.xml.soap</groupId>
+            <artifactId>jakarta.xml.soap-api</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.messaging.saaj</groupId>
+            <artifactId>saaj-impl</artifactId>
+            <version>3.0.4</version>
+        </dependency>
 
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
@@ -207,11 +217,6 @@
             <artifactId>camel-cxf-soap</artifactId>
 			<version>${camel-version}</version>
         </dependency>
-        <dependency>
-          <groupId>com.sun.xml.messaging.saaj</groupId>
-          <artifactId>saaj-impl</artifactId>
-          <version>1.5.3</version>
-        </dependency>  
         <dependency>
 	       <groupId>org.apache.cxf</groupId>
 	       <artifactId>cxf-core</artifactId>

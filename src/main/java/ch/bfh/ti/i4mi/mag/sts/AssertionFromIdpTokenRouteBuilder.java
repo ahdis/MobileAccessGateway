@@ -16,70 +16,44 @@
 
 package ch.bfh.ti.i4mi.mag.sts;
 
-import ch.bfh.ti.i4mi.mag.config.props.MagAuthProps;
-import ch.bfh.ti.i4mi.mag.config.props.MagClientSslProps;
+import ch.bfh.ti.i4mi.mag.mhd.Utils;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.cxf.common.message.CxfConstants;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import ch.bfh.ti.i4mi.mag.mhd.Utils;
 
 @Component
 public class AssertionFromIdpTokenRouteBuilder extends RouteBuilder {
 
     private final StsUtils utils;
-    private final MagAuthProps authProps;
-    private final boolean clientSsl;
 
-    public AssertionFromIdpTokenRouteBuilder(final StsUtils utils,
-                                             final MagAuthProps authProps,
-                                             final MagClientSslProps clientSslProps) {
+    public AssertionFromIdpTokenRouteBuilder(final StsUtils utils) {
         this.utils = utils;
-        this.authProps = authProps;
-        this.clientSsl = clientSslProps.isEnabled();
     }
-	
-	@Override
-	public void configure() throws Exception {
-				
-		final String assertionEndpoint = String.format("cxf://%s?dataFormat=CXF_MESSAGE&wsdlURL=%s&loggingFeatureEnabled=true"+
-                "&inInterceptors=#soapResponseLogger" +
-                "&inFaultInterceptors=#soapResponseLogger"+
-                "&outInterceptors=#soapRequestLogger" + 
-                "&outFaultInterceptors=#soapRequestLogger"+
-                (clientSsl ? "&sslContextParameters=#wsTlsContext" : ""),
-				this.authProps.getSts(), this.authProps.getStsWsdl());
-			
-		from("servlet://assertion?httpMethodRestrict=POST&matchOnUriPrefix=true")
-            .routeId("sts")
-		.doTry()
-		    // end spring security session in order to prevent use of already expired
-		    // identity provider assertions cached in spring security session
-		    // this is unrelated to the IDP provider cookie set by the IDP itself
-		    .process(Utils.endHttpSession())
-		    .setProperty("oauthrequest").method(this.utils, "emptyAuthRequest")
-		    .bean(this.utils, "buildAssertionRequestFromIdp")
-			.bean(this.utils, "keepIdpAssertion")
-			.bean(Iti40RequestGenerator.class, "buildAssertion")
-			.removeHeaders("*", "scope")
-			.setHeader(CxfConstants.OPERATION_NAME,
-			        constant("Issue"))
-			.setHeader(CxfConstants.OPERATION_NAMESPACE,
-			        constant("http://docs.oasis-open.org/ws-sx/ws-trust/200512/wsdl"))
-			.to(assertionEndpoint)		
-			.bean(this.utils, "extractAssertionAsString")
-			.bean(this.utils, "generateOAuth2TokenResponse")
-			
-	    .doCatch(AuthException.class)
-		    .setBody(simple("${exception}"))		    
-		    .bean(this.utils, "handleError")
-		    .setHeader(Exchange.HTTP_RESPONSE_CODE, simple("${exception.status}"))
-		.end()			
-		.removeHeaders("*")
-		.marshal().json();				
-	}
+
+    @Override
+    public void configure() throws Exception {
+        from("servlet://assertion?httpMethodRestrict=POST&matchOnUriPrefix=true")
+                .routeId("iua-sts")
+                .doTry()
+                // end spring security session in order to prevent use of already expired
+                // identity provider assertions cached in spring security session
+                // this is unrelated to the IDP provider cookie set by the IDP itself
+                .process(Utils.endHttpSession())
+                .setProperty("oauthrequest").method(this.utils, "emptyAuthRequest")
+                .bean(this.utils, "buildAssertionRequestFromIdp")
+                .bean(this.utils, "keepIdpAssertion")
+                .bean(Iti40RequestGenerator.class, "buildAssertion")
+                .removeHeaders("*", "scope")
+                .to("direct:sts")
+                .bean(this.utils, "generateOAuth2TokenResponse")
+
+                .doCatch(AuthException.class)
+                .setBody(simple("${exception}"))
+                .bean(this.utils, "handleError")
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, simple("${exception.status}"))
+                .end()
+                .removeHeaders("*")
+                .marshal().json();
+    }
 
 }
