@@ -25,33 +25,17 @@ import java.util.concurrent.TimeUnit;
  **/
 @Service
 @ConditionalOnProperty({"mag.auth.tcu.principal-name", "mag.auth.tcu.principal-gln", "mag.auth.tcu.generator-url"})
-public class TcuXuaService implements CamelContextAware {
+public class TcuXuaService {
     private static final Logger log = LoggerFactory.getLogger(TcuXuaService.class);
 
     private final MagAuthProps authProps;
     private final StsService stsService;
     private final Map<String, String> cachedTokens = new PassiveExpiringMap<>(4, TimeUnit.MINUTES);
-    private CamelContext camelContext;
-    private ProducerTemplate producerTemplate;
-    private final SSLContext sslContext;
 
     public TcuXuaService(final MagAuthProps authProps,
-                         final StsService stsService,
-                         final SSLContext sslContext) {
+                         final StsService stsService) {
         this.authProps = authProps;
         this.stsService = stsService;
-        this.sslContext = sslContext;
-    }
-
-    @Override
-    public CamelContext getCamelContext() {
-        return this.camelContext;
-    }
-
-    @Override
-    public void setCamelContext(final CamelContext camelContext) {
-        this.camelContext = camelContext;
-        this.producerTemplate = camelContext.createProducerTemplate();
     }
 
     public String getXuaToken(final String eprSpid) {
@@ -101,7 +85,6 @@ public class TcuXuaService implements CamelContextAware {
             return new String(httpResponse.getEntity().getContent().readAllBytes());
         });
         /*final var client = HttpClient.newBuilder()
-                .sslContext(this.sslContext)
                 .build();
         final var request = HttpRequest.newBuilder(new URI(this.authProps.getTcu().getGeneratorUrl()))
                 .header("User-Agent", "MobileAccessGateway")
