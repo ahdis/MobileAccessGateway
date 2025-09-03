@@ -108,9 +108,10 @@ public class SchemeMapper {
     }
 
     public Code toXdsCode(final Coding coding) {
+        final var display = (coding.getDisplay() != null) ? coding.getDisplay() : coding.getCode();
         return new Code(
                 coding.getCode(),
-                new LocalizedString(coding.getDisplay()),
+                new LocalizedString(display),
                 this.toXdsSystem(coding.getSystem(), SNOMED_CT_CH_CODES.contains(coding.getCode()))
         );
     }
