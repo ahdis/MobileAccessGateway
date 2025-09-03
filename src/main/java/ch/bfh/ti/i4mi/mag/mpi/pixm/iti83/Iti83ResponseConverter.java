@@ -16,104 +16,95 @@
 
 package ch.bfh.ti.i4mi.mag.mpi.pixm.iti83;
 
-import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
+import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
+import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
+import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
+import ch.bfh.ti.i4mi.mag.mpi.pmir.BasePMIRResponseConverter;
 import jakarta.xml.bind.JAXBException;
-
+import net.ihe.gazelle.hl7v3.datatypes.II;
+import net.ihe.gazelle.hl7v3.prpain201310UV02.PRPAIN201310UV02MFMIMT700711UV01ControlActProcess;
+import net.ihe.gazelle.hl7v3.prpain201310UV02.PRPAIN201310UV02MFMIMT700711UV01RegistrationEvent;
+import net.ihe.gazelle.hl7v3.prpain201310UV02.PRPAIN201310UV02MFMIMT700711UV01Subject1;
+import net.ihe.gazelle.hl7v3.prpain201310UV02.PRPAIN201310UV02MFMIMT700711UV01Subject2;
+import net.ihe.gazelle.hl7v3.prpain201310UV02.PRPAIN201310UV02Type;
+import net.ihe.gazelle.hl7v3.prpamt201307UV02.PRPAMT201307UV02DataSource;
+import net.ihe.gazelle.hl7v3transformer.HL7V3Transformer;
 import org.hl7.fhir.r4.model.Identifier;
-import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.UriType;
 import org.openehealth.ipf.commons.ihe.fhir.translation.ToFhirTranslator;
 import org.springframework.stereotype.Component;
 
-import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
-import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
-import ch.bfh.ti.i4mi.mag.mhd.Utils;
-import ch.bfh.ti.i4mi.mag.mpi.pmir.BasePMIRResponseConverter;
-import net.ihe.gazelle.hl7v3.datatypes.II;
-import net.ihe.gazelle.hl7v3.mccimt000300UV01.MCCIMT000300UV01Acknowledgement;
-import net.ihe.gazelle.hl7v3.mccimt000300UV01.MCCIMT000300UV01AcknowledgementDetail;
-import net.ihe.gazelle.hl7v3.prpain201310UV02.PRPAIN201310UV02MFMIMT700711UV01ControlActProcess;
-import net.ihe.gazelle.hl7v3.prpain201310UV02.PRPAIN201310UV02MFMIMT700711UV01Subject1;
-import net.ihe.gazelle.hl7v3.prpain201310UV02.PRPAIN201310UV02Type;
-import net.ihe.gazelle.hl7v3transformer.HL7V3Transformer;
+import java.io.ByteArrayInputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * ITI-83 from ITI-45 response converter
- * @author alexander kreutz
  *
+ * @author alexander kreutz
  */
 @Component
 public class Iti83ResponseConverter extends BasePMIRResponseConverter implements ToFhirTranslator<byte[]> {
 
-	public Parameters translateToFhir(byte[] input, Map<String, Object> parameters)  {
-		try {
-			
-			// FIX for xmlns:xmlns
-	    String content = new String(input);
-	    content = content.replace("xmlns:xmlns","xmlns:xxxxx");
-		PRPAIN201310UV02Type msg = HL7V3Transformer.unmarshallMessage(PRPAIN201310UV02Type.class, new ByteArrayInputStream(content.getBytes()));
-		
-		Parameters query = (Parameters) parameters.get(Utils.KEPT_BODY);
-		List<Parameters.ParametersParameterComponent> targetSystemList =  query.getParameters("targetSystem");
-		Parameters response = new Parameters();
-		
-		PRPAIN201310UV02MFMIMT700711UV01ControlActProcess controlAct = msg.getControlActProcess();
-		List<MCCIMT000300UV01Acknowledgement> acks = msg.getAcknowledgement();
-		String errtext = "";
-		for (MCCIMT000300UV01Acknowledgement ack : acks) {
-			for (MCCIMT000300UV01AcknowledgementDetail ackDetail : ack.getAcknowledgementDetail()) {
-				if (ackDetail.getText() != null) errtext+=toText(ackDetail.getText());
-			}
-		}
-		// OK NF AE
-		String queryResponseCode = controlAct.getQueryAck().getQueryResponseCode().getCode();
-		if ("NF".equals(queryResponseCode)) {			
-			throw new ResourceNotFoundException("sourceIdentifier Patient Identifier not found", error(IssueType.NOTFOUND, errtext.length()>0 ? errtext : "sourceIdentifier Patient Identifier not found"));
-		}
-		if ("AE".equals(queryResponseCode)) {
-			throw new InvalidRequestException("sourceIdentifier Assigning Authority not found", error(IssueType.INVALID, errtext.length()>0 ? errtext : "sourceIdentifier Assigning Authority not found"));
-		}
-		
-		Set<String> acceptedTargetSystem = new HashSet<String>();
-		Set<String> noDuplicates = new HashSet<String>();
-		if (targetSystemList != null) {
-			for (Parameters.ParametersParameterComponent targetSystemType : targetSystemList) {
-				UriType targetSystem = (UriType) targetSystemType.getValue();
-				acceptedTargetSystem.add(targetSystem.getValue());
-			}
-		}
-		
-		List<PRPAIN201310UV02MFMIMT700711UV01Subject1> subjects = controlAct.getSubject();
-		for (PRPAIN201310UV02MFMIMT700711UV01Subject1 subject : subjects) {
+    public Parameters translateToFhir(final byte[] input,
+                                      final Map<String, Object> parameters) {
+        try {
+            return this.doTranslate(input);
+        } catch (final BaseServerResponseException controlledException) {
+            throw controlledException;
+        } catch (final JAXBException parsingException) {
+            throw new InvalidRequestException("Failed parsing ITI-45 response", parsingException);
+        } catch (final Exception otherException) {
+            throw new InvalidRequestException("Unexpected exception during ITI-45 response processing", otherException);
+        }
+    }
 
-			List<II> ids = new ArrayList<>(5);
-			
-			ids.addAll(subject.getRegistrationEvent().getSubject1().getPatient().getId());
-			for (var otherId : subject.getRegistrationEvent().getSubject1().getPatient().getPatientPerson().getAsOtherIDs()) {
-				ids.addAll(otherId.getId());
-			}
+    private Parameters doTranslate(final byte[] input) throws Exception {
+        final PRPAIN201310UV02Type pixResponse = HL7V3Transformer.unmarshallMessage(PRPAIN201310UV02Type.class,
+                                                                                    new ByteArrayInputStream(input));
+        final PRPAIN201310UV02MFMIMT700711UV01ControlActProcess controlAct = pixResponse.getControlActProcess();
 
-			for (II ii : ids) {
-				String root = ii.getRoot();
-				String extension = ii.getExtension();
-				
-				if (!noDuplicates.contains(root) && (acceptedTargetSystem.isEmpty() || acceptedTargetSystem.contains("urn:oid:"+root))) {
-				  response.addParameter().setName("targetIdentifier").setValue((new Identifier()).setSystem("urn:oid:"+root).setValue(extension));
-				  noDuplicates.add(root);
-				}
-			}
-		}
-						
-		return response;
-		} catch (JAXBException e) {
-			throw new InvalidRequestException("failed parsing response");
-		}
-	}
+        // OK NF AE
+        final var queryResponseCode = controlAct.getQueryAck().getQueryResponseCode().getCode();
+        if ("NF".equals(queryResponseCode)) {
+            throw new ResourceNotFoundException("sourceIdentifier Patient Identifier not found");
+        } else if ("AE".equals(queryResponseCode)) {
+            throw new InvalidRequestException("sourceIdentifier Assigning Authority not found");
+        } else if (!"OK".equals(queryResponseCode)) {
+            throw new InternalErrorException("Unknown queryResponseCode in ITI-45 response: " + queryResponseCode);
+        }
+
+        // Find requested target systems from the query
+        final var requestedTargetSystems = controlAct.getQueryByParameter().getParameterList().getDataSource()
+                .stream()
+                .map(PRPAMT201307UV02DataSource::getValue)
+                .flatMap(List::stream)
+                .map(II::getRoot)
+                .collect(Collectors.toUnmodifiableSet());
+
+
+        final var response = new Parameters();
+
+        // Iterate over all patients and their IDs, only keep those whose system was requested
+        controlAct.getSubject().parallelStream()
+                .map(PRPAIN201310UV02MFMIMT700711UV01Subject1::getRegistrationEvent)
+                .map(PRPAIN201310UV02MFMIMT700711UV01RegistrationEvent::getSubject1)
+                .map(PRPAIN201310UV02MFMIMT700711UV01Subject2::getPatient)
+                .flatMap(patient -> Stream.concat(
+                        patient.getId().stream(),
+                        patient.getPatientPerson().getAsOtherIDs().stream().flatMap(otherId -> otherId.getId().stream())
+                ))
+                .forEach(ii -> {
+                    if (requestedTargetSystems.contains(ii.getRoot())) {
+                        response.addParameter()
+                                .setName("sourceIdentifier")
+                                .setValue(new Identifier().setSystem("urn:oid:" + ii.getRoot()).setValue(ii.getExtension()));
+                    }
+                });
+
+        return response;
+    }
 }
