@@ -103,7 +103,7 @@ class Iti65RouteBuilder extends MagRouteBuilder {
             return exchange -> {
                 final var body = exchange.getIn().getBody(ProvideAndRegisterDocumentSet.class);
                 final var xadPid = body.getSubmissionSet().getPatientId().getId();
-                final var eprSpid = "761337614808965105"; //this.patientIdMappingService.getEprSpid(xadPid);
+                final var eprSpid = this.patientIdMappingService.getEprSpid(xadPid);
                 log.debug("EPR SPID: {}", eprSpid);
                 final var tcuXua = this.tcuXuaService.getXuaToken(eprSpid);
                 RequestHeadersForwarder.setWsseHeader(exchange, tcuXua);
