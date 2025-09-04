@@ -1,8 +1,10 @@
-The Mobile Access Gateway provides translation from REST to SOAP variants of IHE transaction:
+## IHE Transactions & Actors
 
+The Mobile Access Gateway (MAG) provides translation between REST/FHIR requests and SOAP/HL7v3 variants of IHE transactions. The table below lists the supported IHE profiles, their transactions and the involved IHE actors implemented in the MAG.
 
-| IHE-Profile | ITI        | Transaction Name                                | IHE Actor                     | Implemented in the Gateway with following actors   | Transaction                              |
-|-------------|------------|-------------------------------------------------|-------------------------------|----------------------------------------------------|------------------------------------------|
+| REST/FHIR |   |   |   | SOAP/HL7v3 |   |
+|---|---|---|---|---|---|
+| **Profile** | **Transaction ID**| **Transaction Name** | **Actor** | **Actor** | **Transaction ID**    |
 | PDQm        | ITI-78     | Mobile Patient Demographics Query               | Patient Demographics Supplier | PDQv3 Patient Demographics Consumer                | ITI-47                                   |
 | PDQm        | ITI-119    | Patient Demographics Match                      | Patient Demographics Supplier | PDQv3 Patient Demographics Consumer                | ITI-47                                   |
 | PIXm        | ITI-83     | Mobile Patient Identifier Cross-reference Query | Patient Identity Manager      | PIX V3 Patient Identifier Cross-reference Consumer | ITI-45                                   |
@@ -23,7 +25,7 @@ For Authentication/Authorization:
 
 ## CH EPR Constraints
 
-The Swiss EPR defines contraints on the use of MHD, PIXm, PDQm and PPQm transactions. Those can be enabled in the 
+The Swiss EPR defines constraints on the use of MHD, PIXm, PDQm and PPQm transactions. Those can be enabled in the 
 configuration file:
 ```yml
 mag:
