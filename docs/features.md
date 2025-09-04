@@ -2,6 +2,8 @@
 
 The Mobile Access Gateway (MAG) provides translation between REST/FHIR requests and SOAP/HL7v3 variants of IHE transactions. The table below lists the supported IHE profiles, their transactions and the involved IHE actors implemented in the MAG.
 
+TODO: Profile - Transaction -Actor -> Actor - Transaction - Profile
+
 | REST/FHIR |   |   |   | SOAP/HL7v3 |   |
 |---|---|---|---|---|---|
 | **Profile** | **Transaction ID**| **Transaction Name** | **Actor** | **Actor** | **Transaction ID**    |
