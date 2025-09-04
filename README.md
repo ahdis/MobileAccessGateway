@@ -1,7 +1,7 @@
 # Mobile Access Gateway
 
-The Mobile Access Gateway is an implementation based on the [CH EPR mHealth](https://fhir.ch/ig/ch-epr-fhir/index.html) [(CI-Build)](http://build.fhir.org/ig/ehealthsuisse/ch-epr-fhir/index.html) implementation guide.  
-It provides a FHIR Gateway supporting the PIXm and MHD server actors and uses XDS/PIXV3 to communicate with an XDS Affinity Domain.
+The Mobile Access Gateway is an implementation based on the [CH EPR FHIR](https://fhir.ch/ig/ch-epr-fhir/index.html) [(CI-Build)](http://build.fhir.org/ig/ehealthsuisse/ch-epr-fhir/index.html) implementation guide.  
+It provides a FHIR Gateway supporting the mobile IHE server actors and translates them to the IHE XDS/HL7v3 transactions.
 
 It uses [IPF](https://oehf.github.io/ipf/) and [HAPI-FHIR](https://hapifhir.io/).
 
@@ -34,7 +34,7 @@ documentation is maintained in docs folder using [mkdocs-material](https://squid
 - develop docs: mkdocs serve
 - publish docs: mkdocs gh-deploy --force
 
-docs are then available at https://ahdis.github.io/matchbox/
+docs are then available at https://ahdis.github.io/MobileAccessGateway/
 
 ## Caution
 
@@ -51,7 +51,7 @@ docs are then available at https://ahdis.github.io/matchbox/
 
 - Java Extension needed
 
-### open issues
+### Open issues
 
 - ipf-platform-camel-ihe-fhir-r4-pixpdq works not nicely with spring-boot together, is the META-INF directory not added to the output source?
 
@@ -84,7 +84,7 @@ Where "mag" is the image name and v030 is the version. Then push to a registry.
 ### Creating a configuration
 
 - Create an empty folder ("**myconfig**" in this example) and copy the contents of the example-config directory.
-- Edit the application.yml. Leave the pathes for the keystores as they are.
+- Edit the application.yml. Leave the paths for the keystores as they are.
 - Provide p12 or jks keystores for the client certificate, the server certificate and for IDP.
 
 ### Deploying to Kubernetes
