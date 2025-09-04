@@ -1,20 +1,58 @@
-FROM bellsoft/liberica-openjdk-alpine:latest
-MAINTAINER oliver egger <oliver.egger@ahdis.ch>
-EXPOSE 9090
-VOLUME /tmp
+## ############################# ##
+## FIRST STAGE: THE BUILD SYSTEM
+## ############################# ##
+FROM bellsoft/liberica-runtime-container:jdk-all-21-musl AS builder
 
-ARG JAR_FILE=target/mobile-access-gateway-2.0.0-spring-boot.jar
+# Prepare the system
+RUN apk add --update maven
+COPY pom.xml .
+COPY src ./src
+
+# Build small JRE image
+RUN ["jlink", \
+      "--compress=2", \
+      "--module-path", "$JAVA_HOME/jmods", \
+      "--add-modules", "java.base,java.compiler,java.desktop,java.instrument,java.logging,java.management,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.security.sasl,java.sql,java.sql.rowset,java.transaction.xa,java.xml,java.xml.crypto,jdk.jfr,jdk.management,jdk.unsupported", \
+      "--no-header-files", \
+      "--no-man-pages", \
+      "--strip-debug", \
+      "--verbose", \
+      "--output", "/mag-jre"]
+
+# Build the Java app
+RUN mvn --batch-mode -DskipTests -DfinalName=mag clean package
+
+
+## ############################# ##
+## SECOND STAGE: THE FINAL IMAGE
+## ############################# ##
+FROM bellsoft/alpaquita-linux-base:stream-musl
+COPY --from=builder /mag-jre /opt/jdk
+
+ENV PATH=$PATH:/opt/jdk/bin
+EXPOSE 9090/tcp
+LABEL org.opencontainers.image.url="https://github.com/ahdis/MobileAccessGateway"
+LABEL org.opencontainers.image.title="MobileAccessGateway"
+LABEL org.opencontainers.image.vendor="ahdis ag"
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
+RUN apk --purge del
 
-COPY ${JAR_FILE} /app.jar
+RUN addgroup -S mag && adduser -S mag -G mag
+USER mag:mag
 
-ENTRYPOINT java -Xmx1G -jar /app.jar -Djavax.net.ssl.trustStore=cacerts -Djavax.net.ssl.trustStorePassword=changeit -Dspring.config.additional-location=optional:file:/config/application.yml
+# Use our own folder
+RUN mkdir -p /home/mag
+WORKDIR /home/mag
+ENV HOME=/home/mag
+COPY --from=builder target/mag.jar .
 
+ENTRYPOINT [ \
+  "java", \
+  "-Xmx1G", \
+  "-jar", "mag.jar", \
+  "-Dspring.config.additional-location=optional:file:/config/application.yml" \
+]
 
-# export PROJECT_ID="$(gcloud config get-value project -q)"
-# docker build -t eu.gcr.io/${PROJECT_ID}/mag:v016 .
-# docker push eu.gcr.io/${PROJECT_ID}/mag:v016
-# docker run -d --name mag  -p 9090:9090 --memory="5G" --cpus="1" eu.gcr.io/fhir-ch/mag:v016
-
+# To publish a version manually:
 # docker buildx build --tag "europe-west6-docker.pkg.dev/ahdis-ch/ahdis/mag-cara:v0.1.0" --push --platform=linux/amd64 -f Dockerfile .

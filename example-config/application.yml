@@ -1,94 +1,64 @@
+server:
+  ssl:
+    key-store: classpath:example-server-certificate.p12
+    key-store-password: a1b2c3
+    key-store-type: pkcs12
+    key-alias: server
+  port: 9091 # Application listening port for HTTPS<
+
 mag:
-# adjust here the baseurl to the external url which should be exposed
-  baseurl: http://localhost:9090
-  extpatienturl: https://ehealthsuisse.ihe-europe.net:9743/asbestos/proxy/default__default
+  homeCommunityId: urn:oid:1.2.3.5
+  baseUrl: http://mag.ahdis.ch
+  documentSourceId: urn:oid:1.3.6.1.4.1.12559.11.13.2.5
+
   client-ssl:
     enabled: true
-# certificate from https://ehealthsuisse.ihe-europe.net/gss/certificate/view.seam?id=386
     key-store:
-      path: file:secret/client.jks
-      password: magpat
+      path: keystore.jks
+      password: a1b2c3
     truststore:
-      path: file:secret/client.jks
-      password: magpat
-    cert-alias: magpat
+      path: example-client-certificate.jks
+      password: a1b2c3
+    cert-alias: gateway
+
   xds:
     https: true
-    iti-18:
-      url: ehealthsuisse.ihe-europe.net:10443/xdstools7/sim/default__ahdis/reg/sq
-    iti-43:
-      url: ehealthsuisse.ihe-europe.net:10443/xdstools7/sim/default__ahdis/rep/ret
-    iti-41:
-      url: ehealthsuisse.ihe-europe.net:10443/xdstools7/sim/default__ahdis/rep/prb
-    retrieve:
-      url: http://localhost:9090/camel/xdsretrieve
-      repositoryUniqueId: 1.1.4567332.1.2
-  pix:
+    repositoryUniqueId: 1.1.4567332.1.2
+    iti-18: ehealthsuisse.ihe-europe.net:10443/xdstools7/sim/default__ahdis/reg/sq
+    iti-43: ehealthsuisse.ihe-europe.net:10443/xdstools7/sim/default__ahdis/rep/ret
+    iti-41: ehealthsuisse.ihe-europe.net:10443/xdstools7/sim/default__ahdis/rep/prb
+    iti-57: ehealthsuisse.ihe-europe.net:10443/xdstools7/sim/default__ahdis/rep/prb
+    retrieve: ${DOCUMENT_RETRIEVE_URL:/camel/xdsretrieve}
+
+  mpi:
     https: true
-    iti-45:
-      url: ehealthsuisse.ihe-europe.net:10443/PAMSimulator-ejb/PIXManager_Service/PIXManager_PortType
-    iti-44:
-      url: ehealthsuisse.ihe-europe.net:10443/PAMSimulator-ejb/PIXManager_Service/PIXManager_PortType
-    iti-47:
-      url: ehealthsuisse.ihe-europe.net:10443/PAMSimulator-ejb/PDQSupplier_Service/PDQSupplier_PortType
+    iti-45: ehealthsuisse.ihe-europe.net:10443/PAMSimulator-ejb/PIXManager_Service/PIXManager_PortType
+    iti-44: ehealthsuisse.ihe-europe.net:10443/PAMSimulator-ejb/PIXManager_Service/PIXManager_PortType
+    iti-47: ehealthsuisse.ihe-europe.net:10443/PAMSimulator-ejb/PDQSupplier_Service/PDQSupplier_PortType
     oids:
       sender: 1.3.6.1.4.1.21367.2017.2.2.108
-      receiver: 1.3.6.1.4.1.12559.11.20.1.10
-# gazelle Receiver organization OID 1.3.6.1.4.1.12559.11.25.1.12, 
-      query: 1.3.6.1.4.1.21367.2017.2.1.104
+      receiver: 1.3.6.1.4.1.12559.11.25.1.10
+      custodian: 1.3.6.1.4.1.21367.2017.2.5.83
       mpi-pid: 1.3.6.1.4.1.12559.11.20.1
-  mhd:
-    iti66: 
-      disable: true
-  pmir:
-    iti93: 
-      disable: true
-  iua:
-    idp:
-      name: idp-ehealthsuisse
-      metadata-url: https://ehealthsuisse.ihe-europe.net/metadata/idp-metadata.xml
-      key-store: file:secret/client.jks
-      key-store-password: magpat
-      key-alias: magpat
-      key-password: magpat
-    sp:
-#      entity-id: mag.pagekite.me old
-      entity-id: test.ahdis.ch
-    ap:
-      url: https://ehealthsuisse.ihe-europe.net/STS
-      wsdl: https://ehealthsuisse.ihe-europe.net/STS?wsdl
-    clients:
-      oauthdebugger:
-        secret: demosecret
-        redirect: https://oauthdebugger.com/debug
 
   audit:
-    audit-enabled: false
-    audit-tls-enabled: false
-    # in productive system audit-source-id must be same as audit-enterprise-site-id
-    #audit-enterprise-site-id: 1.3.6.1.4.1.21367.2017.2.7.109
-    #audit-repository-host: ehealthsuisse.ihe-europe.net
-    #audit-repository-port: 3202
-    #audit-repository-transport: TLS
+    audit-enabled: true
+    audit-tls-enabled: true
+    audit-enterprise-site-id: 1.3.6.1.4.1.21367.2017.2.7.109
+    audit-repository-host: 147.135.232.177
+    audit-repository-port: 7003
+    audit-repository-transport: TCP
 
-  ch-epr-fhir:
-    ch-mhd-constraints: true
-    ch-ppqm-constraints: true
-    ch-pixm-constraints: true
-    ch-pdqm-constraints: true
-    epr-spid-as-patientid: true
+  auth:
+    sts: https://epdplayground.i4mi.bfh.ch:7443/EPDSTS/services/SecurityTokenService
+    sts-wsdl: classpath:/local-WSDL/wsdl/ws-trust-1.3.wsdl
 
-# certificate from https://ehealthsuisse.ihe-europe.net/gss/certificate/view.seam?id=386
-server:
-  max-http-header-size: 10000
-  ssl:
-    key-alias: mag
-    key-password: magpat
-    key-store: secret/server.p12
-    key-store-password: magpat
-    client-auth: NEED
-ipf:
-  fhir:
-    servlet:
-      logging: false
-      highlight: false
+logging:
+  level:
+    org.springframework.security: debug
+    org.openehealth.ipf.commons.ihe: debug  # Ensure the IPF logs are at the desired level
+    ch.bfh.ti.i4mi: debug
+    org.eclipse.jetty.server.RequestLog: debug
+    org.springframework.web.servlet.DispatcherServlet: debug
+    org.springframework.web: debug
+    org.springframework.http: debug
