@@ -4,22 +4,22 @@ The Mobile Access Gateway provides translation from REST to SOAP variants of IHE
 | IHE-Profile | ITI        | Transaction Name                                | IHE Actor                     | Implemented in the Gateway with following actors   | Transaction                              |
 |-------------|------------|-------------------------------------------------|-------------------------------|----------------------------------------------------|------------------------------------------|
 | PDQm        | ITI-78     | Mobile Patient Demographics Query               | Patient Demographics Supplier | PDQv3 Patient Demographics Consumer                | ITI-47                                   |
+| PDQm        | ITI-119    | Patient Demographics Match                      | Patient Demographics Supplier | PDQv3 Patient Demographics Consumer                | ITI-47                                   |
 | PIXm        | ITI-83     | Mobile Patient Identifier Cross-reference Query | Patient Identity Manager      | PIX V3 Patient Identifier Cross-reference Consumer | ITI-45                                   |
 | PIXm        | ITI-104    | Patient Identity Feed FHIR                      | Patient Identity Manager      | PIX V3 Patient Identity Source                     | ITI-44                                   |
 | MHD         | ITI-65     | Provide Document Bundle                         | Document Recipient            | XDS Document Source, X-Service-User                | ITI-41                                   |
 | MHD         | ITI-66     | Find Document Lists                             | Document Responder            | XDS Document Consumer, X-Service-User              | ITI-18                                   |
 | MHD         | ITI-67     | Find Document References                        | Document Responder            | XDS Document Consumer, X-Service-User              | ITI-18                                   |
 | MHD         | ITI-68     | Retrieve Document                               | Document Responder            | XDS Document Consumer, X-Service-User              | ITI-43                                   |
-| IUA         | ITI-71     | Get Access Token                                | IUA Authorization Server      | X-Service-User                                     | Authenticate User / Get X-User Assertion |
-| CMPD        | CH:PHARM-5 | Query Pharmacy Documents                        | Community Pharmacy Manager    | Querying Actor                                     | CH:PHARM-1                               |
 | PPQm        | CH:PPQ3    | Mobile Privacy Policy Feed                      | Policy Repository             | Policy Source                                      | CH:PPQ1 / CH:PPQ2                        |
 | PPQm        | CH:PPQ4    | Mobile Privacy Policy Bundle Feed               | Policy Repository             | Policy Source                                      | CH:PPQ1 / CH:PPQ2                        |
 | PPQm        | CH:PPQ5    | Mobile Privacy Policy Retrieve                  | Policy Repository             | Policy Source                                      | CH:PPQ2                                  |
 
-For Authentication/Authorization you have two different options:
+For Authentication/Authorization:
 
-1. Integrate the IdP into your software and exchange the IdP saml2 token over a REST API to a XUA token [link](/integration-primary-system/)
-2. Configure the IdP's with the Mobile Access Gateway and use an OAuth token (in development)
+1. PDQm and PIXm transactions doesn't require authentication.
+2. ITI-65 requests can be automatically authorized as the configured Technical User (TCU).
+3. Other MHD transactions require authorization.
 
 ## CH EPR Constraints
 

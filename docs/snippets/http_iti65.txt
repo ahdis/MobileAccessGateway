@@ -47,7 +47,7 @@ Content-Type: application/fhir+json;charset=UTF-8
             }
           },
           {
-            "url": "http://fhir.ch/ig/ch-epr-mhealth/StructureDefinition/ch-ext-author-authorrole",
+            "url": "http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-ext-author-authorrole",
             "valueCoding": {
               "code": "HCP",
               "display": "Healthcare professional",
@@ -234,7 +234,7 @@ Content-Type: application/fhir+json;charset=UTF-8
         "description": "file.pdf",
         "extension": [
           {
-            "url": "http://fhir.ch/ig/ch-epr-mhealth/StructureDefinition/ch-ext-author-authorrole",
+            "url": "http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-ext-author-authorrole",
             "valueCoding": {
               "code": "HCP",
               "display": "Healthcare professional",

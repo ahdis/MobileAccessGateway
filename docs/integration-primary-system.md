@@ -1,6 +1,6 @@
 # EPR Primary System Integration
 
-The REST variants of XDS transactions presented here are based on [CH EPR mHealth](https://fhir.ch/ig/ch-epr-mhealth/index.html),
+The REST variants of XDS transactions presented here are based on [CH EPR FHIR](https://fhir.ch/ig/ch-epr-fhir/index.html),
 itself based on various IHE profiles.
 
 <svg width="20" height="20" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path fill="#ffce31" d="M5.9 62c-3.3 0-4.8-2.4-3.3-5.3L29.3 4.2c1.5-2.9 3.9-2.9 5.4 0l26.7 52.5c1.5 2.9 0 5.3-3.3 5.3H5.9z"/><g fill="#231f20"><path d="m27.8 23.6l2.8 18.5c.3 1.8 2.6 1.8 2.9 0l2.7-18.5c.5-7.2-8.9-7.2-8.4 0"/><circle cx="32" cy="49.6" r="4.2"/></g></svg>
@@ -26,7 +26,7 @@ identification to a specific patient and a purpose of use.
 It is an HTTP POST request to `/assertion`, with the header `Scope` and the IDP SAML assertion as body.
 The header `Scope` contains the following values:
 
-- `purpose_of_use` (_[token][]_, required): a value from [EprPurposeOfUse](https://fhir.ch/ig/ch-epr-term/ValueSet-EprPurposeOfUse.html).
+- `purpose_of_use` (_[token][]_, required): a value from [EprPurposeOfUse](https://fhir.ch/ig/ch-term/ValueSet-EprPurposeOfUse.html).
 - `subject_role` (_[token][]_, required): either `HCP`, `ASS`, `PAT` or `REP` in the system `urn:oid:2.16.756.5.30.1.127.3.10.6`.
 - `person_id` (_[string][]_, required): the patient EPR-SPID in the CX format.
 - `principal` (_[string][]_, only if role is ASS): the name of the healthcare professional an assistant is acting on
@@ -75,7 +75,7 @@ It can be queried and updated.
 ### Retrieving patient identifiers
 
 Patient identifiers (commonly the MPI-PID and EPR-SPID) can be queried with an
-[ITI-83 (_Mobile Patient Identifier Cross-reference Query_) transaction](https://fhir.ch/ig/ch-epr-mhealth/iti-83.html).
+[ITI-83 (_Mobile Patient Identifier Cross-reference Query_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-83.html).
 
 The transaction is an HTTP GET request to the endpoint `/Patient/$ihe-pix`, with the following parameters:
 
@@ -97,7 +97,7 @@ GET /Patient/$ihe-pix?sourceIdentifier=urn:oid:2.16.756.5.30.1.191.1.0.12.3.101|
 ### Retrieving patient demographics
 
 Patient demographics can be queried with an
-[ITI-78 (_Mobile Patient Demographics Query_) transaction](https://fhir.ch/ig/ch-epr-mhealth/iti-78.html).
+[ITI-78 (_Mobile Patient Demographics Query_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-78.html).
 
 The transaction can be done in two ways, either by specifying the MPI-PID to retrieve a single patient, or by
 specifying other information.
@@ -136,8 +136,8 @@ specifying other information.
 
 ### Feeding patient information
 
-Feeding patient information can be done with the [ITI-104 (_Patient Identity Feed FHIR_) transaction](https://fhir.ch/ig/ch-epr-mhealth/iti-104.html).
-The following profile shall be used: `http://fhir.ch/ig/ch-epr-mhealth/StructureDefinition-ch-pixm-patient.html`.
+Feeding patient information can be done with the [ITI-104 (_Patient Identity Feed FHIR_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-104.html).
+The following profile shall be used: `http://fhir.ch/ig/ch-epr-fhir/StructureDefinition-ch-pixm-patient.html`.
 
 The MPI-PID is required in `identifier`.
 You don't have to re-specify the other identifiers, they won't be deleted if they're missing from the request.
@@ -157,7 +157,7 @@ The document directory stores documents (in the document repository) and their m
 
 ### Searching
 
-You can search the document registry with the [ITI-67 (_Find Document References_) transaction](https://fhir.ch/ig/ch-epr-mhealth/iti-67.html).
+You can search the document registry with the [ITI-67 (_Find Document References_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-67.html).
 
 The transaction is an HTTP GET request to the endpoint `/DocumentReference`, the search parameters are described in
 the [MHD ITI-67 specifications](https://profiles.ihe.net/ITI/MHD/ITI-67.html).
@@ -178,7 +178,7 @@ GET /DocumentReference?patient.identifier=urn:oid:2.999|11111111&creation=ge2023
 
 </details>
 
-You can also search for _SubmissionSets_ with the [ITI-66 (_Find Document Lists_) transaction](https://fhir.ch/ig/ch-epr-mhealth/iti-66.html).
+You can also search for _SubmissionSets_ with the [ITI-66 (_Find Document Lists_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-66.html).
 
 <details><summary>Examples</summary>
 
@@ -194,13 +194,13 @@ GET /List?patient.identifier=urn:oid:2.999|11111111&code=submissionset&status=cu
 
 ### Reading
 
-Retrieving a document is done with the [ITI-68 (_Retrieve Document_) transaction](https://fhir.ch/ig/ch-epr-mhealth/iti-68.html).
+Retrieving a document is done with the [ITI-68 (_Retrieve Document_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-68.html).
 It is a simple HTTP GET request to a URL that you will find in the linked _DocumentReference_ (that you can obtain
 with search results): `DocumentReference.content.attachment.url`.
 
 ### Publishing
 
-You can publish a document with the [ITI-65 (_Provide Document Bundle_) transaction](https://fhir.ch/ig/ch-epr-mhealth/iti-65.html).
+You can publish a document with the [ITI-65 (_Provide Document Bundle_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-65.html).
 
 The transaction is an HTTP POST request to the endpoint `/`. The following profile shall be used:
 `https://profiles.ihe.net/ITI/MHD/StructureDefinition/IHE.MHD.Comprehensive.ProvideBundle`.
@@ -223,7 +223,7 @@ organizations) are also available.
 ### Searching
 
 Professionals, organizations and relationships can be queried with an
-[ITI-90 (_Find Matching Care Services_) transaction](https://fhir.ch/ig/ch-epr-mhealth/iti-90.html). See the
+[ITI-90 (_Find Matching Care Services_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-90.html). See the
 specifications for the complete list of search parameters.
 
 === "Professionals"

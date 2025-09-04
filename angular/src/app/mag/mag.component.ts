@@ -928,17 +928,17 @@ export class MagComponent implements OnInit {
 
     entry.extension.push({
       url:
-        'http://fhir.ch/ig/ch-epr-mhealth/StructureDefinition/ch-ext-deletionstatus',
+        'http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-ext-deletionstatus',
       valueCoding: {
         system:
-          'http://fhir.ch/ig/ch-epr-mhealth/CodeSysteme/ch-ehealth-codesystem-deletionstatus',
+          'http://fhir.ch/ig/ch-epr-fhir/CodeSysteme/ch-ehealth-codesystem-deletionstatus',
         code: 'deletionRequested',
       },
     });
 
     entry.extension.push({
       url:
-        'http://fhir.ch/ig/ch-epr-mhealth/StructureDefinition/ch-ext-author-authorrole',
+        'http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-ext-author-authorrole',
       valueCoding: {
         system: 'urn:oid:2.16.756.5.30.1.127.3.10.6',
         code: 'HCP',
@@ -1542,7 +1542,7 @@ export class MagComponent implements OnInit {
     });
     list.extension.push({
       url:
-        'http://fhir.ch/ig/ch-epr-mhealth/StructureDefinition/ch-ext-author-authorrole',
+        'http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-ext-author-authorrole',
       valueCoding: {
         system: 'urn:oid:2.16.756.5.30.1.127.3.10.6',
         code: 'HCP',
@@ -1585,7 +1585,7 @@ export class MagComponent implements OnInit {
 
     docref.extension.push({
       url:
-        'http://fhir.ch/ig/ch-epr-mhealth/StructureDefinition/ch-ext-author-authorrole',
+        'http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-ext-author-authorrole',
       valueCoding: {
         system: 'urn:oid:2.16.756.5.30.1.127.3.10.6',
         code: 'HCP',

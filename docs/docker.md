@@ -3,12 +3,12 @@
 you can download the mobile access gateway as a docker container:
 
 ```
-docker pull europe-west6-docker.pkg.dev/ahdis-ch/ahdis/mag:v062
+docker pull europe-west6-docker.pkg.dev/ahdis-ch/ahdis/mag-cara:version
 ```
 
 ## Configurable base image:
 
-run from the cloned [mobile access gateway](https://github.com/i4mi/MobileAccessGateway):
+run from the cloned [mobile access gateway](https://github.com/ahdis/MobileAccessGateway):
 
 ```bash
 docker run -d -it --name mag -p 9090:9090 -v /Users/oegger/Documents/github/MobileAccessGateway/example-playground:/config/ europe-west6-docker.pkg.dev/ahdis-ch/ahdis/mag:v062
