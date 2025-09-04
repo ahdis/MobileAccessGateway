@@ -29,7 +29,6 @@ import jakarta.activation.DataHandler;
 import jakarta.annotation.Nullable;
 import org.apache.camel.Body;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.jena.sparql.function.library.context;
 import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.Address;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
@@ -51,13 +50,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static ch.bfh.ti.i4mi.mag.MagConstants.EPR_SPID_OID;
+import static ch.bfh.ti.i4mi.mag.MagConstants.FhirCodingSystemIds.RFC_3986;
+import static ch.bfh.ti.i4mi.mag.mhd.Utils.isUuid;
 
 /**
  * ITI-65 to ITI-41 request converter
@@ -629,20 +626,14 @@ public class Iti65RequestConverter extends BaseRequestConverter {
      * @param entry
      */
     public void processDocumentReference(DocumentReference reference, DocumentEntry entry) throws Exception {
-
-        Optional<String> entryUuidOpt = reference.getIdentifier().stream()
-            .filter(identifier -> identifier.hasSystem() && identifier.getSystem().equals("urn:ietf:rfc:3986"))
-            .filter(identifier -> identifier.hasUse() && identifier.getUse() == Identifier.IdentifierUse.OFFICIAL)
-            .findAny()
-            .or(() -> reference.getIdentifier().stream()
-                .filter(identifier -> identifier.hasSystem() && identifier.getSystem().equals("urn:ietf:rfc:3986"))
-                .findAny())
-            .map(Identifier::getValue);
-        if (entryUuidOpt.isPresent()) {
-            entry.setEntryUuid(entryUuidOpt.get());
-        } else {
-            entry.assignEntryUuid();
-        }
+        final var entryUuid = reference.getIdentifier().stream()
+                .filter(identifier -> RFC_3986.equals(identifier.getSystem()))
+                .filter(identifier -> !identifier.hasUse() || identifier.getUse() == Identifier.IdentifierUse.OFFICIAL)
+                .filter(identifier -> identifier.getValue() != null && isUuid(identifier.getValue()))
+                .findAny()
+                .map(Identifier::getValue)
+                .orElseGet(() -> UUID.randomUUID().toString());
+        entry.setEntryUuid(entryUuid);
 
         reference.getIdentifier().stream()
                 .filter(identifier -> identifier.hasType() && identifier.getType().hasCoding(MagConstants.FhirCodingSystemIds.MHD_DOCUMENT_ID_TYPE,

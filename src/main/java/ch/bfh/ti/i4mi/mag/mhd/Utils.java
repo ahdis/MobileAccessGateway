@@ -23,6 +23,7 @@ import org.openehealth.ipf.commons.ihe.fhir.FhirSearchParameters;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
@@ -133,5 +134,14 @@ public class Utils {
 
     public static boolean isUnprefixedUuid(final String uuid) {
         return uuid != null && UNPREFIXED_UUID_PATTERN.matcher(uuid).matches();
+    }
+
+    public static boolean isUuid(final String maybeUuid) {
+        try {
+            UUID.fromString(maybeUuid);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 }
