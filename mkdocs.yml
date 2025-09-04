@@ -1,5 +1,5 @@
 site_name: Mobile Access Gateway
-repo_url: https://github.com/i4mi/MobileAccessGateway
+repo_url: https://github.com/ahdis/MobileAccessGateway
 theme:
   name: material
   logo: assets/mag_logo.png
