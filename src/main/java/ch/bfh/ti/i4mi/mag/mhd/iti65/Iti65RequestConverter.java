@@ -55,6 +55,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static ch.bfh.ti.i4mi.mag.MagConstants.EPR_SPID_OID;
 
@@ -629,11 +630,19 @@ public class Iti65RequestConverter extends BaseRequestConverter {
      */
     public void processDocumentReference(DocumentReference reference, DocumentEntry entry) throws Exception {
 
-        //if (reference.getIdElement()!=null) {
-        //	entry.setEntryUuid(reference.getIdElement().getIdPart());
-        //} else {
-        entry.assignEntryUuid();
-        //}
+        Optional<String> entryUuidOpt = reference.getIdentifier().stream()
+            .filter(identifier -> identifier.hasSystem() && identifier.getSystem().equals("urn:ietf:rfc:3986"))
+            .filter(identifier -> identifier.hasUse() && identifier.getUse() == Identifier.IdentifierUse.OFFICIAL)
+            .findAny()
+            .or(() -> reference.getIdentifier().stream()
+                .filter(identifier -> identifier.hasSystem() && identifier.getSystem().equals("urn:ietf:rfc:3986"))
+                .findAny())
+            .map(Identifier::getValue);
+        if (entryUuidOpt.isPresent()) {
+            entry.setEntryUuid(entryUuidOpt.get());
+        } else {
+            entry.assignEntryUuid();
+        }
 
         reference.getIdentifier().stream()
                 .filter(identifier -> identifier.hasType() && identifier.getType().hasCoding(MagConstants.FhirCodingSystemIds.MHD_DOCUMENT_ID_TYPE,
