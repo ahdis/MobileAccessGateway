@@ -1,74 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>ch.ahdis</groupId>
-	<artifactId>mobile-access-gateway</artifactId>
-	<version>2.0.0</version>
-	<description>FHIR Gateway supporting the PIXm/PDQm and MHD server actors and uses XDS/PIXv3/PDQv3 to communicate
-        with the Swiss EPR</description>
-	<packaging>jar</packaging>
+    <groupId>ch.ahdis</groupId>
+    <artifactId>mobile-access-gateway</artifactId>
+    <version>2.0.0</version>
+    <description>FHIR Gateway supporting the PIXm/PDQm and MHD server actors and uses XDS/PIXv3/PDQv3 to communicate
+        with the Swiss EPR
+    </description>
+    <packaging>jar</packaging>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>21</maven.compiler.source>
-		<maven.compiler.target>21</maven.compiler.target>
-		<maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
-		<java.version>21</java.version>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
+        <java.version>21</java.version>
 
-		<!-- plugins -->
-		<compiler-plugin-version>3.10.1</compiler-plugin-version>
-		<dockerfile-plugin-version>1.4.13</dockerfile-plugin-version>
-		<exec-plugin-version>3.0.0</exec-plugin-version>
-		<spring-boot-plugin-version>2.6.7</spring-boot-plugin-version>
+        <!-- plugins -->
+        <compiler-plugin-version>3.10.1</compiler-plugin-version>
+        <dockerfile-plugin-version>1.4.13</dockerfile-plugin-version>
+        <exec-plugin-version>3.0.0</exec-plugin-version>
+        <spring-boot-plugin-version>2.6.7</spring-boot-plugin-version>
 
-		<!-- libraries -->
+        <!-- libraries -->
         <ipf-version>5.1.0</ipf-version>
-		<camel-version>4.10.6</camel-version>
-		<hibernate-version>5.2.5.Final</hibernate-version>
-		<opensaml-version>2.6.6</opensaml-version>
-		<velocity-version>2.4.1</velocity-version>
+        <camel-version>4.10.6</camel-version>
+        <hibernate-version>5.2.5.Final</hibernate-version>
+        <opensaml-version>5.1.6</opensaml-version>
+        <velocity-version>2.4.1</velocity-version>
 
-		<start-class>ch.bfh.ti.i4mi.mag.MobileAccessGateway</start-class>
+        <start-class>ch.bfh.ti.i4mi.mag.MobileAccessGateway</start-class>
         <finalName>${project.artifactId}-${project.version}</finalName>
-	</properties>
+    </properties>
 
-	<repositories>
-		<repository>
-			<id>oss-snapshots</id>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-		</repository>
-		<repository>
-			<id>Alfresco</id>
-		    <url>https://artifacts.alfresco.com/nexus/content/repositories/public/</url>
-		</repository>
-		<repository>
-			<id>irisa-sumo</id>
-			<name>Sumo Irisa Public Maven Repository Group</name>
-			<url>https://gazelle.ihe.net/nexus/content/groups/public/</url>
-			<layout>default</layout>
-		</repository>
-	</repositories>
+    <repositories>
+        <repository>
+            <id>oss-snapshots</id>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
+        <repository>
+            <id>Alfresco</id>
+            <url>https://artifacts.alfresco.com/nexus/content/repositories/public/</url>
+        </repository>
+        <repository>
+            <id>irisa-sumo</id>
+            <name>Sumo Irisa Public Maven Repository Group</name>
+            <url>https://gazelle.ihe.net/nexus/content/groups/public/</url>
+            <layout>default</layout>
+        </repository>
+        <repository>
+            <id>shibboleth-releases</id>
+            <url>https://build.shibboleth.net/nexus/content/repositories/releases/</url>
+        </repository>
+    </repositories>
 
-	<dependencyManagement>
-		<dependencies>
-			<!-- IPF dependencies -->
-			<dependency>
-				<groupId>org.openehealth.ipf</groupId>
-				<artifactId>ipf-dependencies</artifactId>
-				<version>${ipf-version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+    <dependencyManagement>
+        <dependencies>
+            <!-- IPF dependencies -->
+            <dependency>
+                <groupId>org.openehealth.ipf</groupId>
+                <artifactId>ipf-dependencies</artifactId>
+                <version>${ipf-version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-	<dependencies>
+    <dependencies>
         <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -167,16 +172,6 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents.client5</groupId>
-            <artifactId>httpclient5</artifactId>
-            <version>5.5</version>
-            <scope>test</scope>
-        </dependency>
-
-
-
-
 
         <dependency>
             <groupId>jakarta.xml.soap</groupId>
@@ -189,60 +184,61 @@
             <version>3.0.4</version>
         </dependency>
 
-		<dependency>
-			<groupId>javax.ws.rs</groupId>
-			<artifactId>javax.ws.rs-api</artifactId>
-			<version>2.0.1</version>
-		</dependency>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.0.1</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.apache.velocity</groupId>
-			<artifactId>velocity-engine-core</artifactId>
-			<version>${velocity-version}</version>
-		</dependency>
+        <dependency>
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity-engine-core</artifactId>
+            <version>${velocity-version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-cxf-spring-soap</artifactId>
-			<version>${camel-version}</version>
-		</dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-cxf-spring-soap</artifactId>
+            <version>${camel-version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-validator</artifactId>
-			<version>${hibernate-version}</version>
-		</dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>${hibernate-version}</version>
+        </dependency>
 
-		<dependency>
+        <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-cxf-soap</artifactId>
-			<version>${camel-version}</version>
+            <version>${camel-version}</version>
         </dependency>
         <dependency>
-	       <groupId>org.apache.cxf</groupId>
-	       <artifactId>cxf-core</artifactId>
-        </dependency>
-
-        <dependency>
-          <groupId>org.opensaml</groupId>
-          <artifactId>opensaml</artifactId>
-          <version>${opensaml-version}</version>
-        </dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.core</groupId>
-			<artifactId>jersey-common</artifactId>
-			<version>2.43</version>
-		</dependency>
-
-        <dependency>
-          <groupId>org.apache.camel</groupId>
-          <artifactId>camel-jackson</artifactId>
-          <version>${camel-version}</version>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-core</artifactId>
         </dependency>
 
         <dependency>
-          <groupId>org.ehcache</groupId>
-          <artifactId>ehcache</artifactId>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-saml-impl</artifactId>
+            <version>${opensaml-version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-common</artifactId>
+            <version>2.43</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-jackson</artifactId>
+            <version>${camel-version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ehcache</groupId>
+            <artifactId>ehcache</artifactId>
         </dependency>
 
         <dependency>
@@ -250,22 +246,21 @@
             <artifactId>Saxon-HE</artifactId>
             <!-- TODO do we still need this? -->
         </dependency>
+    </dependencies>
 
-	</dependencies>
-
-	<build>
+    <build>
         <finalName>${finalName}</finalName>
 
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${compiler-plugin-version}</version>
-				<configuration>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
-				</configuration>
-			</plugin>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${compiler-plugin-version}</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
 
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -292,33 +287,33 @@
                 </configuration>
             </plugin>
 
-			<!-- tag::unpack[] -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>unpack</id>
-						<phase>package</phase>
-						<goals>
-							<goal>unpack</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>${project.groupId}</groupId>
-									<artifactId>${project.artifactId}</artifactId>
-									<version>${project.version}</version>
-								</artifactItem>
-							</artifactItems>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- end::unpack[] -->
+            <!-- tag::unpack[] -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>${project.artifactId}</artifactId>
+                                    <version>${project.version}</version>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- end::unpack[] -->
 
 
-		</plugins>
-	</build>
+        </plugins>
+    </build>
 
 </project>

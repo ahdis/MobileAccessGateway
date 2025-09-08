@@ -21,6 +21,8 @@ import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagXdsProps;
 import ch.bfh.ti.i4mi.mag.mhd.BaseQueryResponseConverter;
 import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
@@ -52,7 +54,6 @@ import org.openehealth.ipf.commons.ihe.xds.core.metadata.Person;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.ReferenceId;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.QueryResponse;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.Status;
-import org.owasp.esapi.codecs.Hex;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -272,7 +273,13 @@ public class Iti67ResponseConverter extends BaseQueryResponseConverter {
 
         // on the data prior to base64 encoding, if the data is base64 encoded.
         if (documentEntry.getHash() != null) {
-            attachment.setHash(Hex.fromHex(documentEntry.getHash()));
+            try {
+                attachment.setHash(Hex.decodeHex(documentEntry.getHash()));
+            } catch (DecoderException e) {
+                log.warn("Hash value of DocumentEntry with entryUUID='{}' is not a valid hex string: '{}'",
+                         documentEntry.getEntryUuid(), documentEntry.getHash());
+                throw new RuntimeException(e);
+            }
         }
 
         // comments -> description string [0..1]

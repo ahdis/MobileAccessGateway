@@ -6,7 +6,6 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
-import org.apache.camel.component.cxf.common.message.CxfConstants;
 import org.apache.camel.support.DefaultExchange;
 import org.apache.cxf.staxutils.StaxUtils;
 import org.slf4j.Logger;
@@ -20,7 +19,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.UUID;
 
-import static org.opensaml.common.xml.SAMLConstants.SAML20_NS;
+import static org.opensaml.saml.common.xml.SAMLConstants.SAML20_NS;
 
 @Service
 public class StsService implements CamelContextAware {

@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static org.openehealth.ipf.platform.camel.ihe.ws.AbstractWsEndpoint.OUTGOING_SOAP_HEADERS;
-import static org.opensaml.common.xml.SAMLConstants.SAML20_NS;
+import static org.opensaml.saml.common.xml.SAMLConstants.SAML20_NS;
 
 /**
  * This processor forwards the HTTP request headers (from FHIR) to the SOAP request headers. This is needed for

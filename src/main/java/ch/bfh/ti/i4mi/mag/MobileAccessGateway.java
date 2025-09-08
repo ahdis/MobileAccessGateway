@@ -16,17 +16,16 @@
 package ch.bfh.ti.i4mi.mag;
 
 import ch.bfh.ti.i4mi.mag.config.props.*;
+import org.opensaml.core.config.InitializationException;
+import org.opensaml.core.config.InitializationService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.ComponentScan;
 
 import lombok.extern.slf4j.Slf4j;
-
-import javax.validation.spi.ValidationProvider;
 
 /**
  * Main class of the IPF Mobile Access Gateway application.
@@ -47,9 +46,9 @@ public class MobileAccessGateway {
      *
      * @param args The list of CLI parameters.
      */
-    public static void main(final String[] args) {
+    public static void main(final String[] args) throws InitializationException {
         log.debug("Configuring Mobile Access Gateway");
-
+        InitializationService.initialize();
         final SpringApplication application = new SpringApplication(MobileAccessGateway.class);
         addApplicationStartupHook(application);
         application.run(args);

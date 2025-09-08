@@ -44,18 +44,13 @@ public class MagAuthProps {
 
     public static class MagAuthTcuProps {
 
-        private String generatorUrl;
         private String principalName;
         private String principalGln;
+        private String keystorePath;
+        private String keystorePassword;
+        private String keystoreAlias;
+        private String templatePath;
         private boolean autoInjectInIti65;
-
-        public String getGeneratorUrl() {
-            return this.generatorUrl;
-        }
-
-        public void setGeneratorUrl(final String generatorUrl) {
-            this.generatorUrl = generatorUrl;
-        }
 
         public String getPrincipalName() {
             return this.principalName;
@@ -71,6 +66,38 @@ public class MagAuthProps {
 
         public void setPrincipalGln(final String principalGln) {
             this.principalGln = principalGln;
+        }
+
+        public String getKeystorePath() {
+            return this.keystorePath;
+        }
+
+        public void setKeystorePath(final String keystorePath) {
+            this.keystorePath = keystorePath;
+        }
+
+        public String getKeystorePassword() {
+            return this.keystorePassword;
+        }
+
+        public void setKeystorePassword(final String keystorePassword) {
+            this.keystorePassword = keystorePassword;
+        }
+
+        public String getKeystoreAlias() {
+            return this.keystoreAlias;
+        }
+
+        public void setKeystoreAlias(final String keystoreAlias) {
+            this.keystoreAlias = keystoreAlias;
+        }
+
+        public String getTemplatePath() {
+            return this.templatePath;
+        }
+
+        public void setTemplatePath(final String templatePath) {
+            this.templatePath = templatePath;
         }
 
         public boolean isAutoInjectInIti65() {

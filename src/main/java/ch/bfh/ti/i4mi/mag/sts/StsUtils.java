@@ -1,19 +1,19 @@
 package ch.bfh.ti.i4mi.mag.sts;
 
+import ch.bfh.ti.i4mi.mag.common.XmlUtils;
 import jakarta.xml.soap.SOAPBody;
 import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
+import net.shibboleth.shared.xml.XMLParserException;
+import net.shibboleth.shared.xml.impl.BasicParserPool;
 import org.apache.camel.Body;
 import org.apache.camel.ExchangeProperty;
 import org.apache.camel.Header;
 import org.apache.cxf.staxutils.StaxUtils;
-import org.opensaml.Configuration;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.xml.io.Unmarshaller;
-import org.opensaml.xml.io.UnmarshallingException;
-import org.opensaml.xml.parse.BasicParserPool;
-import org.opensaml.xml.parse.XMLParserException;
-import org.opensaml.xml.util.XMLHelper;
+import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
+import org.opensaml.core.xml.io.Unmarshaller;
+import org.opensaml.core.xml.io.UnmarshallingException;
+import org.opensaml.saml.saml2.core.Assertion;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -25,7 +25,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 
-import static org.opensaml.common.xml.SAMLConstants.SAML20_NS;
+import static org.opensaml.saml.common.xml.SAMLConstants.SAML20_NS;
 
 @Component
 public class StsUtils {
@@ -49,7 +49,9 @@ public class StsUtils {
     private final BasicParserPool samlParserPool;
 
     public StsUtils() {
-        this.assertionUnmarshaller = Configuration.getUnmarshallerFactory().getUnmarshaller(Assertion.DEFAULT_ELEMENT_NAME);
+        this.assertionUnmarshaller = XMLObjectProviderRegistrySupport
+                .getUnmarshallerFactory()
+                .getUnmarshaller(Assertion.DEFAULT_ELEMENT_NAME);
         this.samlParserPool = new BasicParserPool();
         this.samlParserPool.setNamespaceAware(true);
     }
@@ -88,7 +90,7 @@ public class StsUtils {
                 .getDocumentElement();
         final Assertion assertion = (Assertion) this.assertionUnmarshaller.unmarshall(element);
 
-        final Instant notOnOrAfter = assertion.getConditions().getNotOnOrAfter().toDate().toInstant();
+        final Instant notOnOrAfter = assertion.getConditions().getNotOnOrAfter();
         return Duration.between(Instant.now(), notOnOrAfter).getSeconds();
     }
 
@@ -104,12 +106,12 @@ public class StsUtils {
     }
 
     public AssertionRequest keepIdpAssertion(final @ExchangeProperty("oauthrequest") AuthenticationRequest authRequest,
-                                             final @Body AssertionRequest assertionRequest) {
+                                             final @Body AssertionRequest assertionRequest) throws Exception {
         final String idpAssertion;
         if (assertionRequest.getSamlToken() instanceof String) {
             idpAssertion = (String) assertionRequest.getSamlToken();
         } else {
-            idpAssertion = XMLHelper.nodeToString((Node) assertionRequest.getSamlToken());
+            idpAssertion = XmlUtils.serialize((Node) assertionRequest.getSamlToken());
         }
         authRequest.setIdpAssertion(idpAssertion);
         return assertionRequest;

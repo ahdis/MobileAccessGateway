@@ -27,7 +27,6 @@ import org.apache.camel.Body;
 import org.apache.cxf.staxutils.StaxUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -39,8 +38,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
-import static org.opensaml.common.xml.SAMLConstants.SAML20_NS;
-import static org.opensaml.common.xml.SAMLConstants.SAML20_PREFIX;
+import static org.opensaml.saml.common.xml.SAMLConstants.SAML20_NS;
+import static org.opensaml.saml.common.xml.SAMLConstants.SAML20_PREFIX;
 
 /**
  * Create a Get-X-User-Assertion SOAP Message from AssertionRequest Bean
