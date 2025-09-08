@@ -19,7 +19,7 @@ The sequence diagram shows the currently implemented authentication flow.
 
 You should integrate one of the supported IDPs in your application.
 The OAuth/IUA flow is supported for clients, the SAML flow is the only one implemented between the 
-MobileAccessGateway and the IDP.
+Mobile Access Gateway and the IDP.
 
 Once you get the IDP SAML assertion, you can trade it for the community SAML assertion, which binds your IDP
 identification to a specific patient and a purpose of use.
@@ -299,7 +299,7 @@ You can read the audit messages for a given patient with an ITI-81 transaction.
     ATNA supplement rev. 2.2](https://www.ihe.net/uploadedFiles/Documents/ITI/IHE_ITI_Suppl_RESTful-ATNA_Rev2.2_TI_2017-07-21.pdf).
     A lot have changed since.
 
-The transaction is an HTTP GET request on the endpoint, with the parameter `entity-id` that contain the patient EPR-SPID,
+The transaction is an HTTP GET request on the endpoint, with the parameter `entity-id` that contains the patient EPR-SPID,
 and `date` to constraint the audit message date.
 The `Authorization` header uses the prefix `IHE-SAML` and the SAML assertion is encoded with the [regular base64
 alphabet](https://datatracker.ietf.org/doc/html/rfc4648#section-4).
