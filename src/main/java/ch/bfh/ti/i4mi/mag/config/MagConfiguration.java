@@ -8,7 +8,9 @@ import ch.bfh.ti.i4mi.mag.common.TcpSyslogSender;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.fhir.MagCapabilityStatementProvider;
 import jakarta.servlet.Filter;
+import org.openehealth.ipf.commons.audit.WsAuditDatasetEnricher;
 import org.openehealth.ipf.commons.audit.protocol.AuditTransmissionProtocol;
+import org.openehealth.ipf.commons.ihe.ws.cxf.audit.SwissEprWsAuditDatasetEnricher;
 import org.openehealth.ipf.commons.ihe.ws.cxf.payload.InPayloadLoggerInterceptor;
 import org.openehealth.ipf.commons.ihe.ws.cxf.payload.OutPayloadLoggerInterceptor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -82,6 +84,11 @@ public class MagConfiguration {
     @Bean
     public InPayloadLoggerInterceptor soapResponseLogger() {
         return new InPayloadLoggerInterceptor("./logs/[date('yyyyMMdd-HH00')]/[sequenceId]-soap-response.txt");
+    }
+
+    @Bean
+    public WsAuditDatasetEnricher wsAuditDatasetEnricher() {
+        return new SwissEprWsAuditDatasetEnricher();
     }
 
 
