@@ -16,13 +16,14 @@
 
 package ch.bfh.ti.i4mi.mag.mpi.pixm.iti83;
 
-import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
-import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
-import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
-import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
+import ca.uhn.fhir.rest.server.exceptions.*;
 import ch.bfh.ti.i4mi.mag.mpi.pmir.BasePMIRResponseConverter;
 import jakarta.xml.bind.JAXBException;
+import lombok.val;
+import net.ihe.gazelle.hl7v3.datatypes.BIN;
 import net.ihe.gazelle.hl7v3.datatypes.II;
+import net.ihe.gazelle.hl7v3.mccimt000300UV01.MCCIMT000300UV01Acknowledgement;
+import net.ihe.gazelle.hl7v3.mccimt000300UV01.MCCIMT000300UV01AcknowledgementDetail;
 import net.ihe.gazelle.hl7v3.prpain201310UV02.PRPAIN201310UV02MFMIMT700711UV01ControlActProcess;
 import net.ihe.gazelle.hl7v3.prpain201310UV02.PRPAIN201310UV02MFMIMT700711UV01RegistrationEvent;
 import net.ihe.gazelle.hl7v3.prpain201310UV02.PRPAIN201310UV02MFMIMT700711UV01Subject1;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Component;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,6 +50,12 @@ import java.util.stream.Stream;
  */
 @Component
 public class Iti83ResponseConverter extends BasePMIRResponseConverter implements ToFhirTranslator<byte[]> {
+
+    // Constants for the "Patient ID unknown" case (PIU)
+    private static final String PIU_ITH_AHV_PREFIX = "No patient found with";
+    private static final Pattern PIU_ITH_PATTERN =
+            Pattern.compile("The ID number \"[^\"]+\" is not recognized by the MPI");
+    private static final String PIU_EMEDO_PREFIX = "Requested record not found";
 
     public Parameters translateToFhir(final byte[] input,
                                       final Map<String, Object> parameters) {
@@ -70,8 +78,19 @@ public class Iti83ResponseConverter extends BasePMIRResponseConverter implements
         // OK NF AE
         final var queryResponseCode = controlAct.getQueryAck().getQueryResponseCode().getCode();
         if ("NF".equals(queryResponseCode)) {
-            throw new ResourceNotFoundException("sourceIdentifier Patient Identifier not found");
+            throw new ForbiddenOperationException("targetSystem not found");
         } else if ("AE".equals(queryResponseCode)) {
+            final var errorMessages = pixResponse.getAcknowledgement().stream()
+                    .map(MCCIMT000300UV01Acknowledgement::getAcknowledgementDetail)
+                    .flatMap(List::stream)
+                    .map(MCCIMT000300UV01AcknowledgementDetail::getText)
+                    .map(BIN::getListStringValues)
+                    .flatMap(List::stream)
+                    .collect(Collectors.joining());
+            if (errorMessages.contains(PIU_ITH_AHV_PREFIX) || errorMessages.contains(PIU_EMEDO_PREFIX) || PIU_ITH_PATTERN.matcher(errorMessages).find()) {
+                throw new ResourceNotFoundException("sourceIdentifier Patient Identifier not found");
+            }
+
             throw new InvalidRequestException("sourceIdentifier Assigning Authority not found");
         } else if (!"OK".equals(queryResponseCode)) {
             throw new InternalErrorException("Unknown queryResponseCode in ITI-45 response: " + queryResponseCode);
