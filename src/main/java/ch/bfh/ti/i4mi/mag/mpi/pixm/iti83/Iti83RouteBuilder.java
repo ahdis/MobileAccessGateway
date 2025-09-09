@@ -24,6 +24,7 @@ import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.mhd.BaseResponseConverter;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -71,7 +72,7 @@ class Iti83RouteBuilder extends MagRouteBuilder {
                     .process(TraceparentHandler.updateHeaderForFhir())
                     .process(translateToFhir(responseConverter, byte[].class))
                     .bean(PatientIdInterceptor.class, "interceptIti83Parameters")
-                .doCatch(jakarta.xml.ws.soap.SOAPFaultException.class)
+                .doCatch(Exception.class)
                     .setBody(simple("${exception}"))
                     .process(this.errorFromException())
                 .end();

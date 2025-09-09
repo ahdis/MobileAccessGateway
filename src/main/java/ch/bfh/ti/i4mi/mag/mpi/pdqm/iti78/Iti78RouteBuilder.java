@@ -24,6 +24,7 @@ import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.mhd.BaseResponseConverter;
 import ch.bfh.ti.i4mi.mag.mpi.common.Iti47ResponseToFhirConverter;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import lombok.extern.slf4j.Slf4j;
 import org.openehealth.ipf.commons.ihe.fhir.Constants;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -64,22 +65,21 @@ public class Iti78RouteBuilder extends MagRouteBuilder {
                 //.process(RequestHeadersForwarder.checkAuthorization(this.mpiProps.isChPdqmConstraints()))
                 .process(RequestHeadersForwarder.forward())
                 .choice()
-                .when(header(Constants.FHIR_REQUEST_PARAMETERS).isNotNull())
-                .bean(Iti78RequestConverter.class, "iti78ToIti47Converter")
-                .endChoice()
-                .when(header("FhirHttpUri").isNotNull())
-                .bean(Iti78RequestConverter.class, "idConverter")
-                .endChoice()
+                    .when(header(Constants.FHIR_REQUEST_PARAMETERS).isNotNull())
+                        .bean(Iti78RequestConverter.class, "iti78ToIti47Converter")
+                    .endChoice()
+                    .when(header("FhirHttpUri").isNotNull())
+                        .bean(Iti78RequestConverter.class, "idConverter")
+                    .endChoice()
                 .end()
                 .doTry()
-                .to(xds47Endpoint)
-                .process(TraceparentHandler.updateHeaderForFhir())
-                .process(translateToFhir(responseConverter, byte[].class))
-                .bean(PatientIdInterceptor.class, "interceptBundleOfPatients")
-                .doCatch(jakarta.xml.ws.soap.SOAPFaultException.class)
-                .setBody(simple("${exception}"))
-                .process(this.errorFromException())
+                    .to(xds47Endpoint)
+                    .process(TraceparentHandler.updateHeaderForFhir())
+                    .process(translateToFhir(responseConverter, byte[].class))
+                    .bean(PatientIdInterceptor.class, "interceptBundleOfPatients")
+                .doCatch(Exception.class)
+                    .setBody(simple("${exception}"))
+                    .process(this.errorFromException())
                 .end();
-
     }
 }

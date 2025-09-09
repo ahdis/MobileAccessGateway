@@ -21,7 +21,6 @@ import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagXdsProps;
-import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -57,17 +56,21 @@ class Iti68RouteBuilder extends MagRouteBuilder {
                 .routeId("in-mhd-iti68")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
-                //.process(RequestHeadersForwarder.checkAuthorization(this.isChMhdConstraints))
-                .process(RequestHeadersForwarder.forward())
+                .doTry()
+                    //.process(RequestHeadersForwarder.checkAuthorization(this.isChMhdConstraints))
+                    .process(RequestHeadersForwarder.forward())
 
-                // translate, forward, translate back
-                .bean(Iti68RequestConverter.class)
-                .to(xds43Endpoint)
-                .process(TraceparentHandler.updateHeaderForFhir())
-                .bean(Iti68ResponseConverter.class, "retrievedDocumentSetToHttResponse");
+                    // translate, forward, translate back
+                    .bean(Iti68RequestConverter.class)
+                    .to(xds43Endpoint)
+                    .process(TraceparentHandler.updateHeaderForFhir())
+                    .bean(Iti68ResponseConverter.class, "retrievedDocumentSetToHttResponse")
+                .doCatch(Exception.class)
+                    .setBody(simple("${exception}"))
+                    .process(this.errorFromException())
+                .end();
         // if removing retrievedDocumentSetToHttResponse its given an AmbiguousMethodCallException with two same methods??
         // public java.lang.Object ch.bfh.ti.i4mi.mag.mhd.iti68.Iti68ResponseConverter.retrievedDocumentSetToHttResponse(org.openehealth.ipf.commons.ihe.xds.core.responses.RetrievedDocumentSet,java.util.Map) throws java.io.IOException,
         // public java.lang.Object ch.bfh.ti.i4mi.mag.mhd.iti68.Iti68ResponseConverter.retrievedDocumentSetToHttResponse(org.openehealth.ipf.commons.ihe.xds.core.responses.RetrievedDocumentSet,java.util.Map) throws java.io.IOException]
     }
-
 }

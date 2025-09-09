@@ -2,6 +2,7 @@ package ch.bfh.ti.i4mi.mag.common;
 
 import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.hl7.fhir.r4.model.CodeableConcept;
@@ -11,6 +12,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import static ch.bfh.ti.i4mi.mag.config.TlsConfiguration.BEAN_TLS_CONTEXT_WS;
 
 public abstract class MagRouteBuilder extends RouteBuilder {
+    private static final String UNEXPECTED_HTML_PART = "Incoming portion of HTML stream";
 
     protected final MagProps magProps;
 
@@ -43,14 +45,29 @@ public abstract class MagRouteBuilder extends RouteBuilder {
     public Processor errorFromException() {
         return exchange -> {
             final var e = exchange.getIn().getBody(Exception.class);
-            final var message = "Uncaught exception in Camel route";
+
+            final String message;
+            final String diagnostics;
+            if (e instanceof final SOAPFaultException soapFault) {
+                message = "Unexpected exception in SOAP transaction";
+
+                String faultString = soapFault.getFault().getFaultString();
+                if (faultString.contains(UNEXPECTED_HTML_PART)) {
+                    faultString = faultString.substring(0, faultString.indexOf(UNEXPECTED_HTML_PART)).trim();
+                }
+                diagnostics = "Route %s, SOAP Fault: %s".formatted(exchange.getFromRouteId(), faultString);
+            } else {
+                message = "Unexpected exception in Camel route";
+                diagnostics = "Route %s, exception %s".formatted(exchange.getFromRouteId(),
+                                                                 e.getClass().getSimpleName());
+            }
 
             final var oo = new OperationOutcome();
             final var issue = oo.addIssue();
             issue.setSeverity(OperationOutcome.IssueSeverity.FATAL);
             issue.setCode(OperationOutcome.IssueType.EXCEPTION);
             issue.setDetails(new CodeableConcept().setText(message));
-            issue.setDiagnostics("Route %s, exception %s".formatted(exchange.getFromRouteId(), e.getClass().getSimpleName()));
+            issue.setDiagnostics(diagnostics);
 
             throw new InternalErrorException(message, oo);
         };

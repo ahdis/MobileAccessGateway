@@ -69,21 +69,26 @@ class Iti65RouteBuilder extends MagRouteBuilder {
                 .routeId("in-mhd-iti65")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
-                //.process(itiRequestValidator())
-                //.process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
-                // translate, forward, translate back
-                .process(Utils.keepBody())
-                .process(Utils.storeBodyToHeader("BundleRequest"))
-                .bean(Iti65RequestConverter.class)
-                .process(Utils.storeBodyToHeader("ProvideAndRegisterDocumentSet"))
-                .process(maybeInjectTcuXuaProcessor())
-                .process(RequestHeadersForwarder.forward())
-                //.convertBodyTo(ProvideAndRegisterDocumentSetRequestType.class)
-                //.process(iti41RequestValidator())
-                .to(xds41Endpoint)
-                .convertBodyTo(Response.class)
-                .process(TraceparentHandler.updateHeaderForFhir())
-                .process(translateToFhir(this.iti65ResponseConverter, Response.class));
+                .doTry()
+                    //.process(itiRequestValidator())
+                    //.process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
+                    // translate, forward, translate back
+                    .process(Utils.keepBody())
+                    .process(Utils.storeBodyToHeader("BundleRequest"))
+                    .bean(Iti65RequestConverter.class)
+                    .process(Utils.storeBodyToHeader("ProvideAndRegisterDocumentSet"))
+                    .process(maybeInjectTcuXuaProcessor())
+                    .process(RequestHeadersForwarder.forward())
+                    //.convertBodyTo(ProvideAndRegisterDocumentSetRequestType.class)
+                    //.process(iti41RequestValidator())
+                    .to(xds41Endpoint)
+                    .convertBodyTo(Response.class)
+                    .process(TraceparentHandler.updateHeaderForFhir())
+                    .process(translateToFhir(this.iti65ResponseConverter, Response.class))
+                .doCatch(Exception.class)
+                    .setBody(simple("${exception}"))
+                    .process(this.errorFromException())
+                .end();
     }
 
     private Processor maybeInjectTcuXuaProcessor() {
@@ -107,44 +112,4 @@ class Iti65RouteBuilder extends MagRouteBuilder {
         }
         return exchange -> {};
     }
-
-     /*
-    private class Responder extends ExpressionAdapter {
-
-        @Override
-        public Object evaluate(Exchange exchange) {
-            Bundle requestBundle = exchange.getIn().getBody(Bundle.class);
-
-            Bundle responseBundle = new Bundle()
-                    .setType(Bundle.BundleType.TRANSACTIONRESPONSE)
-                    .setTotal(requestBundle.getTotal());
-
-            for (Bundle.BundleEntryComponent requestEntry : requestBundle.getEntry()) {
-                Bundle.BundleEntryResponseComponent response = new Bundle.BundleEntryResponseComponent()
-                        .setStatus("201 Created")
-                        .setLastModified(new Date())
-                        .setLocation(requestEntry.getResource().getClass().getSimpleName() + "/" + 4711);
-                responseBundle.addEntry()
-                        .setResponse(response)
-                        .setResource(responseResource(requestEntry.getResource()));
-            }
-            return responseBundle;
-        }
-
-    }
-
-    private Resource responseResource(Resource request) {
-        if (request instanceof DocumentManifest) {
-            return new DocumentManifest().setId(UUID.randomUUID().toString());
-        } else if (request instanceof DocumentReference) {
-            return new DocumentReference().setId(UUID.randomUUID().toString());
-        } else if (request instanceof ListResource) {
-            return new ListResource().setId(UUID.randomUUID().toString());
-        } else if (request instanceof Binary) {
-            return new Binary().setId(UUID.randomUUID().toString());
-        } else {
-            throw new IllegalArgumentException(request + " is not allowed here");
-        }
-    }
-    */
 }

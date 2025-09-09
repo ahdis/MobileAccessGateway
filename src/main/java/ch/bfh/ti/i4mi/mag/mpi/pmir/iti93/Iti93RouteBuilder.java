@@ -21,24 +21,18 @@ import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
 import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
-import ch.bfh.ti.i4mi.mag.mhd.BaseResponseConverter;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.Exchange;
-import org.apache.camel.support.ExpressionAdapter;
-import org.hl7.fhir.r4.model.Bundle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslators.translateToFhir;
 
-/**
- *
- */
-@Slf4j
 @Component
 @Conditional(Iti93Condition.class)
 class Iti93RouteBuilder extends MagRouteBuilder {
+    private static final Logger log = LoggerFactory.getLogger(Iti93RouteBuilder.class);
 
     private final Iti93ResponseConverter responseConverter;
     private final MagMpiProps mpiProps;
@@ -67,29 +61,14 @@ class Iti93RouteBuilder extends MagRouteBuilder {
                 .process(Utils.keepBody())
                 .bean(Iti93RequestConverter.class)
                 .doTry()
-                .to(xds44Endpoint)
-                .process(Utils.keptBodyToHeader())
-                .process(TraceparentHandler.updateHeaderForFhir())
-                .process(translateToFhir(responseConverter, byte[].class))
-                .doCatch(jakarta.xml.ws.soap.SOAPFaultException.class)
-                .setBody(simple("${exception}"))
-                .process(this.errorFromException())
+                    .to(xds44Endpoint)
+                    .process(Utils.keptBodyToHeader())
+                    .process(TraceparentHandler.updateHeaderForFhir())
+                    .process(translateToFhir(responseConverter, byte[].class))
+                .doCatch(Exception.class)
+                    .setBody(simple("${exception}"))
+                    .process(this.errorFromException())
                 .end();
-
-    }
-
-    private class Responder extends ExpressionAdapter {
-
-        @Override
-        public Object evaluate(Exchange exchange) {
-            Bundle requestBundle = exchange.getIn().getBody(Bundle.class);
-
-            Bundle responseBundle = new Bundle()
-                    .setType(Bundle.BundleType.TRANSACTIONRESPONSE)
-                    .setTotal(requestBundle.getTotal());
-
-            return responseBundle;
-        }
 
     }
 }

@@ -16,27 +16,26 @@
 
 package ch.bfh.ti.i4mi.mag.mpi.pixm.iti104;
 
-import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslators.translateToFhir;
-
 import ch.bfh.ti.i4mi.mag.common.MagRouteBuilder;
 import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
 import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
+import ch.bfh.ti.i4mi.mag.mhd.Utils;
+import ch.bfh.ti.i4mi.mag.mpi.common.Iti47ResponseToFhirConverter;
+import ch.bfh.ti.i4mi.mag.mpi.pdqm.iti78.Iti78RequestConverter;
+import jakarta.xml.ws.soap.SOAPFaultException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.ExpressionAdapter;
 import org.hl7.fhir.r4.model.Bundle;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import ch.bfh.ti.i4mi.mag.mhd.BaseResponseConverter;
-import ch.bfh.ti.i4mi.mag.mhd.Utils;
-import ch.bfh.ti.i4mi.mag.mpi.pdqm.iti78.Iti78RequestConverter;
-import ch.bfh.ti.i4mi.mag.mpi.common.Iti47ResponseToFhirConverter;
-import lombok.extern.slf4j.Slf4j;
- 
+import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslators.translateToFhir;
+
 /**
- * 
+ *
  */
 @Slf4j
 @Component
@@ -66,53 +65,37 @@ class Iti104RouteBuilder extends MagRouteBuilder {
         final String xds47Endpoint = this.buildOutgoingEndpoint("pdqv3-iti47",
                                                                 this.mpiProps.getIti47(),
                                                                 this.mpiProps.isHttps());
-        
+
         from("pixm-iti104:patient-identity-feed-fhir?audit=false")
                 .routeId("in-pixm-iti104")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 //.process(RequestHeadersForwarder.checkAuthorization(this.mpiProps.isChPdqmConstraints()))
                 .process(RequestHeadersForwarder.forward())
-                .process(Utils.keepBody())                
+                .process(Utils.keepBody())
                 .bean(Iti104RequestConverter.class)
                 .doTry()
-                  .to(xds44Endpoint)
-                  .process(Utils.keptBodyToHeader())
-                  .process(Utils.storePreferHeader())
-                  .process(translateToFhir(this.response104Converter , byte[].class))
-                  .process(TraceparentHandler.updateHeaderForFhir())
-                  .choice()
-	                    .when(header("Prefer").isEqualToIgnoreCase("return=Representation"))	                    
-	                    .process(Utils.keepBody())
-	                    .bean(Iti78RequestConverter.class, "fromMethodOutcome")
-                        .process(TraceparentHandler.updateHeaderForSoap())
-	                    .to(xds47Endpoint)
-	  			        .process(translateToFhir(this.response78Converter , byte[].class))
-                        .process(TraceparentHandler.updateHeaderForFhir())
-	  			        .process(Iti104ResponseConverter.addPatientToOutcome())
-	  			        .endChoice()
-                  .end()                     
-                 .endDoTry()
-            	.doCatch(jakarta.xml.ws.soap.SOAPFaultException.class)
-				  .setBody(simple("${exception}"))
-				  .process(this.errorFromException())
-				.end();
-                
-    }
-
-    private class Responder extends ExpressionAdapter {
-
-        @Override
-        public Object evaluate(Exchange exchange) {
-            Bundle requestBundle = exchange.getIn().getBody(Bundle.class);
-            
-            Bundle responseBundle = new Bundle()
-                    .setType(Bundle.BundleType.TRANSACTIONRESPONSE)
-                    .setTotal(requestBundle.getTotal());
-
-            return responseBundle;
-        }
+                    .to(xds44Endpoint)
+                    .process(Utils.keptBodyToHeader())
+                    .process(Utils.storePreferHeader())
+                    .process(translateToFhir(this.response104Converter, byte[].class))
+                    .process(TraceparentHandler.updateHeaderForFhir())
+                    .choice()
+                        .when(header("Prefer").isEqualToIgnoreCase("return=Representation"))
+                            .process(Utils.keepBody())
+                            .bean(Iti78RequestConverter.class, "fromMethodOutcome")
+                            .process(TraceparentHandler.updateHeaderForSoap())
+                            .to(xds47Endpoint)
+                            .process(translateToFhir(this.response78Converter, byte[].class))
+                            .process(TraceparentHandler.updateHeaderForFhir())
+                            .process(Iti104ResponseConverter.addPatientToOutcome())
+                        .endChoice()
+                    .end()
+                .endDoTry()
+                .doCatch(Exception.class)
+                    .setBody(simple("${exception}"))
+                    .process(this.errorFromException())
+                .end();
 
     }
-
 }
