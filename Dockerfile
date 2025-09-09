@@ -1,7 +1,7 @@
 ## ############################# ##
 ## FIRST STAGE: THE BUILD SYSTEM
 ## ############################# ##
-FROM bellsoft/liberica-runtime-container:jdk-all-21-musl AS builder
+FROM bellsoft/liberica-runtime-container:jdk-all-21-glibc AS builder
 
 # Prepare the system
 RUN apk add --update maven
@@ -26,7 +26,7 @@ RUN mvn --batch-mode -DskipTests -DfinalName=mag clean package
 ## ############################# ##
 ## SECOND STAGE: THE FINAL IMAGE
 ## ############################# ##
-FROM bellsoft/alpaquita-linux-base:stream-musl
+FROM bellsoft/alpaquita-linux-base:stream-glibc
 COPY --from=builder /mag-jre /opt/jdk
 
 ENV PATH=$PATH:/opt/jdk/bin
