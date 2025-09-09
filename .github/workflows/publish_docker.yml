@@ -50,6 +50,6 @@ jobs:
             --build-arg GITHUB_SHA="$GITHUB_SHA" \
             --build-arg GITHUB_REF="$GITHUB_REF" \
             --push \
-            --platform=linux/amd64 \
+            --platform=linux/amd64,linux/arm64 \
             -f Dockerfile \
             .
