@@ -1,21 +1,21 @@
-# mobile access container
+# Mobile Access Container
 
-you can download the mobile access gateway as a docker container:
+You can download the Mobile Access Gateway as a docker container:
 
 ```
 docker pull europe-west6-docker.pkg.dev/ahdis-ch/ahdis/mag-cara:version
 ```
 
-## Configurable base image:
+## Configurable base image
 
-run from the cloned [mobile access gateway](https://github.com/ahdis/MobileAccessGateway):
+Run from the cloned [Mobile Access Gateway](https://github.com/ahdis/MobileAccessGateway):
 
 ```bash
 docker run -d -it --name mag -p 9090:9090 -v /Users/oegger/Documents/github/MobileAccessGateway/example-playground:/config/ europe-west6-docker.pkg.dev/ahdis-ch/ahdis/mag:v062
 docker logs --follow mag
 ```
 
-Server endpoint will then be accessible at http://localhost:9090/mag/fhir/metadata
+Server endpoint will then be accessible at http://localhost:9090/mag/fhir/metadata.
 
 You can check for example a PIXm query against the EPD playground:
 
@@ -23,9 +23,9 @@ You can check for example a PIXm query against the EPD playground:
 http://localhost:9090/mag/fhir/Patient/$ihe-pix?sourceIdentifier=urn%3Aoid%3A2.16.756.5.30.1.127.3.10.3%7C761337615395845832&targetSystem=urn%3Aoid%3A1.1.1.99.1&targetSystem=urn%3Aoid%3A2.16.756.5.30.1.127.3.10.3
 ```
 
-The mobile access gateway supports also a GUI which is accessible at http://localhost:9090/mag/#/.
+The Mobile Access Gateway supports also a GUI which is accessible at http://localhost:9090/mag/#/.
 
-## Live and Readiness checks
+## Live and Readiness Checks
 
 To check if the container is live and ready you can check the health:
 
