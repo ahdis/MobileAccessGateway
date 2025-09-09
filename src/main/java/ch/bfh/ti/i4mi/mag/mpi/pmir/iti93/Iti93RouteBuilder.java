@@ -73,7 +73,7 @@ class Iti93RouteBuilder extends MagRouteBuilder {
                 .process(translateToFhir(responseConverter, byte[].class))
                 .doCatch(jakarta.xml.ws.soap.SOAPFaultException.class)
                 .setBody(simple("${exception}"))
-                .bean(BaseResponseConverter.class, "errorFromException")
+                .process(this.errorFromException())
                 .end();
 
     }

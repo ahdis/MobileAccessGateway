@@ -43,6 +43,8 @@ import org.springframework.stereotype.Component;
 import java.io.ByteArrayInputStream;
 import java.util.Map;
 
+import static ch.bfh.ti.i4mi.mag.mpi.common.Hl7v3Mappers.toText;
+
 /**
  * ITI-93 from ITI-44 response converter
  *

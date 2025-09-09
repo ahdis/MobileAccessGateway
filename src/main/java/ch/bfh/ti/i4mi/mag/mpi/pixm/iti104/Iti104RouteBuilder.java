@@ -24,7 +24,6 @@ import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
 import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import org.apache.camel.Exchange;
-import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.support.ExpressionAdapter;
 import org.hl7.fhir.r4.model.Bundle;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -33,7 +32,7 @@ import org.springframework.stereotype.Component;
 import ch.bfh.ti.i4mi.mag.mhd.BaseResponseConverter;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
 import ch.bfh.ti.i4mi.mag.mpi.pdqm.iti78.Iti78RequestConverter;
-import ch.bfh.ti.i4mi.mag.mpi.pdqm.iti78.Iti78ResponseConverter;
+import ch.bfh.ti.i4mi.mag.mpi.common.Iti47ResponseToFhirConverter;
 import lombok.extern.slf4j.Slf4j;
  
 /**
@@ -46,11 +45,11 @@ class Iti104RouteBuilder extends MagRouteBuilder {
 
     private final MagMpiProps mpiProps;
     private final Iti104ResponseConverter response104Converter;
-    private final Iti78ResponseConverter response78Converter;
+    private final Iti47ResponseToFhirConverter response78Converter;
 
     public Iti104RouteBuilder(final MagProps magProps,
                               final Iti104ResponseConverter response104Converter,
-                              final Iti78ResponseConverter response78Converter) {
+                              final Iti47ResponseToFhirConverter response78Converter) {
         super(magProps);
         this.mpiProps = magProps.getMpi();
         this.response104Converter = response104Converter;
@@ -96,7 +95,7 @@ class Iti104RouteBuilder extends MagRouteBuilder {
                  .endDoTry()
             	.doCatch(jakarta.xml.ws.soap.SOAPFaultException.class)
 				  .setBody(simple("${exception}"))
-				  .bean(BaseResponseConverter.class, "errorFromException")
+				  .process(this.errorFromException())
 				.end();
                 
     }

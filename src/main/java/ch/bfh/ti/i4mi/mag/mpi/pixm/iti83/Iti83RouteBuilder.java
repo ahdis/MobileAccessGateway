@@ -66,14 +66,14 @@ class Iti83RouteBuilder extends MagRouteBuilder {
                 .process(Utils.keepBody())
                 .bean(Iti83RequestConverter.class)
                 .doTry()
-                .to(xds45Endpoint)
-                .process(Utils.keptBodyToHeader())
-                .process(TraceparentHandler.updateHeaderForFhir())
-                .process(translateToFhir(responseConverter, byte[].class))
-                .bean(PatientIdInterceptor.class, "interceptIti83Parameters")
+                    .to(xds45Endpoint)
+                    .process(Utils.keptBodyToHeader())
+                    .process(TraceparentHandler.updateHeaderForFhir())
+                    .process(translateToFhir(responseConverter, byte[].class))
+                    .bean(PatientIdInterceptor.class, "interceptIti83Parameters")
                 .doCatch(jakarta.xml.ws.soap.SOAPFaultException.class)
-                .setBody(simple("${exception}"))
-                .bean(BaseResponseConverter.class, "errorFromException")
+                    .setBody(simple("${exception}"))
+                    .process(this.errorFromException())
                 .end();
 
     }

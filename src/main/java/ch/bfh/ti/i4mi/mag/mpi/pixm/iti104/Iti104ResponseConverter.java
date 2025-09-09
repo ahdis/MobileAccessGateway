@@ -42,6 +42,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Map;
 
 import static ch.bfh.ti.i4mi.mag.MagConstants.EPR_SPID_OID;
+import static ch.bfh.ti.i4mi.mag.mpi.common.Hl7v3Mappers.toText;
 
 /**
  * ITI-104 from ITI-44 response converter

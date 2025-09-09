@@ -31,6 +31,7 @@ public class PatientIdInterceptor {
         this.xadMpiOid = mpiProps.getOids().getMpiPid();
     }
 
+    @SuppressWarnings("unchecked")
     public void interceptBundleOfPatients(final Message message) {
         final var bundle = message.getBody(Bundle.class);
         if (bundle != null) {

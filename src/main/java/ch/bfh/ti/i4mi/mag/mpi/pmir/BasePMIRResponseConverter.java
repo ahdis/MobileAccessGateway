@@ -6,6 +6,9 @@ import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 
 import net.ihe.gazelle.hl7v3.datatypes.ED;
 
+import java.io.Serializable;
+
+@Deprecated
 public class BasePMIRResponseConverter {
 
 	public OperationOutcome error(IssueType type, String diagnostics) {
@@ -16,16 +19,6 @@ public class BasePMIRResponseConverter {
 		issue.setCode(type);
 		issue.setDiagnostics(diagnostics);
 		return result;
-	}
-	
-	public String toText(ED in) {
-		StringBuffer result = new StringBuffer();
-		for (java.io.Serializable obj : in.getMixed()) {
-			if (obj instanceof String) {
-				result.append((String) obj);
-			}
-		}
-		return result.toString();
 	}
 
 }

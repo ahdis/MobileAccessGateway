@@ -48,10 +48,6 @@ public class BaseResponseConverter {
         throw new InvalidRequestException("Retrieved error response", processErrorAsOutcome(input));
     }
 
-    public void errorFromException(Exception e) {
-        throw new InvalidRequestException(e.getMessage());
-    }
-
     /**
      * XDS error response -> FHIR OperationOutcome
      *

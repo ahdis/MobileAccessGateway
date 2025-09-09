@@ -43,6 +43,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static ch.bfh.ti.i4mi.mag.mpi.common.FhirExceptions.*;
+import static ch.bfh.ti.i4mi.mag.mpi.common.Hl7v3Mappers.verifyAck;
+
 /**
  * ITI-83 from ITI-45 response converter
  *
@@ -51,11 +54,6 @@ import java.util.stream.Stream;
 @Component
 public class Iti83ResponseConverter extends BasePMIRResponseConverter implements ToFhirTranslator<byte[]> {
 
-    // Constants for the "Patient ID unknown" case (PIU)
-    private static final String PIU_ITH_AHV_PREFIX = "No patient found with";
-    private static final Pattern PIU_ITH_PATTERN =
-            Pattern.compile("The ID number \"[^\"]+\" is not recognized by the MPI");
-    private static final String PIU_EMEDO_PREFIX = "Requested record not found";
 
     public Parameters translateToFhir(final byte[] input,
                                       final Map<String, Object> parameters) {
@@ -76,25 +74,7 @@ public class Iti83ResponseConverter extends BasePMIRResponseConverter implements
         final PRPAIN201310UV02MFMIMT700711UV01ControlActProcess controlAct = pixResponse.getControlActProcess();
 
         // OK NF AE
-        final var queryResponseCode = controlAct.getQueryAck().getQueryResponseCode().getCode();
-        if ("NF".equals(queryResponseCode)) {
-            throw new ForbiddenOperationException("targetSystem not found");
-        } else if ("AE".equals(queryResponseCode)) {
-            final var errorMessages = pixResponse.getAcknowledgement().stream()
-                    .map(MCCIMT000300UV01Acknowledgement::getAcknowledgementDetail)
-                    .flatMap(List::stream)
-                    .map(MCCIMT000300UV01AcknowledgementDetail::getText)
-                    .map(BIN::getListStringValues)
-                    .flatMap(List::stream)
-                    .collect(Collectors.joining());
-            if (errorMessages.contains(PIU_ITH_AHV_PREFIX) || errorMessages.contains(PIU_EMEDO_PREFIX) || PIU_ITH_PATTERN.matcher(errorMessages).find()) {
-                throw new ResourceNotFoundException("sourceIdentifier Patient Identifier not found");
-            }
-
-            throw new InvalidRequestException("sourceIdentifier Assigning Authority not found");
-        } else if (!"OK".equals(queryResponseCode)) {
-            throw new InternalErrorException("Unknown queryResponseCode in ITI-45 response: " + queryResponseCode);
-        }
+        verifyAck(controlAct.getQueryAck().getQueryResponseCode(), pixResponse.getAcknowledgement(), "ITI-45");
 
         // Find requested target systems from the query
         final var requestedTargetSystems = controlAct.getQueryByParameter().getParameterList().getDataSource()
