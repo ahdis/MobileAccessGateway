@@ -1,10 +1,9 @@
 ## ############################# ##
 ## FIRST STAGE: THE BUILD SYSTEM
 ## ############################# ##
-FROM bellsoft/liberica-runtime-container:jdk-all-21-glibc AS builder
+FROM maven:3-eclipse-temurin-21 AS builder
 
 # Prepare the system
-RUN apk add --update maven
 COPY pom.xml .
 COPY src ./src
 
