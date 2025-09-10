@@ -20,7 +20,7 @@ The table below lists the supported IHE profiles, their transactions and the inv
 
 ### Authentication/Authorization
 
-1. PDQm and PIXm transactions doesn't require authentication.
+1. PDQm and PIXm transactions don't require authentication.
 2. ITI-65 requests can be automatically authorized as the configured Technical User (TCU).
 3. Other MHD transactions require authorization.
 
