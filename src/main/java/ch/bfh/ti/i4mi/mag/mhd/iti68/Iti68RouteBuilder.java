@@ -37,11 +37,13 @@ class Iti68RouteBuilder extends MagRouteBuilder {
 
     private final MagXdsProps xdsProps;
     private final boolean isChMhdConstraints;
+    private final String localHomeCommunityId;
 
     public Iti68RouteBuilder(final MagProps magProps) {
         super(magProps);
         this.xdsProps = magProps.getXds();
         this.isChMhdConstraints = xdsProps.isChMhdConstraints();
+        this.localHomeCommunityId = magProps.getHomeCommunityId();
         log.debug("Iti68RouteBuilder initialized");
     }
 
@@ -50,6 +52,9 @@ class Iti68RouteBuilder extends MagRouteBuilder {
         log.debug("Iti68RouteBuilder configure");
         final String xds43Endpoint = this.buildOutgoingEndpoint("xds-iti43",
                                                                 this.xdsProps.getIti43(),
+                                                                this.xdsProps.isHttps());
+        final String xca39Endpoint = this.buildOutgoingEndpoint("xca-iti39",
+                                                                this.xdsProps.getXca43(),
                                                                 this.xdsProps.isHttps());
 
         from("mhd-iti68:camel/xdsretrieve?audit=false")
@@ -62,7 +67,12 @@ class Iti68RouteBuilder extends MagRouteBuilder {
 
                     // translate, forward, translate back
                     .bean(Iti68RequestConverter.class)
-                    .to(xds43Endpoint)
+                    .choice()
+                        .when(header("homeCommunityId").isEqualTo(this.localHomeCommunityId))
+                            .to(xds43Endpoint)
+                        .otherwise()
+                            .to(xca39Endpoint)
+                    .endDoTry()
                     .process(TraceparentHandler.updateHeaderForFhir())
                     .bean(Iti68ResponseConverter.class, "retrievedDocumentSetToHttResponse")
                 .doCatch(Exception.class)

@@ -16,6 +16,7 @@
 
 package ch.bfh.ti.i4mi.mag.mhd.iti68;
 
+import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ch.bfh.ti.i4mi.mag.BaseRequestConverter;
 import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import org.apache.camel.Headers;
@@ -26,9 +27,7 @@ import java.util.Map;
 
 /**
  * ITI-68 to ITI-43 request converter
- *
  * @author alexander kreutz
- *
  */
 public class Iti68RequestConverter extends BaseRequestConverter {
 
@@ -36,19 +35,29 @@ public class Iti68RequestConverter extends BaseRequestConverter {
         super(schemeMapper);
     }
 
-    public static RetrieveDocumentSet queryParameterToRetrieveDocumentSet(@Headers Map<String, Object> parameters) {
-        final var retrieveDocumentSet = new RetrieveDocumentSet();
-        DocumentEntry documentEntry = new DocumentEntry();
-        if (parameters.containsKey("repositoryUniqueId")) {
-            documentEntry.setRepositoryUniqueId(parameters.getOrDefault("repositoryUniqueId", "").toString());
-        }
-        if (parameters.containsKey("uniqueId")) {
-            documentEntry.setUniqueId(parameters.getOrDefault("uniqueId", "").toString());
-        }
-//            documentEntry.setHomeCommunityId("");
-        retrieveDocumentSet.addReferenceTo(documentEntry);
+    public static RetrieveDocumentSet queryParameterToRetrieveDocumentSet(final @Headers Map<String, Object> parameters) {
+        final var documentEntry = new DocumentEntry();
 
+        if (parameters.get("repositoryUniqueId") instanceof final String repositoryUniqueId) {
+            documentEntry.setRepositoryUniqueId(repositoryUniqueId);
+        } else {
+            throw new InvalidRequestException("Missing required parameter: repositoryUniqueId");
+        }
+
+        if (parameters.get("homeCommunityId") instanceof final String homeCommunityId) {
+            documentEntry.setHomeCommunityId(homeCommunityId);
+        } else {
+            throw new InvalidRequestException("Missing required parameter: homeCommunityId");
+        }
+
+        if (parameters.get("uniqueId") instanceof final String uniqueId) {
+            documentEntry.setUniqueId(uniqueId);
+        } else {
+            throw new InvalidRequestException("Missing required parameter: uniqueId");
+        }
+
+        final var retrieveDocumentSet = new RetrieveDocumentSet();
+        retrieveDocumentSet.addReferenceTo(documentEntry);
         return retrieveDocumentSet;
     }
-
 }

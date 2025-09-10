@@ -56,7 +56,11 @@ import org.openehealth.ipf.commons.ihe.xds.core.responses.QueryResponse;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.Status;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.DefaultUriBuilderFactory;
+import org.springframework.web.util.UriBuilderFactory;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -259,12 +263,12 @@ public class Iti67ResponseConverter extends BaseQueryResponseConverter {
             attachment.setLanguage(documentEntry.getLanguageCode());
         }
 
-        // retrievable location of the document -> content.attachment.url uri
-        // [0..1] [1..1
-        // has to defined, for the PoC we define
-        // $host:port/camel/$repositoryid/$uniqueid
-        attachment.setUrl(this.xdsProps.getRetrieve() + "?uniqueId=" + documentEntry.getUniqueId()
-                                  + "&repositoryUniqueId=" + documentEntry.getRepositoryUniqueId());
+        // retrievable location of the document -> content.attachment.url uri [1..1]
+        attachment.setUrl(UriComponentsBuilder.fromUriString(this.xdsProps.getRetrieve())
+                                  .queryParam("uniqueId", documentEntry.getUniqueId())
+                                  .queryParam("repositoryUniqueId", documentEntry.getRepositoryUniqueId())
+                                  .queryParam("homeCommunityId", documentEntry.getHomeCommunityId())
+                                  .toUriString());
 
         // size -> content.attachment.size integer [0..1] The size is calculated
         if (documentEntry.getSize() != null) {

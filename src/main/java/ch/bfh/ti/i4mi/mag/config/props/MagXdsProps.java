@@ -8,6 +8,8 @@ public class MagXdsProps {
     private boolean https;
     private String repositoryUniqueId;
     private String iti18;
+    private String xca38;
+    private String xca39;
     private String iti41;
     private String iti43;
     private String iti57;
@@ -30,6 +32,14 @@ public class MagXdsProps {
         this.iti18 = iti18;
     }
 
+    public String getXca18() {
+        return this.xca38;
+    }
+
+    public void setXca18(final String xca18) {
+        this.xca38 = xca18;
+    }
+
     public String getIti41() {
         return this.iti41;
     }
@@ -44,6 +54,14 @@ public class MagXdsProps {
 
     public void setIti43(final String iti43) {
         this.iti43 = iti43;
+    }
+
+    public String getXca43() {
+        return this.xca39;
+    }
+
+    public void setXca43(final String xca43) {
+        this.xca39 = xca43;
     }
 
     public String getIti57() {
