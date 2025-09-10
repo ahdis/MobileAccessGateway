@@ -1,12 +1,14 @@
 # Mobile Access Container
 
+## Download
+
 You can download the Mobile Access Gateway as a docker container:
 
 ```
 docker pull europe-west6-docker.pkg.dev/ahdis-ch/ahdis/mag-cara:version
 ```
 
-## Configurable base image
+## Configurable Base Image
 
 Run from the cloned [Mobile Access Gateway](https://github.com/ahdis/MobileAccessGateway):
 
