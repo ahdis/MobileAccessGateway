@@ -271,7 +271,7 @@ are part of the EPR.
 Relationships between them (i.e. membership of professionals to organizations, or relationships between
 organizations) are also available.
 
-### 4.5.1 Searching
+### 4.5.1 Searching [ITI-90]
 
 Professionals, organizations and relationships can be queried with an
 [ITI-90 (_Find Matching Care Services_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-90.html). See the
@@ -317,21 +317,21 @@ specifications for the complete list of search parameters.
     GET /PractitionerRole/PeterPanPraxisP HTTP/1.1
     ```
 
-### 4.5.2 Updating
+### 4.5.2 Updating [ITI-59]
 
 The HPD update is not supported in a REST transaction. Please use the
 [ITI-59 (_Provider Information Feed_) transaction](https://www.ihe.net/uploadedFiles/Documents/ITI/IHE_ITI_Suppl_HPD.pdf).
 
 ## 4.6 Audit Messages
 
-### 4.6.1 Creating
+### 4.6.1 Creating [ITI-20]/RESTful
 
-For all transactions, it is required to send the same audit messages. You can use the regular ITI-20 transaction,
-or use the [restful one](https://www.ihe.net/uploadedFiles/Documents/ITI/IHE_ITI_Suppl_RESTful-ATNA.pdf).
+For all transactions, it is required to send the same audit messages. You can use the regular ITI-20 (_Record Audit Event_) transaction,
+or use the [RESTful one](https://www.ihe.net/uploadedFiles/Documents/ITI/IHE_ITI_Suppl_RESTful-ATNA.pdf).
 
 See the [mapping from DICOM to FHIR](https://hl7.org/fhir/R4/auditevent-mappings.html#dicom).
 
-<details><summary>Examples</summary>
+<details><summary>Example</summary>
 
 ```http
 --8<-- "http_iti20.txt"
@@ -339,20 +339,20 @@ See the [mapping from DICOM to FHIR](https://hl7.org/fhir/R4/auditevent-mappings
 
 </details>
 
-### 4.6.2 Reading
+### 4.6.2 Reading [ITI-81]
 
-You can read the audit messages for a given patient with an ITI-81 transaction.
+You can read the audit messages for a given patient with an ITI-81 (_Retrieve ATNA Audit Event_) transaction.
 
 !!! warning
 
     The endpoint for this transaction is the EPR community itself, not the Mobile Access Gateway.
-    This transaction is still implemented on a previous CH:ATC specification (March 2020), based on the [IHE Restful
-    ATNA supplement rev. 2.2](https://www.ihe.net/uploadedFiles/Documents/ITI/IHE_ITI_Suppl_RESTful-ATNA_Rev2.2_TI_2017-07-21.pdf).
+    This transaction is still implemented on a previous CH:ATC specification (March 2020), based on the [IHE RESTful
+    ATNA Supplement Rev. 2.2](https://www.ihe.net/uploadedFiles/Documents/ITI/IHE_ITI_Suppl_RESTful-ATNA_Rev2.2_TI_2017-07-21.pdf).
     A lot has changed since.
 
 The transaction is an HTTP GET request on the endpoint, with the parameter `entity-id` that contains the patient EPR-SPID,
 and `date` to constraint the audit message date.
-The `Authorization` header uses the prefix `IHE-SAML` and the SAML assertion is encoded with the [regular base64
+The `Authorization` header uses the prefix <code>IHE-SAML&nbsp;</code> and the SAML assertion is encoded with the [regular base64
 alphabet](https://datatracker.ietf.org/doc/html/rfc4648#section-4).
 
 The community will ask other communities for their audit messages and regroup them all.
