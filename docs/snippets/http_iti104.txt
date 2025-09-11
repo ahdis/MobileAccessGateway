@@ -1,21 +1,28 @@
-PUT /Patient?identifier=urn:oid:2.16.756.5.30.1.196.3.2.1|MAGMED001 HTTP/1.1
+PUT /Patient?identifier=urn:oid:2.999.1.2.3.4|8734 HTTP/1.1
 Content-Type: application/fhir+json
 
 {
-    "active": true,
-    "birthDate": "1987-10-08",
-    "gender": "male",
-    "id": "2.16.756.5.30.1.127.3.10.3-761337611735842172",
-    "identifier": [
+    "resourceType": "Patient",
+    "id": "2.999.1.2.3.4-8734",
+    "identifier" : [
         {
-            "system": "urn:oid:2.16.756.5.30.1.196.3.2.1",
-            "value": "MAGMED001"
+            "type" : {
+                "coding" : [
+                    {
+                        "system" : "http://terminology.hl7.org/CodeSystem/v2-0203",
+                        "code" : "MR"
+                    }
+                ]
+            },
+            "system" : "urn:oid:2.999.1.2.3.4",
+            "value" : "8734"
         },
         {
-            "system": "urn:oid:2.999.42",
-            "value": "new-identifier-value"
+            "system" : "urn:oid:2.16.756.5.30.1.127.3.10.3",
+            "value" : "EPR-SPID"
         }
     ],
+    "active": true,
     "name": [
         {
             "family": "NEFF-WINGEIER",
@@ -24,5 +31,6 @@ Content-Type: application/fhir+json
             ]
         }
     ],
-    "resourceType": "Patient"
+    "gender": "male",
+    "birthDate": "1987-10-08"
 }
