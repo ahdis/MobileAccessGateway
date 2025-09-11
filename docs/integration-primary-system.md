@@ -110,7 +110,32 @@ GET /Patient/$ihe-pix?sourceIdentifier=urn:oid:2.16.756.5.30.1.127.3.10.3|{epr-s
 
 ### 4.3.2 Patient Matching [ITI-119]
 
-TODO
+The patient's participation in the Swiss EPD can be queried with an [ITI-119 (_Patient Demographics Match_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-119.html).     
+The patient data shall conform to this profile: `http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-pdqm-patient`.
+
+The transaction is an HTTP POST request to the endpoint `/Patient/$match`.
+
+There are two ways to perform the match:
+
+1. Using a `Parameters` resource that contains the patient as an input parameter 
+2. Posting the `Patient` resource directly as the body of the request
+
+=== "1. `Parameters`"
+
+
+    <details><summary>Example</summary>
+
+    ```http title="Query with identifier (EPR-SPID)"
+    --8<-- "http_iti119-eprspid.txt"
+    ```
+
+=== "2. `Patient`"
+
+    <details><summary>Example</summary>
+
+    ```http title="Query with family name and birthdate"
+    --8<-- "http_iti119-all.txt"
+    ```
 
 
 ### 4.3.3 Retrieving Patient Demographics
@@ -150,8 +175,8 @@ GET /Patient?family=MOHR&given=ALICE&gender=female HTTP/1.1
 ### 4.3.4 Feeding Patient Information
 
 #### 4.3.4.1 Feed by Local PID (with EPR-SPID) [ITI-104]
-Feeding patient information can be done with the [ITI-104 (_Patient Identity Feed FHIR_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-104.html).
-The following profile shall be used: `http://fhir.ch/ig/ch-epr-fhir/StructureDefinition-ch-pixm-patient.html`.
+Feeding patient information can be done with the [ITI-104 (_Patient Identity Feed FHIR_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-104.html).   
+The following profile shall be used: `http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-pixm-patient-feed`.
 
 The EPR-SPID is required as `identifier` element according the profile.
 You don't have to re-specify the other identifiers, they won't be deleted if they're missing from the request.
@@ -228,8 +253,8 @@ with search results): `DocumentReference.content.attachment.url`.
 
 You can publish a document with the [ITI-65 (_Provide Document Bundle_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-65.html).
 
-The transaction is an HTTP POST request to the endpoint `/`. The following profile shall be used:
-`https://profiles.ihe.net/ITI/MHD/StructureDefinition/IHE.MHD.Comprehensive.ProvideBundle`.
+The transaction is an HTTP POST request to the endpoint `/`.    
+The following profile shall be used: `https://profiles.ihe.net/ITI/MHD/StructureDefinition/IHE.MHD.Comprehensive.ProvideBundle`.
 
 <details><summary>Examples</summary>
 
