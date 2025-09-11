@@ -206,7 +206,7 @@ Performing the patient information feed transaction without specifying the EPR-S
 
 The document directory stores documents (in the document repository) and their metadata (in the document registry).
 
-### 4.4.1 Searching
+### 4.4.1 Searching [ITI-67]
 
 You can search the document registry with the [ITI-67 (_Find Document References_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-67.html).
 
@@ -256,7 +256,7 @@ You can publish a document with the [ITI-65 (_Provide Document Bundle_) transact
 The transaction is an HTTP POST request to the endpoint `/`.    
 The following profile shall be used: `https://profiles.ihe.net/ITI/MHD/StructureDefinition/IHE.MHD.Comprehensive.ProvideBundle`.
 
-<details><summary>Examples</summary>
+<details><summary>Example</summary>
 
 ```http title="Publish a PDF file"
 --8<-- "http_iti65.txt"
@@ -358,7 +358,7 @@ alphabet](https://datatracker.ietf.org/doc/html/rfc4648#section-4).
 The community will ask other communities for their audit messages and regroup them all.
 If a foreign community is not reachable, an OperationOutcome may be added to the response Bundle.
 
-<details><summary>Examples</summary>
+<details><summary>Example</summary>
 
 ```http
 GET /ARR/fhir/AuditEvent?entity-id=urn:oid:2.16.756.5.30.1.127.3.10.3|{epr-spid}&date=ge2023-07-10&date=le2023-07-17 HTTP/1.1
