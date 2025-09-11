@@ -206,7 +206,7 @@ Performing the patient information feed transaction without specifying the EPR-S
 
 The document directory stores documents (in the document repository) and their metadata (in the document registry).
 
-### 4.4.1 Searching [ITI-67]
+### 4.4.1 Searching [ITI-67]/[ITI-66]
 
 You can search the document registry with the [ITI-67 (_Find Document References_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-67.html).
 
@@ -229,7 +229,7 @@ GET /DocumentReference?patient.identifier=urn:oid:2.999|11111111&creation=ge2023
 
 </details>
 
-You can also search for _SubmissionSets_ with the [ITI-66 (_Find Document Lists_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-66.html).
+You can also search for _SubmissionSets_ with the [ITI-66 (_Find Document Lists_) transaction](https://profiles.ihe.net/ITI/MHD/ITI-66.html) (_not part of the CH EPR FHIR specification_).
 
 <details><summary>Examples</summary>
 
@@ -243,23 +243,37 @@ GET /List?patient.identifier=urn:oid:2.999|11111111&code=submissionset&status=cu
 
 </details>
 
-### 4.4.2 Reading
+### 4.4.2 Reading [ITI-68]
 
 Retrieving a document is done with the [ITI-68 (_Retrieve Document_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-68.html).
-It is a simple HTTP GET request to a URL that you will find in the linked _DocumentReference_ (that you can obtain
+It is a simple HTTP GET request to an URL that you will find in the linked _DocumentReference_ (that you can obtain
 with search results): `DocumentReference.content.attachment.url`.
 
-### 4.4.3 Publishing
+### 4.4.3 Publishing [ITI-65]
 
 You can publish a document with the [ITI-65 (_Provide Document Bundle_) transaction](https://fhir.ch/ig/ch-epr-fhir/iti-65.html).
 
 The transaction is an HTTP POST request to the endpoint `/`.    
-The following profile shall be used: `https://profiles.ihe.net/ITI/MHD/StructureDefinition/IHE.MHD.Comprehensive.ProvideBundle`.
+The `Bundle.meta.profile` element shall have the following value: `https://profiles.ihe.net/ITI/MHD/StructureDefinition/IHE.MHD.Comprehensive.ProvideBundle`.
 
 <details><summary>Example</summary>
 
 ```http title="Publish a PDF file"
 --8<-- "http_iti65.txt"
+```
+
+</details>
+
+### 4.4.4 Updating Metadata [CH:MHD-1]
+
+You can update document metadata with the [CH:MHD-1 (_Update Document Metadata_) transaction](https://fhir.ch/ig/ch-epr-fhir/ch-mhd-1.html).
+
+The transaction is an HTTP PUT request to the endpoint `/DocumentReference/{id}`, where `{id}` is the id value.
+
+<details><summary>Example</summary>
+
+```http title="Update metadata"
+--8<-- "http_chmhd1.txt"
 ```
 
 </details>
