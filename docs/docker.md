@@ -1,6 +1,6 @@
-# Mobile Access Container
+# 5. Mobile Access Container
 
-## Download
+## 5.1 Download
 
 You can download the Mobile Access Gateway as a docker container:
 
@@ -8,7 +8,7 @@ You can download the Mobile Access Gateway as a docker container:
 docker pull europe-west6-docker.pkg.dev/ahdis-ch/ahdis/mag-cara:version
 ```
 
-## Configurable Base Image
+## 5.2 Configurable Base Image
 
 Run from the cloned [Mobile Access Gateway](https://github.com/ahdis/MobileAccessGateway):
 
@@ -27,7 +27,7 @@ http://localhost:9090/mag/fhir/Patient/$ihe-pix?sourceIdentifier=urn%3Aoid%3A2.1
 
 The Mobile Access Gateway supports also a GUI which is accessible at http://localhost:9090/mag/#/.
 
-## Live and Readiness Checks
+## 5.3 Live and Readiness Checks
 
 To check if the container is live and ready you can check the health:
 
