@@ -1,0 +1,36 @@
+PUT /Patient?identifier=urn:oid:2.999.1.2.3.4|8734 HTTP/1.1
+Content-Type: application/fhir+json
+
+{
+    "resourceType": "Patient",
+    "id": "2.999.1.2.3.4-8734",
+    "identifier" : [
+        {
+            "type" : {
+                "coding" : [
+                    {
+                        "system" : "http://terminology.hl7.org/CodeSystem/v2-0203",
+                        "code" : "MR"
+                    }
+                ]
+            },
+            "system" : "urn:oid:2.999.1.2.3.4",
+            "value" : "8734"
+        },
+        {
+            "system" : "urn:oid:2.16.756.5.32",
+            "value" : "AHVN13"
+        }
+    ],
+    "active": true,
+    "name": [
+        {
+            "family": "NEFF-WINGEIER",
+            "given": [
+                "Trong Sang"
+            ]
+        }
+    ],
+    "gender": "male",
+    "birthDate": "1987-10-08"
+}
