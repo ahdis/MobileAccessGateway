@@ -32,12 +32,12 @@ public class MagXdsProps {
         this.iti18 = iti18;
     }
 
-    public String getXca18() {
+    public String getXca38() {
         return this.xca38;
     }
 
-    public void setXca18(final String xca18) {
-        this.xca38 = xca18;
+    public void setXca38(final String xca38) {
+        this.xca38 = xca38;
     }
 
     public String getIti41() {
@@ -56,12 +56,12 @@ public class MagXdsProps {
         this.iti43 = iti43;
     }
 
-    public String getXca43() {
+    public String getXca39() {
         return this.xca39;
     }
 
-    public void setXca43(final String xca43) {
-        this.xca39 = xca43;
+    public void setXca39(final String xca39) {
+        this.xca39 = xca39;
     }
 
     public String getIti57() {

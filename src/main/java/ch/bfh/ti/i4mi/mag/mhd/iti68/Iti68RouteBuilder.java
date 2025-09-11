@@ -54,7 +54,7 @@ class Iti68RouteBuilder extends MagRouteBuilder {
                                                                 this.xdsProps.getIti43(),
                                                                 this.xdsProps.isHttps());
         final String xca39Endpoint = this.buildOutgoingEndpoint("xca-iti39",
-                                                                this.xdsProps.getXca43(),
+                                                                this.xdsProps.getXca39(),
                                                                 this.xdsProps.isHttps());
 
         from("mhd-iti68:camel/xdsretrieve?audit=false")
