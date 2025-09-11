@@ -1,4 +1,4 @@
-# Mobile Access Gateway
+# 1. Mobile Access Gateway
 
 The [Mobile Access Gateway (MAG)](https://www.mobileaccessgateway.ch/) is an implementation based on the [CH EPR FHIR Implementation Guide (IG)](https://fhir.ch/ig/ch-epr-fhir/index.html). It provides a FHIR gateway that supports the mobile IHE server actors and translates them into IHE XDS/HL7v3 transactions.
 

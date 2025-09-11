@@ -1,4 +1,6 @@
-## IHE Transactions & Actors
+# 2. Features
+
+## 2.1 IHE Transactions & Actors
 
 The Mobile Access Gateway (MAG) provides translation between REST/FHIR requests defined in the [CH EPR FHIR IG](https://fhir.ch/ig/ch-epr-fhir/index.html) and SOAP/HL7v3 variants of IHE transactions.    
 
@@ -18,13 +20,13 @@ The table below lists the supported IHE profiles, their transactions and the inv
 | [CH:PPQm](https://fhir.ch/ig/ch-epr-fhir/ppqm.html) | [Mobile Privacy Policy Bundle Feed [CH:PPQ-4]](https://fhir.ch/ig/ch-epr-fhir/ppq-4.html) | Policy Repository | -> Policy Source | Privacy Policy Feed [CH:PPQ‑1] / Privacy Policy Retrieve [CH:PPQ‑2] | CH:PPQ |
 | [CH:PPQm](https://fhir.ch/ig/ch-epr-fhir/ppqm.html) | [Mobile Privacy Policy Retrieve [CH:PPQ-5]](https://fhir.ch/ig/ch-epr-fhir/ppq-5.html) | Policy Repository | -> Policy Source | Privacy Policy Retrieve [CH:PPQ‑2] | CH:PPQ |
 
-### Authentication/Authorization
+### 2.1.1 Authentication/Authorization
 
 1. PDQm and PIXm transactions don't require authentication.
 2. ITI-65 requests can be automatically authorized as the configured Technical User (TCU).
 3. Other MHD transactions require authorization.
 
-## CH EPR Constraints
+## 2.2 CH EPR Constraints
 
 The Swiss EPR defines constraints on the use of MHD, PIXm, PDQm and PPQm transactions. Those can be enabled in the 
 configuration file:

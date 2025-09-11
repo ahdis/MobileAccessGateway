@@ -1,3 +1,5 @@
+# 3. Endpoints
+
 This are the endpoints exposed by the Mobile Access Gateway.
 
 | Transaction          | URL                                                   |
