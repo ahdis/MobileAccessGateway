@@ -15,8 +15,9 @@ nav:
   - 2. Features: features.md
   - 3. Endpoints: endpoints.md
   - 4. EPR Integration: integration-primary-system.md
-  - 5. Container: docker.md
-  - 6. Changelog: changelog.md
+  - 5. Testing: testing.md
+  - 6. Container: docker.md
+  - 7. Changelog: changelog.md
 markdown_extensions:
   - admonition
   - attr_list
