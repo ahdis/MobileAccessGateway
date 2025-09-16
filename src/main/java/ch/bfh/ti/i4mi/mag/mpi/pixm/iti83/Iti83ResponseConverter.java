@@ -99,7 +99,7 @@ public class Iti83ResponseConverter extends BasePMIRResponseConverter implements
                 .forEach(ii -> {
                     if (requestedTargetSystems.contains(ii.getRoot())) {
                         response.addParameter()
-                                .setName("sourceIdentifier")
+                                .setName("targetIdentifier")
                                 .setValue(new Identifier().setSystem("urn:oid:" + ii.getRoot()).setValue(ii.getExtension()));
                     }
                 });
