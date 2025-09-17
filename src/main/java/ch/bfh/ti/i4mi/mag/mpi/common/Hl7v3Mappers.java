@@ -30,6 +30,9 @@ public class Hl7v3Mappers {
 
     public static String toText(final ANY in) {
         final var result = new StringBuilder();
+        if (in.mixed == null) {
+            return "";
+        }
         for (final Serializable obj : in.mixed) {
             if (obj instanceof final String string) {
                 result.append(string);
