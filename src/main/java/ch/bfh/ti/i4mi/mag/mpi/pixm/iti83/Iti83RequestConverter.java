@@ -52,6 +52,7 @@ import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.UriType;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Timestamp;
+import org.openehealth.ipf.platform.camel.ihe.hl7v3.core.converters.JaxbHl7v3Converters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -206,7 +207,7 @@ public class Iti83RequestConverter extends BaseRequestConverter {
         patientIdentifier.setValue(Collections.singletonList(new II(system, sourceIdentifier.getValue())));
         patientIdentifier.setSemanticsText(ST("Patient.id"));
 
-        if (targetSystemList != null && (targetSystemList.size() > 0)) {
+        if (targetSystemList != null && !targetSystemList.isEmpty()) {
             for (Parameters.ParametersParameterComponent targetSystemType : targetSystemList) {
                 UriType targetSystem = (UriType) targetSystemType.getValue();
                 String sourceSystem = noPrefix(targetSystem.getValue());
@@ -216,12 +217,7 @@ public class Iti83RequestConverter extends BaseRequestConverter {
                 dataSource.setSemanticsText(ST("DataSource.id"));
             }
         }
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        log.debug("PRE CONVERT");
-        HL7V3Transformer.marshallMessage(PRPAIN201309UV02Type.class, out, resultMsg);
-        log.debug("POST CONVERT");
-        String outArray = new String(out.toByteArray());
-        log.debug(outArray);
-        return outArray;
+
+        return JaxbHl7v3Converters.PRPAIN201309UV02toXml(resultMsg);
     }
 }
