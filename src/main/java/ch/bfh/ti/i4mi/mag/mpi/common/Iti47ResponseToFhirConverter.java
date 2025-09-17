@@ -56,23 +56,30 @@ import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Patient.PatientCommunicationComponent;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.codesystems.MatchGrade;
 import org.openehealth.ipf.commons.ihe.fhir.translation.ToFhirTranslator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static ca.uhn.fhir.model.api.ResourceMetadataKeyEnum.ENTRY_SEARCH_MODE;
+import static ca.uhn.fhir.model.api.ResourceMetadataKeyEnum.ENTRY_SEARCH_SCORE;
+import static ca.uhn.fhir.model.valueset.BundleEntrySearchModeEnum.MATCH;
 import static ch.bfh.ti.i4mi.mag.MagConstants.EPR_SPID_OID;
 import static ch.bfh.ti.i4mi.mag.MagConstants.FhirExtensionUrls.MOTHERS_MAIDEN_NAME;
 import static ch.bfh.ti.i4mi.mag.mpi.common.Hl7v3Mappers.transform;
 import static ch.bfh.ti.i4mi.mag.mpi.common.Hl7v3Mappers.val;
 import static ch.bfh.ti.i4mi.mag.mpi.common.Hl7v3Mappers.verifyAck;
+import static org.openehealth.ipf.commons.ihe.fhir.iti119.AdditionalResourceMetadataKeyEnum.ENTRY_MATCH_GRADE;
 
 /**
  * Convert an ITI-47 response back to a Bundle of Patient resources.
@@ -91,7 +98,7 @@ public class Iti47ResponseToFhirConverter implements ToFhirTranslator<byte[]> {
         this.mpiProps = mpiProps;
     }
 
-    public Resource translateToFhir(final byte[] input, final Map<String, Object> parameters) {
+    public List<Resource> translateToFhir(final byte[] input, final Map<String, Object> parameters) {
         try {
             return this.doTranslate(input);
         } catch (final BaseServerResponseException controlledException) {
@@ -106,7 +113,7 @@ public class Iti47ResponseToFhirConverter implements ToFhirTranslator<byte[]> {
         }
     }
 
-    public Resource doTranslate(final byte[] input) throws Exception {
+    public List<Resource> doTranslate(final byte[] input) throws Exception {
         final PRPAIN201306UV02Type pdqResponse = HL7V3Transformer.unmarshallMessage(PRPAIN201306UV02Type.class,
                                                                                     new ByteArrayInputStream(input));
         final PRPAIN201306UV02MFMIMT700711UV01ControlActProcess controlAct = pdqResponse.getControlActProcess();
@@ -137,12 +144,10 @@ public class Iti47ResponseToFhirConverter implements ToFhirTranslator<byte[]> {
             operationOutcome.addIssue().setSeverity(OperationOutcome.IssueSeverity.WARNING).setCode(OperationOutcome.IssueType.INCOMPLETE).setDetails(
                     code);
 
-            return operationOutcome;
+            return List.of(operationOutcome);
         }
 
-        final var bundle = new Bundle();
-        bundle.setId(UUID.randomUUID().toString());
-        bundle.setType(Bundle.BundleType.SEARCHSET);
+        final List<Resource> patients = new ArrayList<>(subjects.size());
 
         // Iterate over all subjects (patients) and convert them
         for (PRPAIN201306UV02MFMIMT700711UV01Subject1 subject : subjects) {
@@ -262,24 +267,25 @@ public class Iti47ResponseToFhirConverter implements ToFhirTranslator<byte[]> {
             final float score = Optional.ofNullable(patient.getSubjectOf1()).map(JavaUtils::firstOrNull).map(
                     PRPAMT201310UV02Subject::getQueryMatchObservation).map(PRPAMT201310UV02QueryMatchObservation::getValue).filter(
                     INT.class::isInstance).map(INT.class::cast).map(INT::getValue).map(i -> i / 100f).orElse(1.0f);
-            final String scoreCode;
+            final MatchGrade scoreCode;
             if (score >= 0.75) {
-                scoreCode = "certain";
+                scoreCode = MatchGrade.CERTAIN;
             } else if (score >= 0.5) {
-                scoreCode = "probable";
+                scoreCode = MatchGrade.PROBABLE;
             } else {
-                scoreCode = "possible";
+                scoreCode = MatchGrade.POSSIBLE;
             }
 
-            final var search = new Bundle.BundleEntrySearchComponent().setMode(Bundle.SearchEntryMode.MATCH).setScore(
-                    score);
-            search.addExtension("http://hl7.org/fhir/StructureDefinition/match-grade", new CodeType(scoreCode));
+            // This is HAPI's way to store Bundle.entry.search information for resources that are returned directly.
+            // I.e. we can't make the Bundle ourselves here, because the consumer expects a List<Resource>.
+            ENTRY_SEARCH_MODE.put(result, MATCH);
+            ENTRY_SEARCH_SCORE.put(result, new BigDecimal(score));
+            ENTRY_MATCH_GRADE.put(result, scoreCode);
 
-            bundle.addEntry().setFullUrl("urn:uuid:" + UUID.randomUUID()).setResource(result).setSearch(search);
+            patients.add(result);
         }
 
-        bundle.setTotal(bundle.getEntry().size());
-        return bundle;
+        return patients;
     }
 
     public OperationOutcome error(IssueType type, String diagnostics) {
