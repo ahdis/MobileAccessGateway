@@ -154,6 +154,11 @@
             <version>${ipf-version}</version>
         </dependency>
         <dependency>
+            <groupId>org.openehealth.ipf.platform-camel</groupId>
+            <artifactId>ipf-platform-camel-ihe-hpd</artifactId>
+            <version>${ipf-version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.openehealth.ipf.commons</groupId>
             <artifactId>ipf-commons-ihe-ws</artifactId>
         </dependency>

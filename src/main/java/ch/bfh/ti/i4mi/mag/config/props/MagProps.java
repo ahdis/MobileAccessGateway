@@ -16,6 +16,7 @@ public class MagProps {
     private MagXdsProps xds;
     private MagMpiProps mpi;
     private MagPpqProps ppq;
+    private MagHpdProps hpd;
     private MagAuthProps auth;
 
     @Autowired
@@ -75,6 +76,14 @@ public class MagProps {
 
     public void setPpq(final MagPpqProps ppq) {
         this.ppq = ppq;
+    }
+
+    public MagHpdProps getHpd() {
+        return this.hpd;
+    }
+
+    public void setHpd(final MagHpdProps hpd) {
+        this.hpd = hpd;
     }
 
     public MagAuthProps getAuth() {
