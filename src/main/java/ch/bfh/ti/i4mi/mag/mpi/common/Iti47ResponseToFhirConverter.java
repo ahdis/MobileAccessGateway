@@ -24,15 +24,38 @@ import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import jakarta.annotation.Nullable;
 import jakarta.xml.bind.JAXBException;
 import net.ihe.gazelle.hl7v3.coctmt030007UV.COCTMT030007UVPerson;
-import net.ihe.gazelle.hl7v3.datatypes.*;
-import net.ihe.gazelle.hl7v3.prpain201306UV02.*;
-import net.ihe.gazelle.hl7v3.prpamt201310UV02.*;
+import net.ihe.gazelle.hl7v3.datatypes.AD;
+import net.ihe.gazelle.hl7v3.datatypes.BL;
+import net.ihe.gazelle.hl7v3.datatypes.CE;
+import net.ihe.gazelle.hl7v3.datatypes.CS;
+import net.ihe.gazelle.hl7v3.datatypes.EN;
+import net.ihe.gazelle.hl7v3.datatypes.INT;
+import net.ihe.gazelle.hl7v3.datatypes.PN;
+import net.ihe.gazelle.hl7v3.datatypes.TEL;
+import net.ihe.gazelle.hl7v3.datatypes.TS;
+import net.ihe.gazelle.hl7v3.prpain201306UV02.PRPAIN201306UV02MFMIMT700711UV01ControlActProcess;
+import net.ihe.gazelle.hl7v3.prpain201306UV02.PRPAIN201306UV02MFMIMT700711UV01Subject1;
+import net.ihe.gazelle.hl7v3.prpain201306UV02.PRPAIN201306UV02Type;
+import net.ihe.gazelle.hl7v3.prpamt201310UV02.PRPAMT201310UV02LanguageCommunication;
+import net.ihe.gazelle.hl7v3.prpamt201310UV02.PRPAMT201310UV02Patient;
+import net.ihe.gazelle.hl7v3.prpamt201310UV02.PRPAMT201310UV02Person;
+import net.ihe.gazelle.hl7v3.prpamt201310UV02.PRPAMT201310UV02PersonalRelationship;
+import net.ihe.gazelle.hl7v3.prpamt201310UV02.PRPAMT201310UV02QueryMatchObservation;
+import net.ihe.gazelle.hl7v3.prpamt201310UV02.PRPAMT201310UV02Subject;
 import net.ihe.gazelle.hl7v3transformer.HL7V3Transformer;
-import org.hl7.fhir.r4.model.*;
+import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.CodeType;
+import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
+import org.hl7.fhir.r4.model.IntegerType;
+import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
+import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Patient.PatientCommunicationComponent;
+import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.StringType;
 import org.openehealth.ipf.commons.ihe.fhir.translation.ToFhirTranslator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,10 +66,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static ch.bfh.ti.i4mi.mag.MagConstants.EPR_SPID_OID;
 import static ch.bfh.ti.i4mi.mag.MagConstants.FhirExtensionUrls.MOTHERS_MAIDEN_NAME;
-import static ch.bfh.ti.i4mi.mag.mpi.common.Hl7v3Mappers.*;
+import static ch.bfh.ti.i4mi.mag.mpi.common.Hl7v3Mappers.transform;
+import static ch.bfh.ti.i4mi.mag.mpi.common.Hl7v3Mappers.val;
+import static ch.bfh.ti.i4mi.mag.mpi.common.Hl7v3Mappers.verifyAck;
 
 /**
  * Convert an ITI-47 response back to a Bundle of Patient resources.
@@ -60,21 +86,22 @@ public class Iti47ResponseToFhirConverter implements ToFhirTranslator<byte[]> {
     private final SchemeMapper schemeMapper;
     private final MagMpiProps mpiProps;
 
-    public Iti47ResponseToFhirConverter(final SchemeMapper schemeMapper,
-                                        final MagMpiProps mpiProps) {
+    public Iti47ResponseToFhirConverter(final SchemeMapper schemeMapper, final MagMpiProps mpiProps) {
         this.schemeMapper = schemeMapper;
         this.mpiProps = mpiProps;
     }
 
-    public Resource translateToFhir(final byte[] input,
-                                    final Map<String, Object> parameters) {
+    public Resource translateToFhir(final byte[] input, final Map<String, Object> parameters) {
         try {
             return this.doTranslate(input);
         } catch (final BaseServerResponseException controlledException) {
+            log.debug("ITI-47 response converter: caught an HAPI exception", controlledException);
             throw controlledException;
         } catch (final JAXBException parsingException) {
+            log.debug("ITI-47 response converter: caught a JAXB exception", parsingException);
             throw new InvalidRequestException("Failed parsing ITI-47 response", parsingException);
         } catch (final Exception otherException) {
+            log.debug("ITI-47 response converter: caught an exception", otherException);
             throw new InvalidRequestException("Unexpected exception during ITI-47 response processing", otherException);
         }
     }
@@ -92,39 +119,30 @@ public class Iti47ResponseToFhirConverter implements ToFhirTranslator<byte[]> {
             // https://github.com/i4mi/MobileAccessGateway/issues/171
             final var operationOutcome = new OperationOutcome();
             var code = new CodeableConcept();
-            code.addCoding()
-                    .setSystem("urn:oid:1.3.6.1.4.1.19376.1.2.27.1")
-                    .setCode("LivingSubjectAdministrativeGenderRequested")
-                    .setDisplay("LivingSubjectAdministrativeGenderRequested");
-            operationOutcome.addIssue()
-                    .setSeverity(OperationOutcome.IssueSeverity.WARNING)
-                    .setCode(OperationOutcome.IssueType.INCOMPLETE)
-                    .setDetails(code);
+            code.addCoding().setSystem("urn:oid:1.3.6.1.4.1.19376.1.2.27.1").setCode(
+                    "LivingSubjectAdministrativeGenderRequested").setDisplay(
+                    "LivingSubjectAdministrativeGenderRequested");
+            operationOutcome.addIssue().setSeverity(OperationOutcome.IssueSeverity.WARNING).setCode(OperationOutcome.IssueType.INCOMPLETE).setDetails(
+                    code);
 
             code = new CodeableConcept();
-            code.addCoding()
-                    .setSystem("urn:oid:1.3.6.1.4.1.19376.1.2.27.1")
-                    .setCode("LivingSubjectBirthPlaceNameRequested")
-                    .setDisplay("LivingSubjectBirthPlaceNameRequested");
-            operationOutcome.addIssue()
-                    .setSeverity(OperationOutcome.IssueSeverity.WARNING)
-                    .setCode(OperationOutcome.IssueType.INCOMPLETE)
-                    .setDetails(code);
+            code.addCoding().setSystem("urn:oid:1.3.6.1.4.1.19376.1.2.27.1").setCode(
+                    "LivingSubjectBirthPlaceNameRequested").setDisplay("LivingSubjectBirthPlaceNameRequested");
+            operationOutcome.addIssue().setSeverity(OperationOutcome.IssueSeverity.WARNING).setCode(OperationOutcome.IssueType.INCOMPLETE).setDetails(
+                    code);
 
             code = new CodeableConcept();
-            code.addCoding()
-                    .setSystem("urn:oid:2.16.756.5.30.1.127.3.10.17")
-                    .setCode("BirthNameRequested")
-                    .setDisplay("BirthNameRequested");
-            operationOutcome.addIssue()
-                    .setSeverity(OperationOutcome.IssueSeverity.WARNING)
-                    .setCode(OperationOutcome.IssueType.INCOMPLETE)
-                    .setDetails(code);
+            code.addCoding().setSystem("urn:oid:2.16.756.5.30.1.127.3.10.17").setCode("BirthNameRequested").setDisplay(
+                    "BirthNameRequested");
+            operationOutcome.addIssue().setSeverity(OperationOutcome.IssueSeverity.WARNING).setCode(OperationOutcome.IssueType.INCOMPLETE).setDetails(
+                    code);
 
             return operationOutcome;
         }
 
         final var bundle = new Bundle();
+        bundle.setId(UUID.randomUUID().toString());
+        bundle.setType(Bundle.BundleType.SEARCHSET);
 
         // Iterate over all subjects (patients) and convert them
         for (PRPAIN201306UV02MFMIMT700711UV01Subject1 subject : subjects) {
@@ -137,52 +155,32 @@ public class Iti47ResponseToFhirConverter implements ToFhirTranslator<byte[]> {
 
             final Patient result = new Patient();
 
-            for (final II patientId : patient.getId()) {
-                if (patientId.getRoot() == null && patientId.getExtension() == null) continue;
+            Stream.concat(patient.getId().stream(),
+                          patientPerson.getAsOtherIDs().stream().flatMap(oi -> oi.getId().stream()))
+                    .filter(ii -> ii.getRoot() != null && ii.getExtension() != null)
+                    .forEach(patientId -> {
+                        if (this.mpiProps.isChPdqmConstraints()) {
+                            if (this.mpiProps.getOids().getMpiPid().equals(patientId.getRoot()) || EPR_SPID_OID.equals(patientId.getRoot())) {
+                                result.addIdentifier(this.schemeMapper.toFhirIdentifier(patientId.getRoot(),
+                                                                                        patientId.getExtension(),
+                                                                                        null));
+                            } else {
+                                log.debug("Ignoring patient identifier " + patientId.getRoot());
+                            }
+                        } else {
+                            result.addIdentifier(this.schemeMapper.toFhirIdentifier(patientId.getRoot(),
+                                                                                    patientId.getExtension(),
+                                                                                    null));
+                        }
 
-                if (this.mpiProps.isChPdqmConstraints()) {
-                    if (this.mpiProps.getOids().getMpiPid().equals(patientId.getRoot()) || EPR_SPID_OID.equals(patientId.getRoot())) {
-                        result.addIdentifier(this.schemeMapper.toFhirIdentifier(patientId.getRoot(),
-                                                                                patientId.getExtension(),
-                                                                                null));
-                    } else {
-                        log.debug("Ignoring patient identifier " + patientId.getRoot());
-                    }
-                } else {
-                    result.addIdentifier(this.schemeMapper.toFhirIdentifier(patientId.getRoot(),
-                                                                            patientId.getExtension(),
-                                                                            null));
-                }
-
-                if (this.mpiProps.isChEprspidAsPatientId() && EPR_SPID_OID.equals(patientId.getRoot())) {
-                    result.setId(patientId.getExtension());
-                }
-            }
+                        if (this.mpiProps.isChEprspidAsPatientId() && EPR_SPID_OID.equals(patientId.getRoot())) {
+                            result.setId(patientId.getExtension());
+                        }
+                    });
 
             // Generate an ID if it's missing
             if (!result.hasId()) {
                 result.setId(UUID.randomUUID().toString());
-            }
-
-            for (PRPAMT201310UV02OtherIDs otherIds : patient.getPatientPerson().getAsOtherIDs()) {
-                for (II patientId : otherIds.getId()) {
-                    if (patientId.getRoot() == null && patientId.getExtension() == null) continue;
-
-                    if (this.mpiProps.isChPdqmConstraints()) {
-                        if (this.mpiProps.getOids().getMpiPid().equals(patientId.getRoot()) || EPR_SPID_OID.equals(
-                                patientId.getRoot())) {
-                            result.addIdentifier(this.schemeMapper.toFhirIdentifier(patientId.getRoot(),
-                                                                                    patientId.getExtension(),
-                                                                                    null));
-                        } else {
-                            log.debug("Ignoring patient identifier " + patientId.getRoot());
-                        }
-                    } else {
-                        result.addIdentifier(this.schemeMapper.toFhirIdentifier(patientId.getRoot(),
-                                                                                patientId.getExtension(),
-                                                                                null));
-                    }
-                }
             }
 
             CS statusCode = patient.getStatusCode();
@@ -261,14 +259,9 @@ public class Iti47ResponseToFhirConverter implements ToFhirTranslator<byte[]> {
                 }
             }
 
-            final float score = Optional.ofNullable(patient.getSubjectOf1())
-                            .map(JavaUtils::firstOrNull)
-                            .map(PRPAMT201310UV02Subject::getQueryMatchObservation)
-                            .map(PRPAMT201310UV02QueryMatchObservation::getValue)
-                            .map(Hl7v3Mappers::toText)
-                            .map(Integer::parseInt)
-                            .map(i -> i / 100f)
-                            .orElse(1.0f);
+            final float score = Optional.ofNullable(patient.getSubjectOf1()).map(JavaUtils::firstOrNull).map(
+                    PRPAMT201310UV02Subject::getQueryMatchObservation).map(PRPAMT201310UV02QueryMatchObservation::getValue).filter(
+                    INT.class::isInstance).map(INT.class::cast).map(INT::getValue).map(i -> i / 100f).orElse(1.0f);
             final String scoreCode;
             if (score >= 0.75) {
                 scoreCode = "certain";
@@ -278,17 +271,14 @@ public class Iti47ResponseToFhirConverter implements ToFhirTranslator<byte[]> {
                 scoreCode = "possible";
             }
 
-            final var search = new Bundle.BundleEntrySearchComponent()
-                    .setMode(Bundle.SearchEntryMode.MATCH)
-                    .setScore(score);
+            final var search = new Bundle.BundleEntrySearchComponent().setMode(Bundle.SearchEntryMode.MATCH).setScore(
+                    score);
             search.addExtension("http://hl7.org/fhir/StructureDefinition/match-grade", new CodeType(scoreCode));
 
-            bundle.addEntry()
-                    .setFullUrl("urn:uuid:" + UUID.randomUUID())
-                    .setResource(result)
-                    .setSearch(search);
+            bundle.addEntry().setFullUrl("urn:uuid:" + UUID.randomUUID()).setResource(result).setSearch(search);
         }
 
+        bundle.setTotal(bundle.getEntry().size());
         return bundle;
     }
 
