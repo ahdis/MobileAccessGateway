@@ -1,5 +1,6 @@
 package ch.bfh.ti.i4mi.mag.common;
 
+import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
 import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import jakarta.xml.ws.soap.SOAPFaultException;
@@ -56,6 +57,9 @@ public abstract class MagRouteBuilder extends RouteBuilder {
                     faultString = faultString.substring(0, faultString.indexOf(UNEXPECTED_HTML_PART)).trim();
                 }
                 diagnostics = "Route %s, SOAP Fault: %s".formatted(exchange.getFromRouteId(), faultString);
+            } else if (e instanceof final BaseServerResponseException hapiException) {
+                // already a FHIR exception, just rethrow
+                throw hapiException;
             } else {
                 message = "Unexpected exception in Camel route";
                 diagnostics = "Route %s, exception %s".formatted(exchange.getFromRouteId(),
