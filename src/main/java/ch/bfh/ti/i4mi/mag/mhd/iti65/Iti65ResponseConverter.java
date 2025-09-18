@@ -60,7 +60,7 @@ public class Iti65ResponseConverter extends BaseResponseConverter implements ToF
             Bundle responseBundle = new Bundle();
             ProvideAndRegisterDocumentSet prb = (ProvideAndRegisterDocumentSet) parameters.get(
                     "ProvideAndRegisterDocumentSet");
-            entryUuid = Iti65RequestConverter.noPrefix(prb.getDocuments().get(0).getDocumentEntry().getEntryUuid());
+            entryUuid = Iti65RequestConverter.noPrefix(prb.getDocuments().getFirst().getDocumentEntry().getEntryUuid());
             Bundle requestBundle = (Bundle) parameters.get("BundleRequest");
             for (Bundle.BundleEntryComponent requestEntry : requestBundle.getEntry()) {
                 Bundle.BundleEntryResponseComponent response = new Bundle.BundleEntryResponseComponent()

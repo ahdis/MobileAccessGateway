@@ -90,9 +90,10 @@ public class Iti104ResponseConverter extends BasePMIRResponseConverter implement
             }
 
             IdType idType = null;
+            final var eprUrn = "urn:oid:" + EPR_SPID_OID;
             if (this.mpiProps.isChEprspidAsPatientId()) {
-                for (Identifier id : request.getIdentifier()) {
-                    if (id.getSystem().equals("urn:oid:" + EPR_SPID_OID)) {
+                for (final Identifier id : request.getIdentifier()) {
+                    if (eprUrn.equals(id.getSystem())) {
                         idType = new IdType(id.getValue());
                         break;
                     }
@@ -101,12 +102,12 @@ public class Iti104ResponseConverter extends BasePMIRResponseConverter implement
             if (idType == null) {
                 idType = new IdType(noPrefix(identifier.getSystem()) + "-" + identifier.getValue());
             }
-            MethodOutcome out = new MethodOutcome(idType);
-            OperationOutcome outcome = new OperationOutcome();
+            final var out = new MethodOutcome(idType);
+            final var outcome = new OperationOutcome();
             out.setOperationOutcome(outcome);
             return out;
 
-        } catch (JAXBException e) {
+        } catch (final JAXBException e) {
             throw new InvalidRequestException("failed parsing response");
         }
     }

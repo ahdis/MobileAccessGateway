@@ -47,7 +47,8 @@ public class TcuXuaService {
         try {
             tcuToken = this.tcuAssertionGenerator.generateNew();
         } catch (final Exception e) {
-            throw new RuntimeException("Failed to fetch TCU token", e);
+            log.debug("Failed to generate TCU token", e);
+            throw new RuntimeException("Failed to generate TCU token", e);
         }
 
         final String xuaToken;
@@ -63,6 +64,7 @@ public class TcuXuaService {
         } catch (final Exception e) {
             throw new RuntimeException("Failed to fetch XUA token", e);
         }
+        log.trace("Got XUA token for EPR-SPID {}: {}", eprSpid, xuaToken);
 
         this.cachedTokens.put(eprSpid, xuaToken);
         return xuaToken;

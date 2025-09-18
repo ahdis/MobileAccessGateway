@@ -50,6 +50,7 @@ public abstract class MagRouteBuilder extends RouteBuilder {
             final String message;
             final String diagnostics;
             if (e instanceof final SOAPFaultException soapFault) {
+                log.debug("SOAP Fault caught", soapFault);
                 message = "Unexpected exception in SOAP transaction";
 
                 String faultString = soapFault.getFault().getFaultString();
@@ -61,6 +62,7 @@ public abstract class MagRouteBuilder extends RouteBuilder {
                 // already a FHIR exception, just rethrow
                 throw hapiException;
             } else {
+                log.debug("Exception caught", e);
                 message = "Unexpected exception in Camel route";
                 diagnostics = "Route %s, exception %s".formatted(exchange.getFromRouteId(),
                                                                  e.getClass().getSimpleName());
