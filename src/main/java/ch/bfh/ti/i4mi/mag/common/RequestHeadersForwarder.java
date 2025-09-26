@@ -107,7 +107,7 @@ public class RequestHeadersForwarder {
         } else if (authorizationHeader.startsWith("IHE-SAML ")) {
             payload = authorizationHeader.substring("IHE-SAML ".length());
         } else {
-            return;
+            throw new AuthenticationException("The Authorization header is not in a supported format (invalid scheme)");
         }
 
         if (payload.startsWith("PHNhbWwyOkFzc2") || payload.startsWith("PD94bW")) {
@@ -120,9 +120,7 @@ public class RequestHeadersForwarder {
 
             setWsseHeader(exchange, converted);
         } else {
-            // It is a JWT or something else, just forward it
-            log.debug("Forwarding Authorization header: {}", authorizationHeader);
-            SoapExchanges.writeResponseHttpHeader(AUTHORIZATION_HEADER, authorizationHeader, exchange);
+            throw new AuthenticationException("The Authorization header is not in a supported format (invalid parameters)");
         }
     }
 
