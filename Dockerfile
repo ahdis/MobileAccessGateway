@@ -1,7 +1,7 @@
 ## ############################# ##
 ## FIRST STAGE: THE BUILD SYSTEM
 ## ############################# ##
-FROM maven:3-eclipse-temurin-21 AS builder
+FROM maven:3-eclipse-temurin-25 AS builder
 
 # Prepare the system
 COPY pom.xml .
