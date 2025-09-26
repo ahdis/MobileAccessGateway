@@ -19,7 +19,6 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.openehealth.ipf.commons.ihe.xacml20.model.PpqConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -106,7 +105,7 @@ public class MhdTest {
     public void testDeletionFlagFitering() throws Exception {
         Exchange exchange = new DefaultExchange(camelContext);
         exchange.getMessage().setBody(new ICriterion[]{
-                DocumentReference.PATIENT.hasId("Patient/urn:oid:" + PpqConstants.CodingSystemIds.SWISS_PATIENT_ID + "-deletion-flag-filtering-test-1"),
+                DocumentReference.PATIENT.hasId("Patient/urn:oid:2.16.756.5.30.1.127.3.10.3-deletion-flag-filtering-test-1"),
                 DocumentReference.STATUS.exactly().identifier("current"),
         });
         exchange = producerTemplate.send("mhd-iti67://localhost:" + serverPort + "/fhir", exchange);

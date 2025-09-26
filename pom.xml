@@ -117,16 +117,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.openehealth.ipf.boot</groupId>
-            <artifactId>ipf-xacml20-spring-boot-starter</artifactId>
-            <version>${ipf-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openehealth.ipf.platform-camel</groupId>
-            <artifactId>ipf-platform-camel-ihe-fhir-r4-chppqm</artifactId>
-            <version>${ipf-version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.openehealth.ipf.platform-camel</groupId>
             <artifactId>ipf-platform-camel-ihe-fhir-r4-pixpdq</artifactId>
         </dependency>
