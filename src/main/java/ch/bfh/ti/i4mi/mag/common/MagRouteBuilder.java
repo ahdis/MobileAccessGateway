@@ -6,6 +6,7 @@ import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.cxf.interceptor.Fault;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -49,23 +50,36 @@ public abstract class MagRouteBuilder extends RouteBuilder {
 
             final String message;
             final String diagnostics;
-            if (e instanceof final SOAPFaultException soapFault) {
-                log.debug("SOAP Fault caught", soapFault);
-                message = "Unexpected exception in SOAP transaction";
+            switch (e) {
+                case SOAPFaultException soapFault -> {
+                    log.debug("SOAP Fault caught", soapFault);
+                    message = "Unexpected exception in SOAP transaction";
 
-                String faultString = soapFault.getFault().getFaultString();
-                if (faultString.contains(UNEXPECTED_HTML_PART)) {
-                    faultString = faultString.substring(0, faultString.indexOf(UNEXPECTED_HTML_PART)).trim();
+                    String faultString = soapFault.getFault().getFaultString();
+                    if (faultString.contains(UNEXPECTED_HTML_PART)) {
+                        faultString = faultString.substring(0, faultString.indexOf(UNEXPECTED_HTML_PART)).trim();
+                    }
+                    diagnostics = "Route %s, SOAP Fault: %s".formatted(exchange.getFromRouteId(), faultString);
                 }
-                diagnostics = "Route %s, SOAP Fault: %s".formatted(exchange.getFromRouteId(), faultString);
-            } else if (e instanceof final BaseServerResponseException hapiException) {
-                // already a FHIR exception, just rethrow
-                throw hapiException;
-            } else {
-                log.debug("Exception caught", e);
-                message = "Unexpected exception in Camel route";
-                diagnostics = "Route %s, exception %s".formatted(exchange.getFromRouteId(),
-                                                                 e.getClass().getSimpleName());
+                case Fault fault -> {
+                    log.debug("SOAP Fault caught", fault);
+                    message = "Unexpected exception in SOAP transaction";
+
+                    String faultString = fault.getMessage();
+                    if (faultString.contains(UNEXPECTED_HTML_PART)) {
+                        faultString = faultString.substring(0, faultString.indexOf(UNEXPECTED_HTML_PART)).trim();
+                    }
+                    diagnostics = "Route %s, SOAP Fault: %s".formatted(exchange.getFromRouteId(), faultString);
+                }
+                case BaseServerResponseException hapiException ->
+                    // already a FHIR exception, just rethrow
+                    throw hapiException;
+                default -> {
+                    log.debug("Exception caught", e);
+                    message = "Unexpected exception in Camel route";
+                    diagnostics = "Route %s, exception %s".formatted(exchange.getFromRouteId(),
+                                                                     e.getClass().getSimpleName());
+                }
             }
 
             final var oo = new OperationOutcome();

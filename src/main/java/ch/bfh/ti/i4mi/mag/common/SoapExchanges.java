@@ -3,7 +3,6 @@ package ch.bfh.ti.i4mi.mag.common;
 import lombok.experimental.UtilityClass;
 import org.apache.camel.Exchange;
 import org.apache.camel.util.CastUtils;
-import org.openehealth.ipf.commons.ihe.fhir.Constants;
 import org.openehealth.ipf.platform.camel.ihe.ws.AbstractWsEndpoint;
 
 import javax.annotation.Nullable;
