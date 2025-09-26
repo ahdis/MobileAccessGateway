@@ -1,16 +1,16 @@
 ## ############################# ##
 ## FIRST STAGE: THE BUILD SYSTEM
 ## ############################# ##
-FROM maven:3-eclipse-temurin-25 AS builder
+FROM maven:3-amazoncorretto-25 AS builder
 
 # Prepare the system
+RUN yum install -y binutils
 COPY pom.xml .
 COPY src ./src
 
 # Build small JRE image
 RUN ["jlink", \
       "--compress=2", \
-      "--module-path", "$JAVA_HOME/jmods", \
       "--add-modules", "java.base,java.compiler,java.desktop,java.instrument,java.logging,java.management,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.security.sasl,java.sql,java.sql.rowset,java.transaction.xa,java.xml,java.xml.crypto,jdk.jfr,jdk.management,jdk.unsupported", \
       "--no-header-files", \
       "--no-man-pages", \
