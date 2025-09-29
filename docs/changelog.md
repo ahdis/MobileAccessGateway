@@ -1,10 +1,15 @@
 # 7. Changelog
 
-## 7.1 Unreleased
+## v2.0.1 - Unreleased
 
-- Update dependencies to latest versions.
-- Update transactions to the latest version from the [CH EPR FHIR IG](https://fhir.ch/ig/ch-epr-fhir/index.html).
-- Implement the ITI-119 PDQm Patient Demographics Match transaction.
-- Implement the injection of a TCU XUA assertion in ITI-65 requests.
-- Map between EPR-SPIDs and XAD-PIDs in MHD requests and responses.
-- Fix support for translation of Swiss SNOMED CT codes in MHD requests and responses.
+- Simplify the patient identifier feed ([#15](https://github.com/ahdis/MobileAccessGateway/issues/15)).
+  The `Patient.managinOrganization` isn't needed anymore.
+- Create the configuration parameter `mag.organization-name`.
+- Fix the URN-encoding of `DocumentEntry.entryUUID` ([#16](https://github.com/ahdis/MobileAccessGateway/issues/16)).
+
+## v2.0.0 - 2025/09/26
+
+- Initial release of this MobileAccessGateway instance for integration to the Swiss EPR.
+- The application is running on Java 25, Jetty 12.0.25, IPF 5.1.0, Spring Boot 3.5.5, FHIR Core 6.5.18 and HAPI FHIR
+  8.2.1.
+- This version has been tested at the Digital Health Projectathon 2025 in Bern.
