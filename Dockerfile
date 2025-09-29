@@ -35,7 +35,7 @@ LABEL org.opencontainers.image.title="MobileAccessGateway"
 LABEL org.opencontainers.image.vendor="ahdis ag"
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
-RUN apk --purge del
+RUN apk add libstdc++ && apk --purge del
 
 RUN addgroup -S mag && adduser -S mag -G mag
 USER mag:mag
@@ -54,4 +54,4 @@ ENTRYPOINT [ \
 ]
 
 # To publish a version manually:
-# docker buildx build --tag "europe-west6-docker.pkg.dev/ahdis-ch/ahdis/mag-cara:v0.1.0" --push --platform=linux/amd64 -f Dockerfile .
+# docker buildx build --tag "europe-west6-docker.pkg.dev/ahdis-ch/ahdis/mag-cara:v2.0.1" --push --platform=linux/amd64 -f Dockerfile .
