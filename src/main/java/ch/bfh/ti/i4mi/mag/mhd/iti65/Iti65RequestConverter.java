@@ -54,7 +54,7 @@ import java.util.*;
 
 import static ch.bfh.ti.i4mi.mag.MagConstants.EPR_SPID_OID;
 import static ch.bfh.ti.i4mi.mag.MagConstants.FhirCodingSystemIds.RFC_3986;
-import static ch.bfh.ti.i4mi.mag.mhd.Utils.isUuid;
+import static ch.bfh.ti.i4mi.mag.mhd.Utils.isPrefixedUuid;
 
 /**
  * ITI-65 to ITI-41 request converter
@@ -629,10 +629,10 @@ public class Iti65RequestConverter extends BaseRequestConverter {
         final var entryUuid = reference.getIdentifier().stream()
                 .filter(identifier -> RFC_3986.equals(identifier.getSystem()))
                 .filter(identifier -> !identifier.hasUse() || identifier.getUse() == Identifier.IdentifierUse.OFFICIAL)
-                .filter(identifier -> identifier.getValue() != null && isUuid(identifier.getValue()))
+                .filter(identifier -> identifier.getValue() != null && isPrefixedUuid(identifier.getValue()))
                 .findAny()
                 .map(Identifier::getValue)
-                .orElseGet(() -> UUID.randomUUID().toString());
+                .orElseGet(() -> "urn:uuid:" + UUID.randomUUID());
         entry.setEntryUuid(entryUuid);
 
         reference.getIdentifier().stream()

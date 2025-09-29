@@ -37,8 +37,6 @@ public class Utils {
     public static final String KEPT_BODY = "KeptBody";
 
     public static final Pattern UNPREFIXED_OID_PATTERN = Pattern.compile("\\d+(\\.\\d+)+");
-    public static final Pattern UNPREFIXED_UUID_PATTERN = Pattern.compile(
-            "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
 
     public static FhirSearchParameters searchParameterToBody(@Headers Map<String, Object> parameters) {
         FhirSearchParameters searchParameter = (FhirSearchParameters) parameters
@@ -132,16 +130,16 @@ public class Utils {
         return oid != null && UNPREFIXED_OID_PATTERN.matcher(oid).matches();
     }
 
-    public static boolean isUnprefixedUuid(final String uuid) {
-        return uuid != null && UNPREFIXED_UUID_PATTERN.matcher(uuid).matches();
-    }
-
-    public static boolean isUuid(final String maybeUuid) {
+    public static boolean isUnprefixedUuid(final String maybeUuid) {
         try {
             UUID.fromString(maybeUuid);
             return true;
         } catch (IllegalArgumentException e) {
             return false;
         }
+    }
+
+    public static boolean isPrefixedUuid(final String maybeUuid) {
+        return maybeUuid != null && maybeUuid.startsWith("urn:uuid:") && isUnprefixedUuid(maybeUuid.substring(9));
     }
 }
