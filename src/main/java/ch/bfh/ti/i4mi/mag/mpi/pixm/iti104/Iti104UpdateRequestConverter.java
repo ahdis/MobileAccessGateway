@@ -16,7 +16,7 @@
 
 package ch.bfh.ti.i4mi.mag.mpi.pixm.iti104;
 
-import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
+import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import jakarta.xml.bind.JAXBException;
 import net.ihe.gazelle.hl7v3.coctmt090003UV01.COCTMT090003UV01AssignedEntity;
@@ -73,6 +73,7 @@ import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Patient.PatientCommunicationComponent;
 import org.hl7.fhir.r4.model.Reference;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Timestamp;
+import org.openehealth.ipf.platform.camel.ihe.hl7v3.core.converters.JaxbHl7v3Converters;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -86,8 +87,8 @@ import static ch.bfh.ti.i4mi.mag.mhd.iti65.Iti65RequestConverter.noPrefix;
 public class Iti104UpdateRequestConverter extends Iti104AddRequestConverter {
 
     public Iti104UpdateRequestConverter(final SchemeMapper schemeMapper,
-                                        final MagMpiProps mpiProps) {
-        super(schemeMapper, mpiProps);
+                                        final MagProps magProps) {
+        super(schemeMapper, magProps);
     }
 
     public String doUpdate(Patient in, Identifier identifier) throws JAXBException {
@@ -160,21 +161,6 @@ public class Iti104UpdateRequestConverter extends Iti104AddRequestConverter {
 
         List<II> orgIds = new ArrayList<II>();
         Set<String> mainIds = new HashSet<String>();
-        Organization managingOrg = getManagingOrganization(in);
-        // NULL POINTER CHECK
-        if (managingOrg != null) {
-            for (Identifier id : managingOrg.getIdentifier()) {
-                orgIds.add(new II(noPrefix(id.getSystem()), null));
-                mainIds.add(id.getSystem());
-            }
-        } else {
-            Reference org = in.getManagingOrganization();
-            if (org != null && org.getIdentifier() != null) {
-                orgIds.add(new II(noPrefix(org.getIdentifier().getSystem()), null));
-                mainIds.add(org.getIdentifier().getSystem());
-            }
-        }
-
 
         // TODO How is the correct mapping done?
         for (Identifier id : in.getIdentifier()) {
@@ -258,69 +244,9 @@ public class Iti104UpdateRequestConverter extends Iti104AddRequestConverter {
             }
         }
 
+        patient.setProviderOrganization(this.generateProviderOrganization(in));
+        registrationEvent.setCustodian(this.generateCustodian());
 
-        COCTMT150003UV03Organization providerOrganization = new COCTMT150003UV03Organization();
-        patient.setProviderOrganization(providerOrganization);
-        providerOrganization.setClassCode(EntityClassOrganization.ORG);
-        providerOrganization.setDeterminerCode(EntityDeterminer.INSTANCE);
-
-        providerOrganization.setId(orgIds);
-        ON name = null;
-        if (managingOrg.hasName()) {
-            name = new ON();
-            name.setMixed(Collections.singletonList(managingOrg.getName()));
-            providerOrganization.setName(Collections.singletonList(name));
-        }
-
-        COCTMT150003UV03ContactParty contactParty = new COCTMT150003UV03ContactParty();
-        contactParty.setClassCode(RoleClassContact.CON);
-        for (ContactPoint contactPoint : managingOrg.getTelecom()) {
-            contactParty.addTelecom(transform(contactPoint));
-        }
-
-        if (managingOrg.hasAddress()) contactParty.setAddr(new ArrayList<AD>());
-        for (Address address : managingOrg.getAddress()) {
-            contactParty.addAddr(transform(address));
-        }
-        if (managingOrg.hasContact()) {
-            OrganizationContactComponent occ = managingOrg.getContactFirstRep();
-            COCTMT150003UV03Person contactPerson = new COCTMT150003UV03Person();
-            contactPerson.setClassCode(EntityClass.PSN);
-            contactPerson.setDeterminerCode(EntityDeterminer.INSTANCE);
-            if (occ.hasName()) contactPerson.setName(Collections.singletonList(transform(occ.getName())));
-            contactParty.setContactPerson(contactPerson);
-        }
-
-        providerOrganization.setContactParty(Collections.singletonList(contactParty));
-
-        MFMIMT700701UV01Custodian custodian = new MFMIMT700701UV01Custodian();
-        registrationEvent.setCustodian(custodian);
-        custodian.setTypeCode(ParticipationType.CST);
-
-        COCTMT090003UV01AssignedEntity assignedEntity = new COCTMT090003UV01AssignedEntity();
-        custodian.setAssignedEntity(assignedEntity);
-        assignedEntity.setClassCode(RoleClassAssignedEntity.ASSIGNED);
-
-        List<II> custIds = new ArrayList<>(1);
-        custIds.add(new II(noPrefix(this.mpiOidsProps.getCustodian()), null));
-
-        assignedEntity.setId(custIds);
-        //assignedEntity.setId(orgIds);
-
-        COCTMT090003UV01Organization assignedOrganization = new COCTMT090003UV01Organization();
-        assignedEntity.setAssignedOrganization(assignedOrganization);
-        assignedOrganization.setClassCode(EntityClassOrganization.ORG);
-        assignedOrganization.setDeterminerCode(EntityDeterminer.INSTANCE);
-        if (managingOrg.hasName()) {
-            assignedOrganization.setName(Collections.singletonList(name));
-        }
-
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        HL7V3Transformer.marshallMessage(PRPAIN201302UV02Type.class, out, resultMsg);
-
-        String outArray = new String(out.toByteArray());
-
-        return outArray;
+        return JaxbHl7v3Converters.PRPAIN201302UV02toXml(resultMsg);
     }
 }

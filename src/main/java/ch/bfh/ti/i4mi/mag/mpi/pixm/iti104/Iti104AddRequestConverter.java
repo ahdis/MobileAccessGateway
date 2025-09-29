@@ -18,15 +18,15 @@ package ch.bfh.ti.i4mi.mag.mpi.pixm.iti104;
 
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
+import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
+import ch.bfh.ti.i4mi.mag.mhd.iti65.Iti65RequestConverter;
 import ch.bfh.ti.i4mi.mag.mpi.pmir.PMIRRequestConverter;
-import jakarta.annotation.Nullable;
 import jakarta.xml.bind.JAXBException;
 import net.ihe.gazelle.hl7v3.coctmt090003UV01.COCTMT090003UV01AssignedEntity;
 import net.ihe.gazelle.hl7v3.coctmt090003UV01.COCTMT090003UV01Organization;
 import net.ihe.gazelle.hl7v3.coctmt150003UV03.COCTMT150003UV03ContactParty;
 import net.ihe.gazelle.hl7v3.coctmt150003UV03.COCTMT150003UV03Organization;
-import net.ihe.gazelle.hl7v3.coctmt150003UV03.COCTMT150003UV03Person;
 import net.ihe.gazelle.hl7v3.datatypes.AD;
 import net.ihe.gazelle.hl7v3.datatypes.BL;
 import net.ihe.gazelle.hl7v3.datatypes.CD;
@@ -57,26 +57,24 @@ import net.ihe.gazelle.hl7v3.voc.EntityClass;
 import net.ihe.gazelle.hl7v3.voc.EntityClassDevice;
 import net.ihe.gazelle.hl7v3.voc.EntityClassOrganization;
 import net.ihe.gazelle.hl7v3.voc.EntityDeterminer;
+import net.ihe.gazelle.hl7v3.voc.NullFlavor;
 import net.ihe.gazelle.hl7v3.voc.ParticipationTargetSubject;
 import net.ihe.gazelle.hl7v3.voc.ParticipationType;
 import net.ihe.gazelle.hl7v3.voc.RoleClassAssignedEntity;
 import net.ihe.gazelle.hl7v3.voc.RoleClassContact;
 import net.ihe.gazelle.hl7v3.voc.XActMoodIntentEvent;
-import net.ihe.gazelle.hl7v3transformer.HL7V3Transformer;
 import org.hl7.fhir.r4.model.Address;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.ContactPoint;
 import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Identifier;
-import org.hl7.fhir.r4.model.Organization;
-import org.hl7.fhir.r4.model.Organization.OrganizationContactComponent;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Patient.PatientCommunicationComponent;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Timestamp;
+import org.openehealth.ipf.platform.camel.ihe.hl7v3.core.converters.JaxbHl7v3Converters;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -93,11 +91,13 @@ import static ch.bfh.ti.i4mi.mag.mhd.iti65.Iti65RequestConverter.noPrefix;
 public class Iti104AddRequestConverter extends PMIRRequestConverter {
 
     protected final MagMpiProps.MagMpiOidsProps mpiOidsProps;
+    protected final String organizationName;
 
     public Iti104AddRequestConverter(final SchemeMapper schemeMapper,
-                                     final MagMpiProps mpiProps) {
+                                     final MagProps magProps) {
         super(schemeMapper);
-        this.mpiOidsProps = mpiProps.getOids();
+        this.mpiOidsProps = magProps.getMpi().getOids();
+        this.organizationName = magProps.getOrganizationName();
     }
 
     /**
@@ -217,20 +217,6 @@ public class Iti104AddRequestConverter extends PMIRRequestConverter {
             patientPerson.addTelecom(transform(contactPoint));
         }
 
-        List<II> orgIds = new ArrayList<II>();
-        Organization managingOrg = getManagingOrganization(in);
-        // NULL POINTER CHECK
-        if (managingOrg != null) {
-            for (Identifier id : managingOrg.getIdentifier()) {
-                orgIds.add(new II(noPrefix(id.getSystem()), null));
-            }
-        } else {
-            Reference org = in.getManagingOrganization();
-            if (org != null && org.getIdentifier() != null) {
-                orgIds.add(new II(noPrefix(org.getIdentifier().getSystem()), org.getIdentifier().getValue()));
-            }
-        }
-
         if (in.hasDeceasedBooleanType()) {
             patientPerson.setDeceasedInd(new BL(in.getDeceasedBooleanType().getValue()));
         }
@@ -257,79 +243,10 @@ public class Iti104AddRequestConverter extends PMIRRequestConverter {
             }
         }
 
-        COCTMT150003UV03Organization providerOrganization = new COCTMT150003UV03Organization();
-        patient.setProviderOrganization(providerOrganization);
-        providerOrganization.setClassCode(EntityClassOrganization.ORG);
-        providerOrganization.setDeterminerCode(EntityDeterminer.INSTANCE);
+        patient.setProviderOrganization(this.generateProviderOrganization(in));
+        registrationEvent.setCustodian(this.generateCustodian());
 
-        providerOrganization.setId(orgIds);
-        ON name = null;
-        if (managingOrg != null && managingOrg.hasName()) {
-            name = new ON();
-            name.setMixed(Collections.singletonList(managingOrg.getName()));
-            providerOrganization.setName(Collections.singletonList(name));
-        }
-        if (managingOrg != null) {
-            COCTMT150003UV03ContactParty contactParty = new COCTMT150003UV03ContactParty();
-            contactParty.setClassCode(RoleClassContact.CON);
-            for (ContactPoint contactPoint : managingOrg.getTelecom()) {
-                contactParty.addTelecom(transform(contactPoint));
-            }
-            if (managingOrg.hasAddress()) {
-                contactParty.setAddr(new ArrayList<AD>());
-                for (Address address : managingOrg.getAddress()) {
-                    contactParty.addAddr(transform(address));
-                }
-                if (managingOrg.hasContact()) {
-                    OrganizationContactComponent occ = managingOrg.getContactFirstRep();
-                    COCTMT150003UV03Person contactPerson = new COCTMT150003UV03Person();
-                    contactPerson.setClassCode(EntityClass.PSN);
-                    contactPerson.setDeterminerCode(EntityDeterminer.INSTANCE);
-                    if (occ.hasName())
-                        contactPerson.setName(Collections.singletonList(transform(occ.getName())));
-                    contactParty.setContactPerson(contactPerson);
-                }
-                providerOrganization.setContactParty(Collections.singletonList(contactParty));
-            }
-
-            MFMIMT700701UV01Custodian custodian = new MFMIMT700701UV01Custodian();
-            registrationEvent.setCustodian(custodian);
-            custodian.setTypeCode(ParticipationType.CST);
-
-            COCTMT090003UV01AssignedEntity assignedEntity = new COCTMT090003UV01AssignedEntity();
-            custodian.setAssignedEntity(assignedEntity);
-            assignedEntity.setClassCode(RoleClassAssignedEntity.ASSIGNED);
-
-            List<II> custIds = new ArrayList<II>();
-            custIds.add(new II(noPrefix(this.mpiOidsProps.getCustodian()), null));
-
-            assignedEntity.setId(custIds);
-            // assignedEntity.setId(orgIds);
-
-            COCTMT090003UV01Organization assignedOrganization = new COCTMT090003UV01Organization();
-            assignedEntity.setAssignedOrganization(assignedOrganization);
-            assignedOrganization.setClassCode(EntityClassOrganization.ORG);
-            assignedOrganization.setDeterminerCode(EntityDeterminer.INSTANCE);
-            if (managingOrg.hasName()) {
-                assignedOrganization.setName(Collections.singletonList(name));
-            }
-        }
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        HL7V3Transformer.marshallMessage(PRPAIN201301UV02Type.class, out, resultMsg);
-
-        String outArray = new String(out.toByteArray());
-
-        return outArray;
-    }
-
-    @Nullable
-    Organization getManagingOrganization(final Patient patient) {
-        final Reference ref = patient.getManagingOrganization();
-        if (ref == null) {
-            return null;
-        }
-        return (Organization) ref.getResource();
+        return JaxbHl7v3Converters.PRPAIN201301UV02toXml(resultMsg);
     }
 
     Patient findPatient(Reference ref, Map<String, BundleEntryComponent> entriesbyReference, Patient current) {
@@ -352,5 +269,50 @@ public class Iti104AddRequestConverter extends PMIRRequestConverter {
 
     public PRPAMT201302UV02PatientId patientIdentifierUpd(Identifier id) {
         return new PRPAMT201302UV02PatientId(noPrefix(id.getSystem()), id.getValue());
+    }
+
+    COCTMT150003UV03Organization generateProviderOrganization(final Patient in) {
+        // Provider organization
+        // IDs are taken from the systems of Patient.id
+        // The name is taken from configuration
+        final var providerOrganization = new COCTMT150003UV03Organization();
+        providerOrganization.setClassCode(EntityClassOrganization.ORG);
+        providerOrganization.setDeterminerCode(EntityDeterminer.INSTANCE);
+
+        providerOrganization.setId(in.getIdentifier().stream()
+                                           .map(Identifier::getSystem)
+                                           .map(Iti65RequestConverter::noPrefix)
+                                           .map(system -> new II(system, null))
+                                           .toList());
+        final var name = new ON();
+        name.setMixed(List.of(this.organizationName));
+        providerOrganization.setName(List.of(name));
+
+        final var contactParty = new COCTMT150003UV03ContactParty();
+        contactParty.setNullFlavor(NullFlavor.UNK);
+        contactParty.setClassCode(RoleClassContact.CON);
+        providerOrganization.setContactParty(List.of(contactParty));
+        return providerOrganization;
+    }
+
+    MFMIMT700701UV01Custodian generateCustodian() {
+        final var custodian = new MFMIMT700701UV01Custodian();
+        custodian.setTypeCode(ParticipationType.CST);
+
+        final var assignedEntity = new COCTMT090003UV01AssignedEntity();
+        custodian.setAssignedEntity(assignedEntity);
+        assignedEntity.setClassCode(RoleClassAssignedEntity.ASSIGNED);
+        assignedEntity.setId(List.of(new II(noPrefix(this.mpiOidsProps.getCustodian()), null)));
+
+        final var assignedOrganization = new COCTMT090003UV01Organization();
+        assignedEntity.setAssignedOrganization(assignedOrganization);
+        assignedOrganization.setClassCode(EntityClassOrganization.ORG);
+        assignedOrganization.setDeterminerCode(EntityDeterminer.INSTANCE);
+
+        final var name = new ON();
+        name.setMixed(List.of(this.organizationName));
+        assignedOrganization.setName(List.of(name));
+
+        return custodian;
     }
 }

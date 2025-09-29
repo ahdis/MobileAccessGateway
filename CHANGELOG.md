@@ -2,8 +2,9 @@
 
 ## v2.0.1 - Unreleased
 
-- Fix the missing providerOrganization identifiers in ITI-44 requests.
+- Simplify the patient identifier feed ([#15](https://github.com/ahdis/MobileAccessGateway/issues/15)).
   The `Patient.managinOrganization` isn't needed anymore.
+- Create the configuration parameter `mag.organization-name`.
 - Fix the URN-encoding of `DocumentEntry.entryUUID` ([#16](https://github.com/ahdis/MobileAccessGateway/issues/16)).
 
 ## v2.0.0 - 2025/09/26
