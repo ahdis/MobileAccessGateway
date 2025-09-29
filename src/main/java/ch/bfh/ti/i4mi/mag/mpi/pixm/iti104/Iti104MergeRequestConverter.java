@@ -205,7 +205,7 @@ public class Iti104MergeRequestConverter extends Iti104UpdateRequestConverter {
 			  patientPerson.setClassCode(EntityClass.PSN);
 			  patientPerson.setDeterminerCode(EntityDeterminer.INSTANCE);
 			  patient.setPatientPerson(patientPerson );
-			  Organization managingOrg = getManagingOrganization(in, in.getContained());
+			  Organization managingOrg = getManagingOrganization(in);
 			  if (managingOrg != null) {
 				  for (Identifier id : managingOrg.getIdentifier()) {
 						orgIds.add(new II(noPrefix(id.getSystem()), null));

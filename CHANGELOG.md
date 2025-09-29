@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.0.1 - Unreleased
+
+- Fix the missing providerOrganization identifiers in ITI-44 requests.
+
 ## v2.0.0 - 2025/09/26
 
 - Initial release of this MobileAccessGateway instance for integration to the Swiss EPR.

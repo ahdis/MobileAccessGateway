@@ -20,6 +20,7 @@ import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
 import ch.bfh.ti.i4mi.mag.mhd.SchemeMapper;
 import ch.bfh.ti.i4mi.mag.mpi.pmir.PMIRRequestConverter;
+import jakarta.annotation.Nullable;
 import jakarta.xml.bind.JAXBException;
 import net.ihe.gazelle.hl7v3.coctmt090003UV01.COCTMT090003UV01AssignedEntity;
 import net.ihe.gazelle.hl7v3.coctmt090003UV01.COCTMT090003UV01Organization;
@@ -322,22 +323,13 @@ public class Iti104AddRequestConverter extends PMIRRequestConverter {
         return outArray;
     }
 
-    Organization getManagingOrganization(Patient in) {
-        return getManagingOrganization(in, null);
-    }
-
-    Organization getManagingOrganization(Patient in, List<Resource> container) {
-        Reference org = in.getManagingOrganization();
-        if (org == null)
+    @Nullable
+    Organization getManagingOrganization(final Patient patient) {
+        final Reference ref = patient.getManagingOrganization();
+        if (ref == null) {
             return null;
-        String targetRef = org.getReference();
-        List<Resource> resources = container != null ? container : in.getContained();
-        for (Resource resource : resources) {
-            if (targetRef.equals(resource.getId()) && resource instanceof Organization) {
-                return (Organization) resource;
-            }
         }
-        return null;
+        return (Organization) ref.getResource();
     }
 
     Patient findPatient(Reference ref, Map<String, BundleEntryComponent> entriesbyReference, Patient current) {
