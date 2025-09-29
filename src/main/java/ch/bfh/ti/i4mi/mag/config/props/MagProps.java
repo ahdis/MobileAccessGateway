@@ -1,6 +1,5 @@
 package ch.bfh.ti.i4mi.mag.config.props;
 
-
 import org.openehealth.ipf.boot.atna.IpfAtnaConfigurationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -11,6 +10,7 @@ public class MagProps {
     private String homeCommunityId;
     private String baseUrl;
     private String documentSourceId;
+    private String organizationName;
 
     private MagClientSslProps clientSsl;
     private MagXdsProps xds;
@@ -44,6 +44,14 @@ public class MagProps {
 
     public void setDocumentSourceId(final String documentSourceId) {
         this.documentSourceId = documentSourceId;
+    }
+
+    public String getOrganizationName() {
+        return this.organizationName;
+    }
+
+    public void setOrganizationName(final String organizationName) {
+        this.organizationName = organizationName;
     }
 
     public MagClientSslProps getClientSsl() {

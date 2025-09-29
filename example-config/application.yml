@@ -10,6 +10,7 @@ mag:
   homeCommunityId: urn:oid:1.2.3.5
   baseUrl: http://mag.ahdis.ch
   documentSourceId: urn:oid:1.3.6.1.4.1.12559.11.13.2.5
+  organizationName: ahdis
 
   client-ssl:
     enabled: true

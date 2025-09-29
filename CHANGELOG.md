@@ -3,6 +3,7 @@
 ## v2.0.1 - Unreleased
 
 - Fix the missing providerOrganization identifiers in ITI-44 requests.
+  The `Patient.managinOrganization` isn't needed anymore.
 - Fix the URN-encoding of `DocumentEntry.entryUUID` ([#16](https://github.com/ahdis/MobileAccessGateway/issues/16)).
 
 ## v2.0.0 - 2025/09/26
