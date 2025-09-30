@@ -15,8 +15,17 @@ env:
 jobs:
   setup-build-publish-deploy:
     name: Setup, Build, Publish, and Deploy
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     environment: production
+    # X64 runners are listed here: https://github.com/actions/runner-images
+    # ARM runners are listed here: https://github.com/actions/partner-runner-images
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
 
     permissions:
       contents: "read"
@@ -24,10 +33,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: actions/checkout@v4
 
       # Configure Workload Identity Federation and generate an access token.
       - id: "auth"
@@ -42,14 +48,14 @@ jobs:
         run: |-
           echo ${{steps.auth.outputs.access_token}} | docker login -u oauth2accesstoken --password-stdin https://$GAR_LOCATION-docker.pkg.dev
 
-      # Build the Docker image for arm and amd
+      # Build the Docker image for arm or amd
       - name: Build
         run: |-
-          docker buildx build \
+          docker build \
             --tag "$GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:$GITHUB_REF_NAME" \
             --build-arg GITHUB_SHA="$GITHUB_SHA" \
             --build-arg GITHUB_REF="$GITHUB_REF" \
             --push \
-            --platform=linux/amd64,linux/arm64 \
+            --platform=linux/${{ matrix.arch }} \
             -f Dockerfile \
             .
