@@ -54,4 +54,4 @@ ENTRYPOINT [ \
 ]
 
 # To publish a version manually:
-# docker buildx build --tag "europe-west6-docker.pkg.dev/ahdis-ch/ahdis/mag-cara:v2.0.1" --push --platform=linux/amd64 -f Dockerfile .
+# docker buildx build --tag "europe-west6-docker.pkg.dev/ahdis-ch/ahdis/mag-cara:v2.0.2" --push --platform=linux/amd64 -f Dockerfile .

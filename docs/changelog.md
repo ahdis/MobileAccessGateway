@@ -1,6 +1,6 @@
 # 7. Changelog
 
-## v2.0.1 - Unreleased
+## v2.0.1 - 2025/09/30
 
 - Simplify the patient identifier feed ([#15](https://github.com/ahdis/MobileAccessGateway/issues/15)).
   The `Patient.managinOrganization` isn't needed anymore.
