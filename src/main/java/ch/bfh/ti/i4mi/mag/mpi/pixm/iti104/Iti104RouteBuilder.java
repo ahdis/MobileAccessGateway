@@ -24,11 +24,7 @@ import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
 import ch.bfh.ti.i4mi.mag.mpi.common.Iti47ResponseToFhirConverter;
 import ch.bfh.ti.i4mi.mag.mpi.pdqm.iti78.Iti78RequestConverter;
-import jakarta.xml.ws.soap.SOAPFaultException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.Exchange;
-import org.apache.camel.support.ExpressionAdapter;
-import org.hl7.fhir.r4.model.Bundle;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -44,15 +40,12 @@ class Iti104RouteBuilder extends MagRouteBuilder {
 
     private final MagMpiProps mpiProps;
     private final Iti104ResponseConverter response104Converter;
-    private final Iti47ResponseToFhirConverter response78Converter;
 
     public Iti104RouteBuilder(final MagProps magProps,
-                              final Iti104ResponseConverter response104Converter,
-                              final Iti47ResponseToFhirConverter response78Converter) {
+                              final Iti104ResponseConverter response104Converter) {
         super(magProps);
         this.mpiProps = magProps.getMpi();
         this.response104Converter = response104Converter;
-        this.response78Converter = response78Converter;
     }
 
     @Override
@@ -86,7 +79,7 @@ class Iti104RouteBuilder extends MagRouteBuilder {
                             .bean(Iti78RequestConverter.class, "fromMethodOutcome")
                             .process(TraceparentHandler.updateHeaderForSoap())
                             .to(xds47Endpoint)
-                            .process(translateToFhir(this.response78Converter, byte[].class))
+                            .bean(Iti47ResponseToFhirConverter.class, "convertForIti104")
                             .process(TraceparentHandler.updateHeaderForFhir())
                             .process(Iti104ResponseConverter.addPatientToOutcome())
                         .endChoice()

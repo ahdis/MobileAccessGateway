@@ -6,6 +6,8 @@
   The `Patient.managinOrganization` isn't needed anymore.
 - Create the configuration parameter `mag.organization-name`.
 - Fix the URN-encoding of `DocumentEntry.entryUUID` ([#16](https://github.com/ahdis/MobileAccessGateway/issues/16)).
+- Don't return an OperationOutcome in ITI-119 when there are no matches
+  ([#17](https://github.com/ahdis/MobileAccessGateway/issues/17)).
 
 ## v2.0.0 - 2025/09/26
 

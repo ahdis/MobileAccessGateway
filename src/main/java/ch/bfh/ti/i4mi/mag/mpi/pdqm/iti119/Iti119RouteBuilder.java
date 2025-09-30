@@ -6,15 +6,11 @@ import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
 import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
-import ch.bfh.ti.i4mi.mag.mhd.BaseResponseConverter;
 import ch.bfh.ti.i4mi.mag.mpi.common.Iti47ResponseToFhirConverter;
-import jakarta.xml.ws.soap.SOAPFaultException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-
-import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslators.translateToFhir;
 
 /**
  * IHE PDQm: ITI-119 Patient Demographics Match
@@ -25,13 +21,10 @@ public class Iti119RouteBuilder extends MagRouteBuilder {
     private static final Logger log = LoggerFactory.getLogger(Iti119RouteBuilder.class);
 
     private final MagMpiProps mpiProps;
-    private final Iti47ResponseToFhirConverter responseConverter;
 
-    public Iti119RouteBuilder(final MagProps magProps,
-                              final Iti47ResponseToFhirConverter responseConverter) {
+    public Iti119RouteBuilder(final MagProps magProps) {
         super(magProps);
         this.mpiProps = magProps.getMpi();
-        this.responseConverter = responseConverter;
         log.debug("Iti119RouteBuilder initialized");
     }
 
@@ -53,7 +46,7 @@ public class Iti119RouteBuilder extends MagRouteBuilder {
                     .bean(Iti119RequestConverter.class, "convert")
                     .to(xds47Endpoint)
                     .process(TraceparentHandler.updateHeaderForFhir())
-                    .process(translateToFhir(this.responseConverter, byte[].class))
+                    .bean(Iti47ResponseToFhirConverter.class, "convertForIti119")
                     .bean(PatientIdInterceptor.class, "interceptBundleOfPatients")
                 .doCatch(Exception.class)
                     .setBody(simple("${exception}"))

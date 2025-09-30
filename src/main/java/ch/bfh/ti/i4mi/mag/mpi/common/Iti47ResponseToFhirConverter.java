@@ -44,8 +44,6 @@ import net.ihe.gazelle.hl7v3.prpamt201310UV02.PRPAMT201310UV02QueryMatchObservat
 import net.ihe.gazelle.hl7v3.prpamt201310UV02.PRPAMT201310UV02Subject;
 import net.ihe.gazelle.hl7v3transformer.HL7V3Transformer;
 import org.hl7.fhir.r4.model.BooleanType;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.IntegerType;
@@ -57,7 +55,6 @@ import org.hl7.fhir.r4.model.Patient.PatientCommunicationComponent;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.codesystems.MatchGrade;
-import org.openehealth.ipf.commons.ihe.fhir.translation.ToFhirTranslator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -66,7 +63,6 @@ import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -87,7 +83,7 @@ import static org.openehealth.ipf.commons.ihe.fhir.iti119.AdditionalResourceMeta
  * @author alexander kreutz
  */
 @Component
-public class Iti47ResponseToFhirConverter implements ToFhirTranslator<byte[]> {
+public class Iti47ResponseToFhirConverter {
     private static final Logger log = LoggerFactory.getLogger(Iti47ResponseToFhirConverter.class);
 
     private final SchemeMapper schemeMapper;
@@ -98,9 +94,24 @@ public class Iti47ResponseToFhirConverter implements ToFhirTranslator<byte[]> {
         this.mpiProps = mpiProps;
     }
 
-    public List<Resource> translateToFhir(final byte[] input, final Map<String, Object> parameters) {
+    @SuppressWarnings("unused")
+    public List<Resource> convertForIti119(final byte[] input) {
+        return this.convertAndCatch(input, false);
+    }
+
+    @SuppressWarnings("unused")
+    public List<Resource> convertForIti78(final byte[] input) {
+        return this.convertAndCatch(input, true);
+    }
+
+    @SuppressWarnings("unused")
+    public List<Resource> convertForIti104(final byte[] input) {
+        return this.convertAndCatch(input, false);
+    }
+
+    private List<Resource> convertAndCatch(final byte[] input, final boolean verifyAck) {
         try {
-            return this.doTranslate(input);
+            return this.convert(input, verifyAck);
         } catch (final BaseServerResponseException controlledException) {
             log.debug("ITI-47 response converter: caught an HAPI exception", controlledException);
             throw controlledException;
@@ -113,13 +124,15 @@ public class Iti47ResponseToFhirConverter implements ToFhirTranslator<byte[]> {
         }
     }
 
-    public List<Resource> doTranslate(final byte[] input) throws Exception {
+    private List<Resource> convert(final byte[] input, final boolean verifyAck) throws Exception {
         final PRPAIN201306UV02Type pdqResponse = HL7V3Transformer.unmarshallMessage(PRPAIN201306UV02Type.class,
                                                                                     new ByteArrayInputStream(input));
         final PRPAIN201306UV02MFMIMT700711UV01ControlActProcess controlAct = pdqResponse.getControlActProcess();
 
-        // OK NF AE
-        verifyAck(controlAct.getQueryAck().getQueryResponseCode(), pdqResponse.getAcknowledgement(), "ITI-47");
+        if (verifyAck) {
+            // OK NF AE
+            verifyAck(controlAct.getQueryAck().getQueryResponseCode(), pdqResponse.getAcknowledgement(), "ITI-47");
+        }
 
         final List<PRPAIN201306UV02MFMIMT700711UV01Subject1> subjects = controlAct.getSubject();
         if (this.mpiProps.isChPdqmConstraints() && subjects.size() > 5) {
@@ -279,7 +292,7 @@ public class Iti47ResponseToFhirConverter implements ToFhirTranslator<byte[]> {
             // This is HAPI's way to store Bundle.entry.search information for resources that are returned directly.
             // I.e. we can't make the Bundle ourselves here, because the consumer expects a List<Resource>.
             ENTRY_SEARCH_MODE.put(result, MATCH);
-            ENTRY_SEARCH_SCORE.put(result, new BigDecimal(score));
+            ENTRY_SEARCH_SCORE.put(result, BigDecimal.valueOf(score));
             ENTRY_MATCH_GRADE.put(result, scoreCode);
 
             patients.add(result);

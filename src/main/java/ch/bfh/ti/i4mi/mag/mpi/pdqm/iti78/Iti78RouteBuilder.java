@@ -22,15 +22,11 @@ import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
 import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
-import ch.bfh.ti.i4mi.mag.mhd.BaseResponseConverter;
 import ch.bfh.ti.i4mi.mag.mpi.common.Iti47ResponseToFhirConverter;
-import jakarta.xml.ws.soap.SOAPFaultException;
 import lombok.extern.slf4j.Slf4j;
 import org.openehealth.ipf.commons.ihe.fhir.Constants;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-
-import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslators.translateToFhir;
 
 /**
  * IHE PDQM: ITI-78 Patient Demographics Query
@@ -41,13 +37,10 @@ import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslat
 public class Iti78RouteBuilder extends MagRouteBuilder {
 
     private final MagMpiProps mpiProps;
-    private final Iti47ResponseToFhirConverter responseConverter;
 
-    public Iti78RouteBuilder(final MagProps magProps,
-                             final Iti47ResponseToFhirConverter responseConverter) {
+    public Iti78RouteBuilder(final MagProps magProps) {
         super(magProps);
         this.mpiProps = magProps.getMpi();
-        this.responseConverter = responseConverter;
     }
 
     @Override
@@ -75,7 +68,7 @@ public class Iti78RouteBuilder extends MagRouteBuilder {
                 .doTry()
                     .to(xds47Endpoint)
                     .process(TraceparentHandler.updateHeaderForFhir())
-                    .process(translateToFhir(responseConverter, byte[].class))
+                    .bean(Iti47ResponseToFhirConverter.class, "convertForIti78")
                     .bean(PatientIdInterceptor.class, "interceptBundleOfPatients")
                 .doCatch(Exception.class)
                     .setBody(simple("${exception}"))
