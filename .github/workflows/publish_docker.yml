@@ -1,4 +1,4 @@
-name: Build and Upload to Google Artifact registry
+name: Build and Publish to GAR
 
 on:
   workflow_dispatch:
@@ -6,26 +6,11 @@ on:
     tags:
       - "*"
 
-env:
-  PROJECT_ID: ahdis-ch
-  GAR_LOCATION: europe-west6
-  REPOSITORY: ahdis
-  IMAGE: mag-cara
-
 jobs:
   setup-build-publish-deploy:
-    name: Setup, Build, Publish, and Deploy
-    runs-on: ${{ matrix.runner }}
+    name: Build and Publish to GAR
+    runs-on: ubuntu-latest
     environment: production
-    # X64 runners are listed here: https://github.com/actions/runner-images
-    # ARM runners are listed here: https://github.com/actions/partner-runner-images
-    strategy:
-      matrix:
-        include:
-          - arch: amd64
-            runner: ubuntu-24.04
-          - arch: arm64
-            runner: ubuntu-24.04-arm
 
     permissions:
       contents: "read"
@@ -35,27 +20,58 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Configure Workload Identity Federation and generate an access token.
-      - id: "auth"
-        name: "Authenticate to Google Cloud"
-        uses: "google-github-actions/auth@v1"
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          token_format: "access_token"
+          images: |
+            europe-west6-docker.pkg.dev/ahdis-ch/ahdis/mag-cara
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern=v{{version}}
+            type=semver,pattern=v{{major}}.{{minor}}
+            type=semver,pattern=v{{major}}
+            type=sha
+          labels: |
+            org.opencontainers.image.created={{commit_date 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'}}
+
+      # Configure Workload Identity Federation and generate an access token.
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v1
+        with:
+          token_format: access_token
           workload_identity_provider: "projects/1022310475153/locations/global/workloadIdentityPools/github-wif-pool/providers/oidc-github-provider"
           service_account: "github@ahdis-ch.iam.gserviceaccount.com"
 
-      - name: Docker configuration
-        run: |-
-          echo ${{steps.auth.outputs.access_token}} | docker login -u oauth2accesstoken --password-stdin https://$GAR_LOCATION-docker.pkg.dev
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: europe-west6-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
 
-      # Build the Docker image for arm or amd
-      - name: Build
-        run: |-
-          docker build \
-            --tag "$GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:$GITHUB_REF_NAME" \
-            --build-arg GITHUB_SHA="$GITHUB_SHA" \
-            --build-arg GITHUB_REF="$GITHUB_REF" \
-            --push \
-            --platform=linux/${{ matrix.arch }} \
-            -f Dockerfile \
-            .
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          provenance: mode=max
+          sbom: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            BUILDTIME=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}

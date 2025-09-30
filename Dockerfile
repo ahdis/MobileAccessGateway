@@ -31,8 +31,10 @@ COPY --from=builder /mag-jre /opt/jdk
 ENV PATH=$PATH:/opt/jdk/bin
 EXPOSE 9090/tcp
 LABEL org.opencontainers.image.url="https://github.com/ahdis/MobileAccessGateway"
+LABEL org.opencontainers.image.source="https://github.com/ahdis/MobileAccessGateway"
 LABEL org.opencontainers.image.title="MobileAccessGateway"
 LABEL org.opencontainers.image.vendor="ahdis ag"
+LABEL org.opencontainers.image.documentation="https://ahdis.github.io/MobileAccessGateway/"
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 RUN apk add libstdc++ && apk --purge del
