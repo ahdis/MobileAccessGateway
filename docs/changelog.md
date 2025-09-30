@@ -1,5 +1,9 @@
 # 7. Changelog
 
+## v2.0.2 - unreleased
+
+- Enable https with client certificates and without ([#19](https://github.com/ahdis/MobileAccessGateway/issues/19)).
+
 ## v2.0.1 - 2025/09/30
 
 - Simplify the patient identifier feed ([#15](https://github.com/ahdis/MobileAccessGateway/issues/15)).
