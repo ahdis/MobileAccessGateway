@@ -10,22 +10,17 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-import java.io.FileInputStream;
-import java.security.KeyStore;
-
 @Configuration
 public class TlsConfiguration {
 
     public static final String BEAN_TLS_CONTEXT_WS = "wsTlsContext";
 
     @Bean(name = BEAN_TLS_CONTEXT_WS)
-    @ConditionalOnProperty(
-            value = "mag.client-ssl.enabled",
-            havingValue = "true",
-            matchIfMissing = false)
     public SSLContextParameters getWsTlsContext(final MagClientSslProps magProps) {
+
+        if (!magProps.isEnabled()) {
+            return  new SSLContextParameters();
+        }
         final var ksp = new KeyStoreParameters();
 
         // https://www.baeldung.com/java-keystore
@@ -48,25 +43,11 @@ public class TlsConfiguration {
         final var scp = new SSLContextParameters();
         scp.setKeyManagers(kmp);
         scp.setTrustManagers(tmp);
+
+
         //scp.setCertAlias(certAlias);
 
         return scp;
-    }
-
-    @Bean
-    @ConditionalOnProperty("mag.client-ssl.truststore.path")
-    public SSLContext sslContext(final MagClientSslProps magProps) throws Exception {
-        final var trustStore = KeyStore.getInstance("JKS");
-        try (FileInputStream fis = new FileInputStream(magProps.getTruststore().getPath())) {
-            trustStore.load(fis, magProps.getTruststore().getPassword().toCharArray());
-        }
-
-        final var tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        tmf.init(trustStore);
-
-        final var sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, tmf.getTrustManagers(), null);
-        return sslContext;
     }
 
     @Bean
