@@ -17,14 +17,11 @@ public class TlsConfiguration {
 
     @Bean(name = BEAN_TLS_CONTEXT_WS)
     public SSLContextParameters getWsTlsContext(final MagClientSslProps magProps) {
-
         if (!magProps.isEnabled()) {
-            return  new SSLContextParameters();
+            return new SSLContextParameters();
         }
-        final var ksp = new KeyStoreParameters();
 
-        // https://www.baeldung.com/java-keystore
-        // Keystore file may be found at src/main/resources
+        final var ksp = new KeyStoreParameters();
         ksp.setResource(magProps.getKeyStore().getPath());
         ksp.setPassword(magProps.getKeyStore().getPassword());
 
@@ -33,7 +30,6 @@ public class TlsConfiguration {
         kmp.setKeyPassword(magProps.getKeyStore().getPassword());
 
         final var tsp = new KeyStoreParameters();
-        // Truststore file may be found at src/main/resources
         tsp.setResource(magProps.getTruststore().getPath());
         tsp.setPassword(magProps.getTruststore().getPassword());
 
@@ -43,7 +39,6 @@ public class TlsConfiguration {
         final var scp = new SSLContextParameters();
         scp.setKeyManagers(kmp);
         scp.setTrustManagers(tmp);
-
 
         //scp.setCertAlias(certAlias);
 
@@ -57,9 +52,6 @@ public class TlsConfiguration {
             matchIfMissing = false)
     public TlsParameters getAtnaTlsParameters(final MagClientSslProps magProps) {
         final var ksp = new KeyStoreParameters();
-
-        // https://www.baeldung.com/java-keystore
-        // Keystore file may be found at src/main/resources
         ksp.setResource(magProps.getKeyStore().getPath());
         ksp.setPassword(magProps.getKeyStore().getPassword());
 
