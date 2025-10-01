@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
  * https://oehf.github.io/ipf-docs/docs/boot-fhir/ https://camel.apache.org/components/latest/servlet-component.html
  */
 @Component
-@ConditionalOnProperty("mag.xds.iti-43")
+@ConditionalOnProperty({"mag.xds.iti-43", "mag.xds.xca-39"})
 class Iti68RouteBuilder extends MagRouteBuilder {
     private static final Logger log = LoggerFactory.getLogger(Iti68RouteBuilder.class);
 

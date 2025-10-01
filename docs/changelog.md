@@ -3,6 +3,7 @@
 ## v2.0.2 - unreleased
 
 - Enable https with client certificates and without ([#19](https://github.com/ahdis/MobileAccessGateway/issues/19)).
+- Fix startup issue when XCA endpoints are not defined ([#18](https://github.com/ahdis/MobileAccessGateway/issues/18)).
 
 ## v2.0.1 - 2025/09/30
 

@@ -43,7 +43,7 @@ import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslat
  * IHE MHD: Find Document References [ITI-67] for Document Responder https://oehf.github.io/ipf-docs/docs/ihe/iti67/
  */
 @Component
-@ConditionalOnProperty({"mag.xds.iti-18", "mag.xds.iti-57"})
+@ConditionalOnProperty({"mag.xds.iti-18", "mag.xds.xca-38", "mag.xds.iti-57"})
 class Iti67RouteBuilder extends MagRouteBuilder {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(Iti67RouteBuilder.class);
     private final MagXdsProps xdsProps;
