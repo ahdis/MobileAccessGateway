@@ -1,6 +1,6 @@
 # 7. Changelog
 
-## v2.0.2 - unreleased
+## v2.0.2 - 2025/10/01
 
 - Enable https with client certificates and without ([#19](https://github.com/ahdis/MobileAccessGateway/issues/19)).
 - Fix startup issue when XCA endpoints are not defined ([#18](https://github.com/ahdis/MobileAccessGateway/issues/18)).
@@ -8,7 +8,7 @@
 ## v2.0.1 - 2025/09/30
 
 - Simplify the patient identifier feed ([#15](https://github.com/ahdis/MobileAccessGateway/issues/15)).
-  The `Patient.managinOrganization` isn't needed anymore.
+  The `Patient.managingOrganization` isn't needed anymore.
 - Create the configuration parameter `mag.organization-name`.
 - Fix the URN-encoding of `DocumentEntry.entryUUID` ([#16](https://github.com/ahdis/MobileAccessGateway/issues/16)).
 - Don't return an OperationOutcome in ITI-119 when there are no matches
