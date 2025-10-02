@@ -4,7 +4,7 @@
 		"name": "MobileAccessGateway CARA",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "143031",
-		"_collection_link": "https://speeding-trinity-275909.postman.co/workspace/workshop~037fb6d5-a281-4614-97ca-c6c5c9718c61/collection/143031-07e795be-825e-420f-b2be-a6d08648d2be?action=share&source=collection_link&creator=143031"
+		"_collection_link": "https://speeding-trinity-275909.postman.co/workspace/037fb6d5-a281-4614-97ca-c6c5c9718c61/collection/143031-07e795be-825e-420f-b2be-a6d08648d2be?action=share&source=collection_link&creator=143031"
 	},
 	"item": [
 		{
@@ -507,26 +507,31 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
+									"\r",
+									"pm.collectionVariables.set(\"idpToken\", \"\");\r",
+									"// http://test.ahdis.ch/eprik-cara/camel/cara/ahdis/STS/services/SecurityTokenService\r",
+									"// http://ikit.cara.ch/dep/proxy/cara/ahdis/STS/services/SecurityTokenService\r",
+									"\r",
+									"const tcu = pm.collectionVariables.get(\"tcu-ikit-name\");\r",
+									"\r",
 									"async function fetchTCUAssertion() {\r",
 									"    const response = await pmFetch({\r",
-									"        url: 'https://test.ahdis.ch/idp/tcu/epr_int_post_egger',\r",
+									"        url: (pm.request.url.toString().startsWith('http://test.ahdis.ch/eprik-cara') ? 'https://test.ahdis.ch/idp/tcu/'+tcu: 'https://ikit.cara.ch/idp/tcu/'+tcu ),\r",
 									"        method: 'GET',\r",
 									"        header: {\r",
 									"            'Accept': 'application/xml'\r",
 									"        }\r",
 									"    });\r",
-									"\r",
 									"    const htmlResponse = await response.text();\r",
-									"\r",
 									"    const matches = htmlResponse.match(/<saml2:Assertion.+<\\/saml2:Assertion>/s);\r",
 									"    if (matches && matches[0]) {\r",
 									"        pm.collectionVariables.set(\"idpToken\", matches[0]);\r",
 									"        console.log(\"SAML Assertion successfully retrieved and stored.\");\r",
-									"        console.log(matches[0]); // Affiche le contenu dans la console Postman\r",
 									"    } else {\r",
 									"        console.warn(\"SAML Assertion not found in response.\");\r",
 									"    }\r",
 									"}\r",
+									"\r",
 									"\r",
 									"function pmFetch(options) {\r",
 									"    return new Promise((resolve, reject) => {\r",
@@ -537,8 +542,7 @@
 									"    });\r",
 									"}\r",
 									"\r",
-									"fetchTCUAssertion();\r",
-									""
+									"fetchTCUAssertion();"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -550,15 +554,37 @@
 							"script": {
 								"exec": [
 									"const response = pm.response.text();\r",
-									"console.log(response);\r",
 									"\r",
-									"const matches = response.match(/<saml2:Assertion.+<\\/saml2:Assertion>/s);\r",
+									"function base64ToBytes(base64) {\r",
+									"  const binString = atob(base64);\r",
+									"  return Uint8Array.from(binString, (m) => m.codePointAt(0));\r",
+									"}\r",
+									"\r",
+									"function bytesToBase64(bytes) {\r",
+									"  const binString = Array.from(bytes, (byte) =>\r",
+									"    String.fromCodePoint(byte),\r",
+									"  ).join(\"\");\r",
+									"  return btoa(binString);\r",
+									"}\r",
+									"\r",
+									"matches = response.match(/<saml2:Assertion.+<\\/saml2:Assertion>/s);\r",
 									"if (matches && matches[0]) {\r",
-									"  console.log(\"XUA Token Assertion successfully retrieved and stored.\");\r",
+									"  console.log(\"EMDEO XUA Token Assertion successfully retrieved and stored.\");\r",
+									"  pm.collectionVariables.set(\"bearer\", bytesToBase64(new TextEncoder().encode(matches[0])));\r",
 									"  pm.collectionVariables.set(\"xuaToken\", matches[0]);\r",
-									"  pm.collectionVariables.set(\"bearer\", btoa(matches[0]));\r",
 									"} else {\r",
-									"  console.log(\"XUA Token Assertion not retrieved.\");\r",
+									"  // emedo\r",
+									"    matches = response.match(/<saml:Assertion.+<\\/saml:Assertion>/s);\r",
+									"    if (matches && matches[0]) {\r",
+									"        // ith\r",
+									"        console.log(\"ITH XUA Token Assertion successfully retrieved and stored.\");\r",
+									"        pm.collectionVariables.set(\"bearer\", bytesToBase64(new TextEncoder().encode(matches[0])));\r",
+									"        pm.collectionVariables.set(\"xuaToken\", matches[0]);\r",
+									"    } else {\r",
+									"        pm.collectionVariables.set(\"bearer\", \"\");\r",
+									"        pm.collectionVariables.set(\"xuaToken\", \"\");\r",
+									"        console.log(\"Failed to get XUA token\");\r",
+									"    }\r",
 									"}\r",
 									""
 								],
@@ -582,7 +608,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "<env:Envelope xmlns:env=\"http://www.w3.org/2003/05/soap-envelope\">\r\n\t<env:Header xmlns:wsa=\"http://www.w3.org/2005/08/addressing\">\r\n\t\t<wsa:Action>http://docs.oasis-open.org/ws-sx/ws-trust/200512/RST/Issue</wsa:Action>\r\n\t\t<wsa:MessageID>{{$guid}}</wsa:MessageID>\r\n        <wsa:To>https://test.ahdis.ch/eprik-cara/camel/cara/ahdis/STS/services/SecurityTokenService</wsa:To>\r\n\t\t<wsse:Security xmlns:wsse=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd\">\r\n\t\t\t{{idpToken}}\r\n\t\t</wsse:Security>\r\n\t</env:Header>\r\n\t<env:Body>\r\n        <wst:RequestSecurityToken xmlns:wst=\"http://docs.oasis-open.org/ws-sx/ws-trust/200512\">\r\n\t\t\t<wst:RequestType>http://docs.oasis-open.org/ws-sx/ws-trust/200512/Issue</wst:RequestType>\r\n\t\t\t<wsp:AppliesTo xmlns:wsp=\"http://schemas.xmlsoap.org/ws/2004/09/policy\">\r\n\t\t\t\t<wsa:EndpointReference xmlns:wsa=\"http://www.w3.org/2005/08/addressing\">\r\n\t\t\t\t\t<wsa:Address>https://test.ahdis.ch/mag-cara</wsa:Address>\r\n\t\t\t\t</wsa:EndpointReference>\r\n\t\t\t</wsp:AppliesTo>\r\n\t\t\t<wst:TokenType>http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0</wst:TokenType>\r\n\t\t\t<wst:Claims Dialect=\"http://www.bag.admin.ch/epr/2017/annex/5/amendment/2\">\r\n\t\t\t\t<saml2:Attribute xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\" Name=\"urn:oasis:names:tc:xacml:2.0:resource:resource-id\">\r\n\t\t\t\t\t<saml2:AttributeValue xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"xs:string\">{{eprSpid}}^^^&amp;2.16.756.5.30.1.127.3.10.3&amp;ISO</saml2:AttributeValue>\r\n\t\t\t\t</saml2:Attribute>\r\n\t\t\t\t<saml2:Attribute xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\" Name=\"urn:oasis:names:tc:xspa:1.0:subject:purposeofuse\">\r\n\t\t\t\t\t<saml2:AttributeValue xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"xs:anyType\">\r\n\t\t\t\t\t\t<PurposeOfUse xmlns=\"urn:hl7-org:v3\" code=\"AUTO\" codeSystem=\"2.16.756.5.30.1.127.3.10.5\" codeSystemName=\"eHealth Suisse Verwendungszweck\" displayName=\"Automatic Upload\" xsi:type=\"CE\"/>\r\n\t\t\t\t\t</saml2:AttributeValue>\r\n\t\t\t\t</saml2:Attribute>\r\n\t\t\t\t<saml2:Attribute xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\" Name=\"urn:oasis:names:tc:xacml:2.0:subject:role\" NameFormat=\"urn:oasis:names:tc:SAML:2.0:attrname-format:unspecified\">\r\n\t\t\t\t\t<saml2:AttributeValue xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">\r\n\t\t\t\t\t\t<Role xmlns=\"urn:hl7-org:v3\" code=\"TCU\" codeSystem=\"2.16.756.5.30.1.127.3.10.6\" codeSystemName=\"eHealth Suisse EPR Akteure\" displayName=\"Technical user\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"CE\"/>\r\n\t\t\t\t\t</saml2:AttributeValue>\r\n\t\t\t\t</saml2:Attribute>\r\n                <saml2:Attribute Name=\"urn:e-health-suisse:principal-id\" xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\">\r\n                    <saml2:AttributeValue xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"xs:string\">2000040030829</saml2:AttributeValue>\r\n                </saml2:Attribute>\r\n                    <saml2:Attribute Name=\"urn:e-health-suisse:principal-name\" xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\">\r\n                    <saml2:AttributeValue xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"xs:string\">Oliver Egger</saml2:AttributeValue>\r\n                </saml2:Attribute>\r\n\t\t\t</wst:Claims>\r\n\t\t</wst:RequestSecurityToken>\r\n\t</env:Body>\r\n</env:Envelope>",
+							"raw": "<env:Envelope xmlns:env=\"http://www.w3.org/2003/05/soap-envelope\">\r\n\t<env:Header xmlns:wsa=\"http://www.w3.org/2005/08/addressing\">\r\n\t\t<wsa:Action>http://docs.oasis-open.org/ws-sx/ws-trust/200512/RST/Issue</wsa:Action>\r\n\t\t<wsa:MessageID>{{$guid}}</wsa:MessageID>\r\n        <wsa:To>https://test.ahdis.ch/eprik-cara/camel/cara/ahdis/STS/services/SecurityTokenService</wsa:To>\r\n\t\t<wsse:Security xmlns:wsse=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd\">\r\n\t\t\t{{idpToken}}\r\n\t\t</wsse:Security>\r\n\t</env:Header>\r\n\t<env:Body>\r\n        <wst:RequestSecurityToken xmlns:wst=\"http://docs.oasis-open.org/ws-sx/ws-trust/200512\">\r\n\t\t\t<wst:RequestType>http://docs.oasis-open.org/ws-sx/ws-trust/200512/Issue</wst:RequestType>\r\n\t\t\t<wsp:AppliesTo xmlns:wsp=\"http://schemas.xmlsoap.org/ws/2004/09/policy\">\r\n\t\t\t\t<wsa:EndpointReference xmlns:wsa=\"http://www.w3.org/2005/08/addressing\">\r\n\t\t\t\t\t<wsa:Address>https://test.ahdis.ch/mag-cara</wsa:Address>\r\n\t\t\t\t</wsa:EndpointReference>\r\n\t\t\t</wsp:AppliesTo>\r\n\t\t\t<wst:TokenType>http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0</wst:TokenType>\r\n\t\t\t<wst:Claims Dialect=\"http://www.bag.admin.ch/epr/2017/annex/5/amendment/2\">\r\n\t\t\t\t<saml2:Attribute xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\" Name=\"urn:oasis:names:tc:xacml:2.0:resource:resource-id\">\r\n\t\t\t\t\t<saml2:AttributeValue xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"xs:string\">{{eprSpid}}^^^&amp;2.16.756.5.30.1.127.3.10.3&amp;ISO</saml2:AttributeValue>\r\n\t\t\t\t</saml2:Attribute>\r\n\t\t\t\t<saml2:Attribute xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\" Name=\"urn:oasis:names:tc:xspa:1.0:subject:purposeofuse\">\r\n\t\t\t\t\t<saml2:AttributeValue xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"xs:anyType\">\r\n\t\t\t\t\t\t<PurposeOfUse xmlns=\"urn:hl7-org:v3\" code=\"AUTO\" codeSystem=\"2.16.756.5.30.1.127.3.10.5\" codeSystemName=\"eHealth Suisse Verwendungszweck\" displayName=\"Automatic Upload\" xsi:type=\"CE\"/>\r\n\t\t\t\t\t</saml2:AttributeValue>\r\n\t\t\t\t</saml2:Attribute>\r\n\t\t\t\t<saml2:Attribute xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\" Name=\"urn:oasis:names:tc:xacml:2.0:subject:role\" NameFormat=\"urn:oasis:names:tc:SAML:2.0:attrname-format:unspecified\">\r\n\t\t\t\t\t<saml2:AttributeValue xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">\r\n\t\t\t\t\t\t<Role xmlns=\"urn:hl7-org:v3\" code=\"TCU\" codeSystem=\"2.16.756.5.30.1.127.3.10.6\" codeSystemName=\"eHealth Suisse EPR Akteure\" displayName=\"Technical user\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"CE\"/>\r\n\t\t\t\t\t</saml2:AttributeValue>\r\n\t\t\t\t</saml2:Attribute>\r\n                <saml2:Attribute Name=\"urn:e-health-suisse:principal-id\" xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\">\r\n                    <saml2:AttributeValue xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"xs:string\">{{tcu-gln}}</saml2:AttributeValue>\r\n                </saml2:Attribute>\r\n                    <saml2:Attribute Name=\"urn:e-health-suisse:principal-name\" xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\">\r\n                    <saml2:AttributeValue xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"xs:string\">{{tcu-name}}</saml2:AttributeValue>\r\n                </saml2:Attribute>\r\n\t\t\t</wst:Claims>\r\n\t\t</wst:RequestSecurityToken>\r\n\t</env:Body>\r\n</env:Envelope>",
 							"options": {
 								"raw": {
 									"language": "xml"
@@ -1128,6 +1154,19 @@
 		{
 			"key": "name-given",
 			"value": ""
+		},
+		{
+			"key": "tcu-ikit-name",
+			"value": ""
+		},
+		{
+			"key": "tcu-gln",
+			"value": ""
+		},
+		{
+			"key": "tcu-name",
+			"value": "",
+			"type": "default"
 		}
 	]
 }

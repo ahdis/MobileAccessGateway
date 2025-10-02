@@ -1,9 +1,14 @@
 # 7. Changelog
 
+## v2.0.3 - unreleased
+
+- Add STS/TCU support for emedo [#24](https://github.com/ahdis/MobileAccessGateway/issues/24)).
+- Update Postman collection for emedo
+
 ## v2.0.2 - 2025/10/01
 
 - Enable https with client certificates and without ([#19](https://github.com/ahdis/MobileAccessGateway/issues/19)).
-- Fix startup issue when XCA endpoints are not defined ([#18](https://github.com/ahdis/MobileAccessGateway/issues/18)).
+- Fix startup issue when XCA endpoints are not defined ([#18](https://github.com/ahdis/MobileAccessGateway/issues/18)). 
 
 ## v2.0.1 - 2025/09/30
 
