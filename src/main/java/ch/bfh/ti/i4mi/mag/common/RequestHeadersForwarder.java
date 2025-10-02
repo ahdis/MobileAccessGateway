@@ -1,6 +1,17 @@
 package ch.bfh.ti.i4mi.mag.common;
 
-import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
+import static org.openehealth.ipf.platform.camel.ihe.ws.AbstractWsEndpoint.OUTGOING_SOAP_HEADERS;
+import static org.opensaml.saml.common.xml.SAMLConstants.SAML20_NS;
+
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Map;
+
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamException;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.cxf.binding.soap.SoapHeader;
@@ -12,16 +23,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Map;
-
-import static org.openehealth.ipf.platform.camel.ihe.ws.AbstractWsEndpoint.OUTGOING_SOAP_HEADERS;
-import static org.opensaml.saml.common.xml.SAMLConstants.SAML20_NS;
+import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
 
 /**
  * This processor forwards the HTTP request headers (from FHIR) to the SOAP request headers. This is needed for
@@ -57,8 +59,14 @@ public class RequestHeadersForwarder {
 
     public static void setWsseHeader(final Exchange exchange,
                                      final String assertion) throws XMLStreamException {
-        final var securityXml = String.format("<wsse:Security xmlns:wsse=\"%s\">%s</wsse:Security>",
-                                              OASIS_WSSECURITY_NS,
+        String ns = "";
+        if (assertion.startsWith("<saml:Assertion")) {
+            // https://github.com/ahdis/MobileAccessGateway/issues/24
+            // emedo does not use namespaces prefix definition in the inner assertion (om.ctc.wstx.exc.WstxParsingException: Undeclared namespace prefix "xsi" (for attribute "type"))
+            ns = "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:s=\"http://www.w3.org/2001/XMLSchema\" ";
+        }
+        final var securityXml = String.format("<wsse:Security %sxmlns:wsse=\"%s\">%s</wsse:Security>",
+                                              ns, OASIS_WSSECURITY_NS,
                                               assertion);
 
         final Element security = StaxUtils.read(new StringReader(securityXml)).getDocumentElement();
@@ -110,9 +118,10 @@ public class RequestHeadersForwarder {
             throw new AuthenticationException("The Authorization header is not in a supported format (invalid scheme)");
         }
 
-        if (payload.startsWith("PHNhbWwyOkFzc2") || payload.startsWith("PD94bW")) {
+        if (payload.startsWith("PHNhbWwyOkFzc2") || payload.startsWith("PD94bW") || payload.startsWith("PHNhbWw6QXNzZXJ0aW9u")) {
             // It is an encoded SAML assertion, convert it to a WS-Security header
             log.debug("Converting encoded SAML assertion to WS-Security header");
+
             String converted = new String(Base64.getDecoder().decode(payload));
             if (converted.startsWith("<?xml")) {
                 converted = converted.substring(converted.indexOf(">") + 1);
