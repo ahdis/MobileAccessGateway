@@ -21,14 +21,20 @@ import ch.bfh.ti.i4mi.mag.common.*;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagXdsProps;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
+import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.Code;
 import org.openehealth.ipf.commons.ihe.xds.core.requests.ProvideAndRegisterDocumentSet;
+import org.openehealth.ipf.commons.ihe.xds.core.responses.ErrorCode;
+import org.openehealth.ipf.commons.ihe.xds.core.responses.ErrorInfo;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.Response;
+import org.openehealth.ipf.commons.ihe.xds.core.responses.Status;
 import org.slf4j.Logger;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import static ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder.AUTHORIZATION_HEADER;
 import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslators.translateToFhir;
@@ -41,6 +47,11 @@ import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslat
 @ConditionalOnProperty("mag.xds.iti-41")
 class Iti65RouteBuilder extends MagRouteBuilder {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(Iti65RouteBuilder.class);
+    private static final String REQUESTED_CONF_CODE = "requestedConfidentialityCode";
+    private static final String CONF_CODE_IS_NORMAL = generateSimpleConfCodeCondition(ConfidentialityCode.NORMAL);
+    private static final String CONF_CODE_IS_RESTRICTED = generateSimpleConfCodeCondition(ConfidentialityCode.RESTRICTED);
+    private static final String CONF_CODE_IS_SECRET = generateSimpleConfCodeCondition(ConfidentialityCode.SECRET);
+
     private final MagXdsProps xdsProps;
     private final Iti65ResponseConverter iti65ResponseConverter;
     private final TcuXuaService tcuXuaService;
@@ -65,6 +76,7 @@ class Iti65RouteBuilder extends MagRouteBuilder {
                                                                 this.xdsProps.getIti41(),
                                                                 this.xdsProps.isHttps());
 
+        // @formatter:off
         from("mhd-iti65:provide-document-bundle?fhirContext=#fhirContext&audit=false")
                 .routeId("in-mhd-iti65")
                 // pass back errors to the endpoint
@@ -73,22 +85,50 @@ class Iti65RouteBuilder extends MagRouteBuilder {
                     //.process(itiRequestValidator())
                     //.process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
                     // translate, forward, translate back
-                    .process(Utils.keepBody())
                     .process(Utils.storeBodyToHeader("BundleRequest"))
                     .bean(Iti65RequestConverter.class)
-                    .process(Utils.storeBodyToHeader("ProvideAndRegisterDocumentSet"))
                     .process(maybeInjectTcuXuaProcessor())
                     .process(RequestHeadersForwarder.forward())
-                    //.convertBodyTo(ProvideAndRegisterDocumentSetRequestType.class)
+
+                    .convertBodyTo(ProvideAndRegisterDocumentSet.class)
+                    .process(Utils.keepBody())
+                    .process(Utils.storeBodyToHeader("ProvideAndRegisterDocumentSet"))
                     //.process(iti41RequestValidator())
-                    .to(xds41Endpoint)
-                    .convertBodyTo(Response.class)
+
+                    // Determine the confidentiality code requested
+                    .setProperty(REQUESTED_CONF_CODE).exchange(this::findConfidentialityCode)
+
+                    // Let's loop on all possible confidentiality codes, and change the current code if a publication is
+                    // refused with an error message compatible with a confidentiality code mismatch
+                    .choice().when().simple(CONF_CODE_IS_NORMAL)
+                        .log("In ITI-65 route, confidentiality code is NORMAL")
+                        .to(xds41Endpoint)
+                        .convertBodyTo(Response.class)
+                        .process(this.changeConfidentialityCodeIfNeeded())
+                    .endDoTry()
+
+                    .choice().when().simple(CONF_CODE_IS_RESTRICTED)
+                        .log("In ITI-65 route, confidentiality code is RESTRICTED")
+                        .process(Utils.restoreKeptBody())
+                        .process(forceConfidentialityCode())
+                        .to(xds41Endpoint)
+                        .bean(this.changeConfidentialityCodeIfNeeded())
+                    .endDoTry()
+
+                    .choice().when().simple(CONF_CODE_IS_SECRET)
+                        .log("In ITI-65 route, confidentiality code is SECRET")
+                        .process(Utils.restoreKeptBody())
+                        .process(forceConfidentialityCode())
+                        .to(xds41Endpoint)
+                    .endDoTry()
+
                     .process(TraceparentHandler.updateHeaderForFhir())
                     .process(translateToFhir(this.iti65ResponseConverter, Response.class))
                 .doCatch(Exception.class)
                     .setBody(simple("${exception}"))
                     .process(this.errorFromException())
                 .end();
+        // @formatter:on
     }
 
     private Processor maybeInjectTcuXuaProcessor() {
@@ -110,6 +150,70 @@ class Iti65RouteBuilder extends MagRouteBuilder {
                 RequestHeadersForwarder.setWsseHeader(exchange, tcuXua);
             };
         }
-        return exchange -> {};
+        return _ -> {
+        };
+    }
+
+
+    public ConfidentialityCode findConfidentialityCode(final Exchange exchange) {
+        final ProvideAndRegisterDocumentSet request = exchange.getMessage().getBody(ProvideAndRegisterDocumentSet.class);
+        final Code code = request.getDocuments().getFirst().getDocumentEntry().getConfidentialityCodes().getFirst();
+        return ConfidentialityCode.from(code.getCode(), code.getSchemeName());
+    }
+
+    public Processor changeConfidentialityCodeIfNeeded() {
+        return exchange -> {
+            final Response response = exchange.getMessage().getBody(Response.class);
+            final ConfidentialityCode currentCode = exchange.getProperty(REQUESTED_CONF_CODE,
+                                                                         ConfidentialityCode.class);
+
+            if (response.getStatus() != Status.FAILURE) {
+                return;
+            }
+
+            // An ITH ErrorInfo for confidentiality code mismatch looks like this:
+            // <ns6:RegistryError codeContext="Unexpected registry error." errorCode="XDSRegistryError" severity="urn:oasis:names:tc:ebxml-regrep:ErrorSeverityType:Error" location="Sense XDS Registry"/>
+            final Predicate<ErrorInfo> isIthCompatibleError =
+                    (errorInfo) -> "Unexpected registry error.".equals(errorInfo.getCodeContext())
+                            && "Sense XDS Registry".equals(errorInfo.getLocation())
+                            && errorInfo.getErrorCode() == ErrorCode.REGISTRY_ERROR;
+
+            // An Emedo ErrorInfo for confidentiality code mismatch looks like this (TODO verify):
+            // <rs:RegistryError codeContext="Consent filter applied" errorCode="XDSRepositoryError" location="" severity="urn:oasis:names:tc:ebxml-regrep:ErrorSeverityType:Error"/>
+            final Predicate<ErrorInfo> isEmedoCompatibleError =
+                    (errorInfo) -> "Consent filter applied".equals(errorInfo.getCodeContext())
+                            && errorInfo.getErrorCode() == ErrorCode.REPOSITORY_ERROR;
+
+            if (response.getErrors().stream().anyMatch(isIthCompatibleError) || response.getErrors().stream().anyMatch(
+                    isEmedoCompatibleError)) {
+                final var newCode = switch (currentCode) {
+                    case NORMAL -> ConfidentialityCode.RESTRICTED;
+                    case RESTRICTED -> ConfidentialityCode.SECRET;
+                    case SECRET -> throw new IllegalStateException("Cannot increase confidentiality code above SECRET");
+                };
+                exchange.setProperty(REQUESTED_CONF_CODE, newCode);
+            }
+        };
+    }
+
+    public Processor forceConfidentialityCode() {
+        return exchange -> {
+            final ConfidentialityCode currentCode = exchange.getProperty(REQUESTED_CONF_CODE,
+                                                                         ConfidentialityCode.class);
+            final ProvideAndRegisterDocumentSet body = exchange.getIn().getBody(ProvideAndRegisterDocumentSet.class);
+            final Code code = body.getDocuments().getFirst().getDocumentEntry().getConfidentialityCodes().getFirst();
+            code.setCode(currentCode.getCode());
+            code.setSchemeName(currentCode.getSystem());
+        };
+    }
+
+    private static String generateSimpleConfCodeCondition(final ConfidentialityCode level) {
+        return String.format(
+                "${exchangeProperty.%s} == ${type:%s.%s.%s}",
+                REQUESTED_CONF_CODE,
+                ConfidentialityCode.class.getPackageName(),
+                ConfidentialityCode.class.getSimpleName(),
+                level.name()
+        );
     }
 }
