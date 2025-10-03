@@ -3,7 +3,8 @@
 ## v2.0.3 - unreleased
 
 - Add STS/TCU support for emedo [#24](https://github.com/ahdis/MobileAccessGateway/issues/24)).
-- Update Postman collection for emedo
+- Update Postman collection for emedo.
+- Remove the configuration parameter `mag.auth.sts-issuer` (#27).
 
 ## v2.0.2 - 2025/10/01
 

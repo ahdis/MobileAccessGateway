@@ -30,7 +30,7 @@ public class DirectStsRouteBuilder extends RouteBuilder {
                         "&outFaultInterceptors=#soapRequestLogger" +
                         (clientSsl ? "&sslContextParameters=#wsTlsContext" : ""),
                 this.authProps.getSts(),
-                this.authProps.getStsWsdl());
+                "classpath:local-WSDL/wsdl/ws-trust-raw.wsdl");
 
         from("direct:sts")
                 .routeId("internal-sts")
