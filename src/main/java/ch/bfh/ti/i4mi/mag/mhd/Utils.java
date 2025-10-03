@@ -55,6 +55,12 @@ public class Utils {
         };
     }
 
+    public static Processor restoreKeptBody() {
+        return exchange -> {
+            exchange.getIn().setBody(exchange.getProperty(KEPT_BODY));
+        };
+    }
+
     /**
      * terminate current spring security session
      *
