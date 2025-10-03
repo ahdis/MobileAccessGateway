@@ -1,0 +1,13 @@
+<saml2:Assertion ID="Assertion_3efbfc7917a1d3ec6e33ec70f410393d655980bb" IssueInstant="2022-09-23T11:45:06.421Z" Version="2.0" xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <saml2:Issuer>urn:oid:{TCU_OID}</saml2:Issuer>
+    <saml2:Subject>
+        <saml2:NameID Format="urn:oasis:names:tc:SAML:2.0:nameid-format:persistent">{TCU_OID}</saml2:NameID>
+        <saml2:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer"/>
+    </saml2:Subject>
+    <saml2:Conditions NotBefore="2022-09-23T08:45:06.421Z" NotOnOrAfter="2022-09-24T11:45:06.421Z"/>
+    <saml2:AuthnStatement AuthnInstant="2022-09-22T11:45:06.421Z" SessionNotOnOrAfter="2022-09-23T11:45:06.421Z">
+        <saml2:AuthnContext>
+            <saml2:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified</saml2:AuthnContextClassRef>
+        </saml2:AuthnContext>
+    </saml2:AuthnStatement>
+</saml2:Assertion>

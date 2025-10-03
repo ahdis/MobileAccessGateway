@@ -20,8 +20,7 @@ import org.springframework.stereotype.Service;
 import org.w3c.dom.Element;
 
 import java.io.ByteArrayInputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -36,7 +35,7 @@ import java.util.UUID;
         "mag.auth.tcu.keystore-path",
         "mag.auth.tcu.keystore-password",
         "mag.auth.tcu.keystore-alias",
-        "mag.auth.tcu.template-path"
+        "mag.auth.tcu.oid"
 })
 public class TcuAssertionGenerator {
 
@@ -48,7 +47,7 @@ public class TcuAssertionGenerator {
 
     public String generateNew() throws Exception {
         // 1. Get and parse the template file
-        final String templateContent = this.getTemplateContent();
+        final String templateContent = this.getTemplateContent().replace("{TCU_OID}", this.tcuProps.getOid());
 
         final Element templateElement =
                 XmlUtils.newSafeDocumentBuilder().parse(new ByteArrayInputStream(templateContent.getBytes())).getDocumentElement();
@@ -102,7 +101,9 @@ public class TcuAssertionGenerator {
     }
 
     private String getTemplateContent() throws Exception {
-        return Files.readString(Path.of(this.tcuProps.getTemplatePath()));
+        return new DefaultResourceLoader()
+                .getResource("classpath:tcu_assertion_template.xml")
+                .getContentAsString(StandardCharsets.UTF_8);
     }
 
     private Credential getSigningCredential() throws Exception {
