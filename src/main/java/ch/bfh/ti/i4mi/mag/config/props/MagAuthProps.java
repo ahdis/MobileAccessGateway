@@ -40,7 +40,7 @@ public class MagAuthProps {
         private String keystorePath;
         private String keystorePassword;
         private String keystoreAlias;
-        private String templatePath;
+        private String oid;
         private boolean autoInjectInIti65;
 
         public String getPrincipalName() {
@@ -83,12 +83,12 @@ public class MagAuthProps {
             this.keystoreAlias = keystoreAlias;
         }
 
-        public String getTemplatePath() {
-            return this.templatePath;
+        public String getOid() {
+            return this.oid;
         }
 
-        public void setTemplatePath(final String templatePath) {
-            this.templatePath = templatePath;
+        public void setOid(final String oid) {
+            this.oid = oid;
         }
 
         public boolean isAutoInjectInIti65() {

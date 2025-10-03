@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
         "mag.auth.tcu.keystore-path",
         "mag.auth.tcu.keystore-password",
         "mag.auth.tcu.keystore-alias",
-        "mag.auth.tcu.template-path"
+        "mag.auth.tcu.oid"
 })
 public class TcuXuaService {
     private static final Logger log = LoggerFactory.getLogger(TcuXuaService.class);

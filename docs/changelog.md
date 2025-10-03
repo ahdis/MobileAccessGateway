@@ -5,6 +5,8 @@
 - Add STS/TCU support for emedo [#24](https://github.com/ahdis/MobileAccessGateway/issues/24)).
 - Update Postman collection for emedo.
 - Remove the configuration parameter `mag.auth.sts-issuer` (#27).
+- Remove the configuration parameter `mag.auth.tcu.template-path` (#26).
+- Add the configuration parameter `mag.auth.tcu.oid` (#26).
 
 ## v2.0.2 - 2025/10/01
 
