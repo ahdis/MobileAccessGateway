@@ -851,7 +851,12 @@ public class Iti65RequestConverter extends BaseRequestConverter {
      */
     public Resource findResource(Reference ref, List<Resource> contained) {
         for (Resource res : contained) {
-            if (res.getId().equals(ref.getReference())) return res;
+            if (res.getId().equals(ref.getReference())) {
+                return res;
+            }
+            if (("#"+res.getId()).equals(ref.getReference())) {
+                return res;
+            }
         }
         return null;
     }

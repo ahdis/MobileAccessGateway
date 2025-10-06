@@ -7,6 +7,7 @@
 - Remove the configuration parameter `mag.auth.sts-issuer` (#27).
 - Remove the configuration parameter `mag.auth.tcu.template-path` (#26).
 - Add the configuration parameter `mag.auth.tcu.oid` (#26).
+- Add author support in publication (#31).
 
 ## v2.0.2 - 2025/10/01
 
