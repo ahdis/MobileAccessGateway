@@ -112,7 +112,7 @@ class Iti65RouteBuilder extends MagRouteBuilder {
                         .process(Utils.restoreKeptBody())
                         .process(forceConfidentialityCode())
                         .to(xds41Endpoint)
-                        .bean(this.changeConfidentialityCodeIfNeeded())
+                        .process(this.changeConfidentialityCodeIfNeeded())
                     .endDoTry()
 
                     .choice().when().simple(CONF_CODE_IS_SECRET)
@@ -157,6 +157,12 @@ class Iti65RouteBuilder extends MagRouteBuilder {
 
     public ConfidentialityCode findConfidentialityCode(final Exchange exchange) {
         final ProvideAndRegisterDocumentSet request = exchange.getMessage().getBody(ProvideAndRegisterDocumentSet.class);
+        if (request.getDocuments().isEmpty()) {
+            throw new IllegalStateException("No documents found in ProvideAndRegisterDocumentSet.");
+        }
+        if (request.getDocuments().getFirst().getDocumentEntry().getConfidentialityCodes().isEmpty()) {
+            throw new IllegalStateException("No confidentiality codes found in DocumentEntry.");
+        }
         final Code code = request.getDocuments().getFirst().getDocumentEntry().getConfidentialityCodes().getFirst();
         return ConfidentialityCode.from(code.getCode(), code.getSchemeName());
     }

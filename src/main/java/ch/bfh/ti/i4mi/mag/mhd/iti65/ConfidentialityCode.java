@@ -25,7 +25,7 @@ public enum ConfidentialityCode {
 
     public static ConfidentialityCode from(final String code, final String system) {
         for (ConfidentialityCode level : ConfidentialityCode.values()) {
-            if (level.code.equals(code)) {
+            if (level.code.equals(code) && level.system.equals(system)) {
                 return level;
             }
         }
