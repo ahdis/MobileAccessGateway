@@ -90,7 +90,7 @@ public class Iti67RequestConverter extends BaseRequestConverter {
             FindDocumentsQuery query;
             //  TODO   related Note 4                  -->  $XDSDocumentEntryReferenceIdList
             TokenOrListParam related = searchParameter.getRelatedId();
-            if (related != null) {
+            if (related != null && related.size()>0) {
                 FindDocumentsByReferenceIdQuery referenceIdQuery = new FindDocumentsByReferenceIdQuery();
                 ;
                 QueryList<ReferenceId> outerReferences = new QueryList<>();

@@ -1,0 +1,1495 @@
+{
+    "resourceType": "Bundle",
+    "id": "243d6c83-01f5-4446-8fbc-0ba1271ed655",
+    "meta": {
+        "lastUpdated": "2025-10-06T18:43:41.586+02:00"
+    },
+    "type": "searchset",
+    "total": 8,
+    "link": [
+        {
+            "relation": "self",
+            "url": "https://imad.internal/mag-cara/fhir/DocumentReference?patient.identifier=urn%3Aoid%3A2.16.756.5.30.1.177.2.2.1.1%7C100001181&status=current"
+        }
+    ],
+    "entry": [
+        {
+            "fullUrl": "https://imad.internal/mag-cara/fhir/DocumentReference/f20a3872-78f2-4521-b0d1-595a91f50e0a",
+            "resource": {
+                "resourceType": "DocumentReference",
+                "id": "f20a3872-78f2-4521-b0d1-595a91f50e0a",
+                "meta": {
+                    "profile": [
+                        "https://ihe.net/fhir/StructureDefinition/IHE_MHD_Comprehensive_DocumentManifest"
+                    ]
+                },
+                "contained": [
+                    {
+                        "resourceType": "PractitionerRole",
+                        "id": "9e36bf9a-72a9-4a82-86ff-6ccf9bce19ce",
+                        "practitioner": {
+                            "reference": "#488cc957-2fa9-4ef2-b216-4f3fcdf330ac"
+                        },
+                        "organization": {
+                            "reference": "#ea1aacc6-444e-402a-9c83-e004ce3fb59e"
+                        }
+                    },
+                    {
+                        "resourceType": "Practitioner",
+                        "id": "488cc957-2fa9-4ef2-b216-4f3fcdf330ac",
+                        "name": [
+                            {
+                                "family": "LastName",
+                                "given": [
+                                    "FirstName"
+                                ],
+                                "prefix": [
+                                    "DR"
+                                ],
+                                "suffix": [
+                                    "MD"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "resourceType": "Organization",
+                        "id": "ea1aacc6-444e-402a-9c83-e004ce3fb59e",
+                        "name": "Institution"
+                    },
+                    {
+                        "resourceType": "Patient",
+                        "id": "b0ef9e5a-1663-41bf-87ab-8a006257e7ad",
+                        "identifier": [
+                            {
+                                "use": "official",
+                                "system": "urn:oid:2.16.756.5.30.1.177.2.2.1.1",
+                                "value": "100001181"
+                            }
+                        ]
+                    }
+                ],
+                "extension": [
+                    {
+                        "url": "http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-ext-author-authorrole",
+                        "valueCoding": {
+                            "system": "urn:oid:2.16.756.5.30.1.127.3.10.6",
+                            "code": "HCP"
+                        }
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-repositoryUniqueId",
+                        "valueIdentifier": {
+                            "system": "urn:ietf:rfc:3986",
+                            "value": "urn:oid:2.16.756.5.30.1.177.2.2.1.1.2"
+                        }
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-version",
+                        "valuePositiveInt": 1
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-documentAvailability",
+                        "valueCoding": {
+                            "system": "urn:ietf:rfc:3986",
+                            "code": "urn:ihe:iti:2010:DocumentAvailability:Online"
+                        }
+                    }
+                ],
+                "masterIdentifier": {
+                    "system": "urn:ietf:rfc:3986",
+                    "value": "urn:oid:2.16.756.5.30.1.145.1.4^13aff526-19f0-45a0-a20a-66e07ae46785"
+                },
+                "identifier": [
+                    {
+                        "use": "official",
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:f20a3872-78f2-4521-b0d1-595a91f50e0a"
+                    },
+                    {
+                        "type": {
+                            "coding": [
+                                {
+                                    "system": "https://profiles.ihe.net/ITI/MHD/CodeSystem/DocumentIdentifierTypes",
+                                    "code": "logicalID",
+                                    "display": "Logical ID"
+                                }
+                            ]
+                        },
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:f20a3872-78f2-4521-b0d1-595a91f50e0a"
+                    }
+                ],
+                "status": "current",
+                "type": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "41000179103"
+                        }
+                    ]
+                },
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "184216000"
+                            }
+                        ]
+                    }
+                ],
+                "subject": {
+                    "identifier": {
+                        "system": "urn:oid:2.16.756.5.30.1.127.3.10.3",
+                        "value": "761337615140885281"
+                    }
+                },
+                "date": "2025-10-06T13:53:18.000+02:00",
+                "author": [
+                    {
+                        "reference": "#9e36bf9a-72a9-4a82-86ff-6ccf9bce19ce"
+                    }
+                ],
+                "securityLabel": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "17621005"
+                            }
+                        ]
+                    }
+                ],
+                "content": [
+                    {
+                        "attachment": {
+                            "contentType": "application/fhir+json",
+                            "language": "de-CH",
+                            "url": "https://imad.internal/mag-cara/camel/xdsretrieve?uniqueId=2.16.756.5.30.1.145.1.4%5E13aff526-19f0-45a0-a20a-66e07ae46785&repositoryUniqueId=2.16.756.5.30.1.177.2.2.1.1.2&homeCommunityId",
+                            "size": 7971,
+                            "hash": "amo++zD6h+4ZjphHUWzhV394oIM=",
+                            "title": "Test PDF",
+                            "creation": "2025-10-06T13:53:18+02:00"
+                        },
+                        "format": {
+                            "system": "urn:oid:2.16.756.5.30.1.127.3.10.10",
+                            "code": "urn:che:epr:ch-vacd:immunization-administration:2022"
+                        }
+                    }
+                ],
+                "context": {
+                    "facilityType": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "264358009"
+                            }
+                        ]
+                    },
+                    "practiceSetting": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "394802001"
+                            }
+                        ]
+                    },
+                    "sourcePatientInfo": {
+                        "reference": "#b0ef9e5a-1663-41bf-87ab-8a006257e7ad"
+                    }
+                }
+            }
+        },
+        {
+            "fullUrl": "https://imad.internal/mag-cara/fhir/DocumentReference/7f44d9e0-3261-4345-a6f3-f51133b952e8",
+            "resource": {
+                "resourceType": "DocumentReference",
+                "id": "7f44d9e0-3261-4345-a6f3-f51133b952e8",
+                "meta": {
+                    "profile": [
+                        "https://ihe.net/fhir/StructureDefinition/IHE_MHD_Comprehensive_DocumentManifest"
+                    ]
+                },
+                "contained": [
+                    {
+                        "resourceType": "Practitioner",
+                        "id": "b3b44009-0313-474a-862b-592b937e43bd",
+                        "name": [
+                            {
+                                "family": "TESTA-MUSCIA",
+                                "given": [
+                                    "Evelyne Muriel"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "resourceType": "Patient",
+                        "id": "5696068c-8ee6-449a-816c-2d9bede814d6",
+                        "identifier": [
+                            {
+                                "use": "official",
+                                "system": "urn:oid:2.16.756.5.30.1.127.3.10.3",
+                                "value": "BSATUBEIHG62W"
+                            }
+                        ]
+                    }
+                ],
+                "extension": [
+                    {
+                        "url": "http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-ext-author-authorrole",
+                        "valueCoding": {
+                            "system": "urn:oid:2.16.756.5.30.1.127.3.10.6",
+                            "code": "PAT"
+                        }
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-repositoryUniqueId",
+                        "valueIdentifier": {
+                            "system": "urn:ietf:rfc:3986",
+                            "value": "urn:oid:2.16.756.5.30.1.177.2.2.1.1.2"
+                        }
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-version",
+                        "valuePositiveInt": 1
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-documentAvailability",
+                        "valueCoding": {
+                            "system": "urn:ietf:rfc:3986",
+                            "code": "urn:ihe:iti:2010:DocumentAvailability:Online"
+                        }
+                    }
+                ],
+                "masterIdentifier": {
+                    "system": "urn:ietf:rfc:3986",
+                    "value": "urn:oid:2.25.2111616810184976105163203131711320330106"
+                },
+                "identifier": [
+                    {
+                        "use": "official",
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:7f44d9e0-3261-4345-a6f3-f51133b952e8"
+                    },
+                    {
+                        "type": {
+                            "coding": [
+                                {
+                                    "system": "https://profiles.ihe.net/ITI/MHD/CodeSystem/DocumentIdentifierTypes",
+                                    "code": "logicalID",
+                                    "display": "Logical ID"
+                                }
+                            ]
+                        },
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:7f44d9e0-3261-4345-a6f3-f51133b952e8"
+                    }
+                ],
+                "status": "current",
+                "type": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "41000179103"
+                        }
+                    ]
+                },
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "184216000"
+                            }
+                        ]
+                    }
+                ],
+                "subject": {
+                    "identifier": {
+                        "system": "urn:oid:2.16.756.5.30.1.127.3.10.3",
+                        "value": "761337615140885281"
+                    }
+                },
+                "date": "2025-10-06T14:37:00.000+02:00",
+                "author": [
+                    {
+                        "reference": "#b3b44009-0313-474a-862b-592b937e43bd"
+                    }
+                ],
+                "securityLabel": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "17621005"
+                            }
+                        ]
+                    }
+                ],
+                "content": [
+                    {
+                        "attachment": {
+                            "contentType": "application/fhir+json",
+                            "language": "en",
+                            "url": "https://imad.internal/mag-cara/camel/xdsretrieve?uniqueId=2.25.2111616810184976105163203131711320330106&repositoryUniqueId=2.16.756.5.30.1.177.2.2.1.1.2&homeCommunityId",
+                            "size": 8191,
+                            "hash": "xrun/AjEOsqWDeINAI570Qc2TL4=",
+                            "title": "Vaccination - FSME-Immun CC",
+                            "creation": "2025-10-06T14:37:00+02:00"
+                        },
+                        "format": {
+                            "system": "urn:oid:2.16.756.5.30.1.127.3.10.10",
+                            "code": "urn:che:epr:ch-vacd:immunization-administration:2022"
+                        }
+                    }
+                ],
+                "context": {
+                    "facilityType": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "43741000"
+                            }
+                        ]
+                    },
+                    "practiceSetting": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "394802001"
+                            }
+                        ]
+                    },
+                    "sourcePatientInfo": {
+                        "reference": "#5696068c-8ee6-449a-816c-2d9bede814d6"
+                    }
+                }
+            }
+        },
+        {
+            "fullUrl": "https://imad.internal/mag-cara/fhir/DocumentReference/0a37e69a-c1dc-49a2-aa2c-85dc39b56342",
+            "resource": {
+                "resourceType": "DocumentReference",
+                "id": "0a37e69a-c1dc-49a2-aa2c-85dc39b56342",
+                "meta": {
+                    "profile": [
+                        "https://ihe.net/fhir/StructureDefinition/IHE_MHD_Comprehensive_DocumentManifest"
+                    ]
+                },
+                "contained": [
+                    {
+                        "resourceType": "PractitionerRole",
+                        "id": "91873b84-2187-4da7-abd9-29b48dc6fffc",
+                        "practitioner": {
+                            "reference": "#bf0957e2-6e3a-48be-9798-f413e9b5ace4"
+                        },
+                        "organization": {
+                            "reference": "#1727d23f-eede-4626-8548-f705f246dfe1"
+                        },
+                        "telecom": [
+                            {
+                                "system": "phone",
+                                "value": "+41765795005"
+                            }
+                        ]
+                    },
+                    {
+                        "resourceType": "Practitioner",
+                        "id": "bf0957e2-6e3a-48be-9798-f413e9b5ace4",
+                        "name": [
+                            {
+                                "family": "TESTA-MUSCIA",
+                                "given": [
+                                    "Evelyne Muriel"
+                                ],
+                                "prefix": [
+                                    "Mr"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "resourceType": "Organization",
+                        "id": "1727d23f-eede-4626-8548-f705f246dfe1",
+                        "name": "Institution-Privat"
+                    },
+                    {
+                        "resourceType": "Patient",
+                        "id": "2aa5b135-32d8-442d-91c5-cc520f355860",
+                        "identifier": [
+                            {
+                                "use": "official",
+                                "system": "urn:oid:2.16.756.5.30.1.127.3.10.3",
+                                "value": "BSATUBEIHG62W"
+                            }
+                        ]
+                    }
+                ],
+                "extension": [
+                    {
+                        "url": "http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-ext-deletionstatus",
+                        "valueCoding": {
+                            "system": "urn:oid:2.16.756.5.30.1.127.3.10.18",
+                            "code": "urn:e-health-suisse:2019:deletionStatus:deletionNotRequested"
+                        }
+                    },
+                    {
+                        "url": "http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-ext-author-authorrole",
+                        "valueCoding": {
+                            "system": "urn:oid:2.16.756.5.30.1.127.3.10.6",
+                            "code": "PAT"
+                        }
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-repositoryUniqueId",
+                        "valueIdentifier": {
+                            "system": "urn:ietf:rfc:3986",
+                            "value": "urn:oid:2.16.756.5.30.1.177.2.2.1.1.2"
+                        }
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-version",
+                        "valuePositiveInt": 4
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-documentAvailability",
+                        "valueCoding": {
+                            "system": "urn:ietf:rfc:3986",
+                            "code": "urn:ihe:iti:2010:DocumentAvailability:Online"
+                        }
+                    }
+                ],
+                "masterIdentifier": {
+                    "system": "urn:ietf:rfc:3986",
+                    "value": "urn:oid:2.25.71462036922422267113158811021646518125333"
+                },
+                "identifier": [
+                    {
+                        "use": "official",
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:8d61d95a-aab6-4950-becc-0242ea45bd81"
+                    },
+                    {
+                        "type": {
+                            "coding": [
+                                {
+                                    "system": "https://profiles.ihe.net/ITI/MHD/CodeSystem/DocumentIdentifierTypes",
+                                    "code": "logicalID",
+                                    "display": "Logical ID"
+                                }
+                            ]
+                        },
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:0a37e69a-c1dc-49a2-aa2c-85dc39b56342"
+                    }
+                ],
+                "status": "current",
+                "type": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "419891008"
+                        }
+                    ]
+                },
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "371538006"
+                            }
+                        ]
+                    }
+                ],
+                "subject": {
+                    "identifier": {
+                        "system": "urn:oid:2.16.756.5.30.1.127.3.10.3",
+                        "value": "761337615140885281"
+                    }
+                },
+                "date": "2025-10-06T00:00:00.000+02:00",
+                "author": [
+                    {
+                        "reference": "#91873b84-2187-4da7-abd9-29b48dc6fffc"
+                    }
+                ],
+                "description": "Comment: Advance Directive Example",
+                "securityLabel": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "17621005"
+                            }
+                        ]
+                    }
+                ],
+                "content": [
+                    {
+                        "attachment": {
+                            "contentType": "application/pdf",
+                            "language": "en",
+                            "url": "https://imad.internal/mag-cara/camel/xdsretrieve?uniqueId=2.25.71462036922422267113158811021646518125333&repositoryUniqueId=2.16.756.5.30.1.177.2.2.1.1.2&homeCommunityId",
+                            "size": 15895,
+                            "hash": "lbj/KA2xi8DanIw5FhTTDOdlNfg=",
+                            "title": "Advanced Directive Example",
+                            "creation": "2025-10-06T00:00:00+02:00"
+                        },
+                        "format": {
+                            "system": "http://ihe.net/fhir/ihe.formatcode.fhir/CodeSystem/formatcode",
+                            "code": "urn:ihe:iti:xds:2017:mimeTypeSufficient"
+                        }
+                    }
+                ],
+                "context": {
+                    "facilityType": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "722173008"
+                            }
+                        ]
+                    },
+                    "practiceSetting": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "394576009"
+                            }
+                        ]
+                    },
+                    "sourcePatientInfo": {
+                        "reference": "#2aa5b135-32d8-442d-91c5-cc520f355860"
+                    }
+                }
+            }
+        },
+        {
+            "fullUrl": "https://imad.internal/mag-cara/fhir/DocumentReference/5fab7501-8794-45f5-9ee1-3f7baa6dd9d9",
+            "resource": {
+                "resourceType": "DocumentReference",
+                "id": "5fab7501-8794-45f5-9ee1-3f7baa6dd9d9",
+                "meta": {
+                    "profile": [
+                        "https://ihe.net/fhir/StructureDefinition/IHE_MHD_Comprehensive_DocumentManifest"
+                    ]
+                },
+                "contained": [
+                    {
+                        "resourceType": "PractitionerRole",
+                        "id": "b336d938-3aea-4191-84f1-9ea3d699f9d7",
+                        "practitioner": {
+                            "reference": "#f82fd633-8e62-4737-b5e6-ccbedfa4ce8a"
+                        },
+                        "organization": {
+                            "reference": "#0cc586f3-2f02-4f95-a3bb-b8d27ca89eb2"
+                        }
+                    },
+                    {
+                        "resourceType": "Practitioner",
+                        "id": "f82fd633-8e62-4737-b5e6-ccbedfa4ce8a",
+                        "name": [
+                            {
+                                "family": "LastName",
+                                "given": [
+                                    "FirstName"
+                                ],
+                                "prefix": [
+                                    "MD"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "resourceType": "Organization",
+                        "id": "0cc586f3-2f02-4f95-a3bb-b8d27ca89eb2",
+                        "name": "Institution"
+                    },
+                    {
+                        "resourceType": "Patient",
+                        "id": "ce5e6f4e-646a-4846-ba2a-d50ba728b522",
+                        "identifier": [
+                            {
+                                "use": "official",
+                                "system": "urn:oid:2.16.756.5.30.1.177.2.2.1.1",
+                                "value": "100001181"
+                            }
+                        ]
+                    }
+                ],
+                "extension": [
+                    {
+                        "url": "http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-ext-author-authorrole",
+                        "valueCoding": {
+                            "system": "urn:oid:2.16.756.5.30.1.127.3.10.6",
+                            "code": "HCP"
+                        }
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-repositoryUniqueId",
+                        "valueIdentifier": {
+                            "system": "urn:ietf:rfc:3986",
+                            "value": "urn:oid:2.16.756.5.30.1.177.2.2.1.1.2"
+                        }
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-version",
+                        "valuePositiveInt": 1
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-documentAvailability",
+                        "valueCoding": {
+                            "system": "urn:ietf:rfc:3986",
+                            "code": "urn:ihe:iti:2010:DocumentAvailability:Online"
+                        }
+                    }
+                ],
+                "masterIdentifier": {
+                    "system": "urn:ietf:rfc:3986",
+                    "value": "urn:oid:2.16.756.5.30.1.145.1.4^ee3663b7-9e75-43a3-9350-2146feb965f4"
+                },
+                "identifier": [
+                    {
+                        "use": "official",
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:5fab7501-8794-45f5-9ee1-3f7baa6dd9d9"
+                    },
+                    {
+                        "type": {
+                            "coding": [
+                                {
+                                    "system": "https://profiles.ihe.net/ITI/MHD/CodeSystem/DocumentIdentifierTypes",
+                                    "code": "logicalID",
+                                    "display": "Logical ID"
+                                }
+                            ]
+                        },
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:5fab7501-8794-45f5-9ee1-3f7baa6dd9d9"
+                    }
+                ],
+                "status": "current",
+                "type": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "419891008"
+                        }
+                    ]
+                },
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "405624007"
+                            }
+                        ]
+                    }
+                ],
+                "subject": {
+                    "identifier": {
+                        "system": "urn:oid:2.16.756.5.30.1.127.3.10.3",
+                        "value": "761337615140885281"
+                    }
+                },
+                "date": "2025-10-06T15:30:36.000+02:00",
+                "author": [
+                    {
+                        "reference": "#b336d938-3aea-4191-84f1-9ea3d699f9d7"
+                    }
+                ],
+                "securityLabel": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "17621005"
+                            }
+                        ]
+                    }
+                ],
+                "content": [
+                    {
+                        "attachment": {
+                            "contentType": "application/pdf",
+                            "language": "de-CH",
+                            "url": "https://imad.internal/mag-cara/camel/xdsretrieve?uniqueId=2.16.756.5.30.1.145.1.4%5Eee3663b7-9e75-43a3-9350-2146feb965f4&repositoryUniqueId=2.16.756.5.30.1.177.2.2.1.1.2&homeCommunityId",
+                            "size": 8229,
+                            "hash": "4dfae0A5WDfvVlepTYu3EGwpbrA=",
+                            "title": "Test PDF",
+                            "creation": "2025-10-06T15:30:36+02:00"
+                        },
+                        "format": {
+                            "system": "urn:oid:2.16.756.5.30.1.127.3.10.10",
+                            "code": "urn:che:epr:EPR_Unstructured_Document"
+                        }
+                    }
+                ],
+                "context": {
+                    "facilityType": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "264358009"
+                            }
+                        ]
+                    },
+                    "practiceSetting": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "394802001"
+                            }
+                        ]
+                    },
+                    "sourcePatientInfo": {
+                        "reference": "#ce5e6f4e-646a-4846-ba2a-d50ba728b522"
+                    }
+                }
+            }
+        },
+        {
+            "fullUrl": "https://imad.internal/mag-cara/fhir/DocumentReference/f20a3872-78f2-4521-b0d1-595a91f50e0a",
+            "resource": {
+                "resourceType": "DocumentReference",
+                "id": "f20a3872-78f2-4521-b0d1-595a91f50e0a",
+                "meta": {
+                    "profile": [
+                        "https://ihe.net/fhir/StructureDefinition/IHE_MHD_Comprehensive_DocumentManifest"
+                    ]
+                },
+                "contained": [
+                    {
+                        "resourceType": "PractitionerRole",
+                        "id": "edbc936b-1890-4ef8-9446-4e8940fddfba",
+                        "practitioner": {
+                            "reference": "#d5eb8ad8-b133-474a-b10f-5f4f6f29a99b"
+                        },
+                        "organization": {
+                            "reference": "#77f4cef1-e9d8-41af-9b15-e248ef68ea56"
+                        }
+                    },
+                    {
+                        "resourceType": "Practitioner",
+                        "id": "d5eb8ad8-b133-474a-b10f-5f4f6f29a99b",
+                        "name": [
+                            {
+                                "family": "LastName",
+                                "given": [
+                                    "FirstName"
+                                ],
+                                "prefix": [
+                                    "DR"
+                                ],
+                                "suffix": [
+                                    "MD"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "resourceType": "Organization",
+                        "id": "77f4cef1-e9d8-41af-9b15-e248ef68ea56",
+                        "name": "Institution"
+                    },
+                    {
+                        "resourceType": "Patient",
+                        "id": "654d4754-fae9-4ac7-8450-faf80a292c46",
+                        "identifier": [
+                            {
+                                "use": "official",
+                                "system": "urn:oid:2.16.756.5.30.1.177.2.2.1.1",
+                                "value": "100001181"
+                            }
+                        ]
+                    }
+                ],
+                "extension": [
+                    {
+                        "url": "http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-ext-author-authorrole",
+                        "valueCoding": {
+                            "system": "urn:oid:2.16.756.5.30.1.127.3.10.6",
+                            "code": "HCP"
+                        }
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-repositoryUniqueId",
+                        "valueIdentifier": {
+                            "system": "urn:ietf:rfc:3986",
+                            "value": "urn:oid:2.16.756.5.30.1.177.2.2.1.1.2"
+                        }
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-version",
+                        "valuePositiveInt": 1
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-documentAvailability",
+                        "valueCoding": {
+                            "system": "urn:ietf:rfc:3986",
+                            "code": "urn:ihe:iti:2010:DocumentAvailability:Online"
+                        }
+                    }
+                ],
+                "masterIdentifier": {
+                    "system": "urn:ietf:rfc:3986",
+                    "value": "urn:oid:2.16.756.5.30.1.145.1.4^13aff526-19f0-45a0-a20a-66e07ae46785"
+                },
+                "identifier": [
+                    {
+                        "use": "official",
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:f20a3872-78f2-4521-b0d1-595a91f50e0a"
+                    },
+                    {
+                        "type": {
+                            "coding": [
+                                {
+                                    "system": "https://profiles.ihe.net/ITI/MHD/CodeSystem/DocumentIdentifierTypes",
+                                    "code": "logicalID",
+                                    "display": "Logical ID"
+                                }
+                            ]
+                        },
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:f20a3872-78f2-4521-b0d1-595a91f50e0a"
+                    }
+                ],
+                "status": "current",
+                "type": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "41000179103"
+                        }
+                    ]
+                },
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "184216000"
+                            }
+                        ]
+                    }
+                ],
+                "subject": {
+                    "identifier": {
+                        "system": "urn:oid:2.16.756.5.30.1.127.3.10.3",
+                        "value": "761337615140885281"
+                    }
+                },
+                "date": "2025-10-06T13:53:18.000+02:00",
+                "author": [
+                    {
+                        "reference": "#edbc936b-1890-4ef8-9446-4e8940fddfba"
+                    }
+                ],
+                "securityLabel": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "17621005"
+                            }
+                        ]
+                    }
+                ],
+                "content": [
+                    {
+                        "attachment": {
+                            "contentType": "application/fhir+json",
+                            "language": "de-CH",
+                            "url": "https://imad.internal/mag-cara/camel/xdsretrieve?uniqueId=2.16.756.5.30.1.145.1.4%5E13aff526-19f0-45a0-a20a-66e07ae46785&repositoryUniqueId=2.16.756.5.30.1.177.2.2.1.1.2&homeCommunityId=urn:oid:2.16.756.5.30.1.177",
+                            "size": 7971,
+                            "hash": "amo++zD6h+4ZjphHUWzhV394oIM=",
+                            "title": "Test PDF",
+                            "creation": "2025-10-06T13:53:18+02:00"
+                        },
+                        "format": {
+                            "system": "urn:oid:2.16.756.5.30.1.127.3.10.10",
+                            "code": "urn:che:epr:ch-vacd:immunization-administration:2022"
+                        }
+                    }
+                ],
+                "context": {
+                    "facilityType": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "264358009"
+                            }
+                        ]
+                    },
+                    "practiceSetting": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "394802001"
+                            }
+                        ]
+                    },
+                    "sourcePatientInfo": {
+                        "reference": "#654d4754-fae9-4ac7-8450-faf80a292c46"
+                    }
+                }
+            }
+        },
+        {
+            "fullUrl": "https://imad.internal/mag-cara/fhir/DocumentReference/7f44d9e0-3261-4345-a6f3-f51133b952e8",
+            "resource": {
+                "resourceType": "DocumentReference",
+                "id": "7f44d9e0-3261-4345-a6f3-f51133b952e8",
+                "meta": {
+                    "profile": [
+                        "https://ihe.net/fhir/StructureDefinition/IHE_MHD_Comprehensive_DocumentManifest"
+                    ]
+                },
+                "contained": [
+                    {
+                        "resourceType": "Practitioner",
+                        "id": "cefd349e-d51a-4740-b8c7-e6d19d232c6d",
+                        "name": [
+                            {
+                                "family": "TESTA-MUSCIA",
+                                "given": [
+                                    "Evelyne Muriel"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "resourceType": "Patient",
+                        "id": "accb2a1b-4bdb-4e78-a986-2e247f1f9518",
+                        "identifier": [
+                            {
+                                "use": "official",
+                                "system": "urn:oid:2.16.756.5.30.1.127.3.10.3",
+                                "value": "BSATUBEIHG62W"
+                            }
+                        ]
+                    }
+                ],
+                "extension": [
+                    {
+                        "url": "http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-ext-author-authorrole",
+                        "valueCoding": {
+                            "system": "urn:oid:2.16.756.5.30.1.127.3.10.6",
+                            "code": "PAT"
+                        }
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-repositoryUniqueId",
+                        "valueIdentifier": {
+                            "system": "urn:ietf:rfc:3986",
+                            "value": "urn:oid:2.16.756.5.30.1.177.2.2.1.1.2"
+                        }
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-version",
+                        "valuePositiveInt": 1
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-documentAvailability",
+                        "valueCoding": {
+                            "system": "urn:ietf:rfc:3986",
+                            "code": "urn:ihe:iti:2010:DocumentAvailability:Online"
+                        }
+                    }
+                ],
+                "masterIdentifier": {
+                    "system": "urn:ietf:rfc:3986",
+                    "value": "urn:oid:2.25.2111616810184976105163203131711320330106"
+                },
+                "identifier": [
+                    {
+                        "use": "official",
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:7f44d9e0-3261-4345-a6f3-f51133b952e8"
+                    },
+                    {
+                        "type": {
+                            "coding": [
+                                {
+                                    "system": "https://profiles.ihe.net/ITI/MHD/CodeSystem/DocumentIdentifierTypes",
+                                    "code": "logicalID",
+                                    "display": "Logical ID"
+                                }
+                            ]
+                        },
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:7f44d9e0-3261-4345-a6f3-f51133b952e8"
+                    }
+                ],
+                "status": "current",
+                "type": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "41000179103"
+                        }
+                    ]
+                },
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "184216000"
+                            }
+                        ]
+                    }
+                ],
+                "subject": {
+                    "identifier": {
+                        "system": "urn:oid:2.16.756.5.30.1.127.3.10.3",
+                        "value": "761337615140885281"
+                    }
+                },
+                "date": "2025-10-06T14:37:00.000+02:00",
+                "author": [
+                    {
+                        "reference": "#cefd349e-d51a-4740-b8c7-e6d19d232c6d"
+                    }
+                ],
+                "securityLabel": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "17621005"
+                            }
+                        ]
+                    }
+                ],
+                "content": [
+                    {
+                        "attachment": {
+                            "contentType": "application/fhir+json",
+                            "language": "en",
+                            "url": "https://imad.internal/mag-cara/camel/xdsretrieve?uniqueId=2.25.2111616810184976105163203131711320330106&repositoryUniqueId=2.16.756.5.30.1.177.2.2.1.1.2&homeCommunityId=urn:oid:2.16.756.5.30.1.177",
+                            "size": 8191,
+                            "hash": "xrun/AjEOsqWDeINAI570Qc2TL4=",
+                            "title": "Vaccination - FSME-Immun CC",
+                            "creation": "2025-10-06T14:37:00+02:00"
+                        },
+                        "format": {
+                            "system": "urn:oid:2.16.756.5.30.1.127.3.10.10",
+                            "code": "urn:che:epr:ch-vacd:immunization-administration:2022"
+                        }
+                    }
+                ],
+                "context": {
+                    "facilityType": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "43741000"
+                            }
+                        ]
+                    },
+                    "practiceSetting": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "394802001"
+                            }
+                        ]
+                    },
+                    "sourcePatientInfo": {
+                        "reference": "#accb2a1b-4bdb-4e78-a986-2e247f1f9518"
+                    }
+                }
+            }
+        },
+        {
+            "fullUrl": "https://imad.internal/mag-cara/fhir/DocumentReference/0a37e69a-c1dc-49a2-aa2c-85dc39b56342",
+            "resource": {
+                "resourceType": "DocumentReference",
+                "id": "0a37e69a-c1dc-49a2-aa2c-85dc39b56342",
+                "meta": {
+                    "profile": [
+                        "https://ihe.net/fhir/StructureDefinition/IHE_MHD_Comprehensive_DocumentManifest"
+                    ]
+                },
+                "contained": [
+                    {
+                        "resourceType": "PractitionerRole",
+                        "id": "dd4c9782-fabe-4725-819f-f9201a454fb8",
+                        "practitioner": {
+                            "reference": "#4ede1bea-e6b0-43fb-b9cc-03c0e63334ba"
+                        },
+                        "organization": {
+                            "reference": "#f7c70fa3-1975-4366-8db8-b73597ab8a1c"
+                        },
+                        "telecom": [
+                            {
+                                "system": "phone",
+                                "value": "+41765795005"
+                            }
+                        ]
+                    },
+                    {
+                        "resourceType": "Practitioner",
+                        "id": "4ede1bea-e6b0-43fb-b9cc-03c0e63334ba",
+                        "name": [
+                            {
+                                "family": "TESTA-MUSCIA",
+                                "given": [
+                                    "Evelyne Muriel"
+                                ],
+                                "prefix": [
+                                    "Mr"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "resourceType": "Organization",
+                        "id": "f7c70fa3-1975-4366-8db8-b73597ab8a1c",
+                        "name": "Institution-Privat"
+                    },
+                    {
+                        "resourceType": "Patient",
+                        "id": "f207f5d0-987b-40d1-88ec-e407e645635d",
+                        "identifier": [
+                            {
+                                "use": "official",
+                                "system": "urn:oid:2.16.756.5.30.1.127.3.10.3",
+                                "value": "BSATUBEIHG62W"
+                            }
+                        ]
+                    }
+                ],
+                "extension": [
+                    {
+                        "url": "http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-ext-deletionstatus",
+                        "valueCoding": {
+                            "system": "urn:oid:2.16.756.5.30.1.127.3.10.18",
+                            "code": "urn:e-health-suisse:2019:deletionStatus:deletionNotRequested"
+                        }
+                    },
+                    {
+                        "url": "http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-ext-author-authorrole",
+                        "valueCoding": {
+                            "system": "urn:oid:2.16.756.5.30.1.127.3.10.6",
+                            "code": "PAT"
+                        }
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-repositoryUniqueId",
+                        "valueIdentifier": {
+                            "system": "urn:ietf:rfc:3986",
+                            "value": "urn:oid:2.16.756.5.30.1.177.2.2.1.1.2"
+                        }
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-version",
+                        "valuePositiveInt": 4
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-documentAvailability",
+                        "valueCoding": {
+                            "system": "urn:ietf:rfc:3986",
+                            "code": "urn:ihe:iti:2010:DocumentAvailability:Online"
+                        }
+                    }
+                ],
+                "masterIdentifier": {
+                    "system": "urn:ietf:rfc:3986",
+                    "value": "urn:oid:2.25.71462036922422267113158811021646518125333"
+                },
+                "identifier": [
+                    {
+                        "use": "official",
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:8d61d95a-aab6-4950-becc-0242ea45bd81"
+                    },
+                    {
+                        "type": {
+                            "coding": [
+                                {
+                                    "system": "https://profiles.ihe.net/ITI/MHD/CodeSystem/DocumentIdentifierTypes",
+                                    "code": "logicalID",
+                                    "display": "Logical ID"
+                                }
+                            ]
+                        },
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:0a37e69a-c1dc-49a2-aa2c-85dc39b56342"
+                    }
+                ],
+                "status": "current",
+                "type": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "419891008"
+                        }
+                    ]
+                },
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "371538006"
+                            }
+                        ]
+                    }
+                ],
+                "subject": {
+                    "identifier": {
+                        "system": "urn:oid:2.16.756.5.30.1.127.3.10.3",
+                        "value": "761337615140885281"
+                    }
+                },
+                "date": "2025-10-06T00:00:00.000+02:00",
+                "author": [
+                    {
+                        "reference": "#dd4c9782-fabe-4725-819f-f9201a454fb8"
+                    }
+                ],
+                "description": "Comment: Advance Directive Example",
+                "securityLabel": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "17621005"
+                            }
+                        ]
+                    }
+                ],
+                "content": [
+                    {
+                        "attachment": {
+                            "contentType": "application/pdf",
+                            "language": "en",
+                            "url": "https://imad.internal/mag-cara/camel/xdsretrieve?uniqueId=2.25.71462036922422267113158811021646518125333&repositoryUniqueId=2.16.756.5.30.1.177.2.2.1.1.2&homeCommunityId=urn:oid:2.16.756.5.30.1.177",
+                            "size": 15895,
+                            "hash": "lbj/KA2xi8DanIw5FhTTDOdlNfg=",
+                            "title": "Advanced Directive Example",
+                            "creation": "2025-10-06T00:00:00+02:00"
+                        },
+                        "format": {
+                            "system": "http://ihe.net/fhir/ihe.formatcode.fhir/CodeSystem/formatcode",
+                            "code": "urn:ihe:iti:xds:2017:mimeTypeSufficient"
+                        }
+                    }
+                ],
+                "context": {
+                    "facilityType": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "722173008"
+                            }
+                        ]
+                    },
+                    "practiceSetting": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "394576009"
+                            }
+                        ]
+                    },
+                    "sourcePatientInfo": {
+                        "reference": "#f207f5d0-987b-40d1-88ec-e407e645635d"
+                    }
+                }
+            }
+        },
+        {
+            "fullUrl": "https://imad.internal/mag-cara/fhir/DocumentReference/5fab7501-8794-45f5-9ee1-3f7baa6dd9d9",
+            "resource": {
+                "resourceType": "DocumentReference",
+                "id": "5fab7501-8794-45f5-9ee1-3f7baa6dd9d9",
+                "meta": {
+                    "profile": [
+                        "https://ihe.net/fhir/StructureDefinition/IHE_MHD_Comprehensive_DocumentManifest"
+                    ]
+                },
+                "contained": [
+                    {
+                        "resourceType": "PractitionerRole",
+                        "id": "247881af-c5a7-4f4b-a06c-96b72e0e96c1",
+                        "practitioner": {
+                            "reference": "#8fabff55-38e5-4a6e-8411-02eaa344c251"
+                        },
+                        "organization": {
+                            "reference": "#392c4e46-51d1-44f6-a313-42814ab753d0"
+                        }
+                    },
+                    {
+                        "resourceType": "Practitioner",
+                        "id": "8fabff55-38e5-4a6e-8411-02eaa344c251",
+                        "name": [
+                            {
+                                "family": "LastName",
+                                "given": [
+                                    "FirstName"
+                                ],
+                                "prefix": [
+                                    "MD"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "resourceType": "Organization",
+                        "id": "392c4e46-51d1-44f6-a313-42814ab753d0",
+                        "name": "Institution"
+                    },
+                    {
+                        "resourceType": "Patient",
+                        "id": "dcd424f8-f07d-4201-8407-9b700b279b1c",
+                        "identifier": [
+                            {
+                                "use": "official",
+                                "system": "urn:oid:2.16.756.5.30.1.177.2.2.1.1",
+                                "value": "100001181"
+                            }
+                        ]
+                    }
+                ],
+                "extension": [
+                    {
+                        "url": "http://fhir.ch/ig/ch-epr-fhir/StructureDefinition/ch-ext-author-authorrole",
+                        "valueCoding": {
+                            "system": "urn:oid:2.16.756.5.30.1.127.3.10.6",
+                            "code": "HCP"
+                        }
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-repositoryUniqueId",
+                        "valueIdentifier": {
+                            "system": "urn:ietf:rfc:3986",
+                            "value": "urn:oid:2.16.756.5.30.1.177.2.2.1.1.2"
+                        }
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-version",
+                        "valuePositiveInt": 1
+                    },
+                    {
+                        "url": "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-documentAvailability",
+                        "valueCoding": {
+                            "system": "urn:ietf:rfc:3986",
+                            "code": "urn:ihe:iti:2010:DocumentAvailability:Online"
+                        }
+                    }
+                ],
+                "masterIdentifier": {
+                    "system": "urn:ietf:rfc:3986",
+                    "value": "urn:oid:2.16.756.5.30.1.145.1.4^ee3663b7-9e75-43a3-9350-2146feb965f4"
+                },
+                "identifier": [
+                    {
+                        "use": "official",
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:5fab7501-8794-45f5-9ee1-3f7baa6dd9d9"
+                    },
+                    {
+                        "type": {
+                            "coding": [
+                                {
+                                    "system": "https://profiles.ihe.net/ITI/MHD/CodeSystem/DocumentIdentifierTypes",
+                                    "code": "logicalID",
+                                    "display": "Logical ID"
+                                }
+                            ]
+                        },
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:5fab7501-8794-45f5-9ee1-3f7baa6dd9d9"
+                    }
+                ],
+                "status": "current",
+                "type": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "419891008"
+                        }
+                    ]
+                },
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "405624007"
+                            }
+                        ]
+                    }
+                ],
+                "subject": {
+                    "identifier": {
+                        "system": "urn:oid:2.16.756.5.30.1.127.3.10.3",
+                        "value": "761337615140885281"
+                    }
+                },
+                "date": "2025-10-06T15:30:36.000+02:00",
+                "author": [
+                    {
+                        "reference": "#247881af-c5a7-4f4b-a06c-96b72e0e96c1"
+                    }
+                ],
+                "securityLabel": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "17621005"
+                            }
+                        ]
+                    }
+                ],
+                "content": [
+                    {
+                        "attachment": {
+                            "contentType": "application/pdf",
+                            "language": "de-CH",
+                            "url": "https://imad.internal/mag-cara/camel/xdsretrieve?uniqueId=2.16.756.5.30.1.145.1.4%5Eee3663b7-9e75-43a3-9350-2146feb965f4&repositoryUniqueId=2.16.756.5.30.1.177.2.2.1.1.2&homeCommunityId=urn:oid:2.16.756.5.30.1.177",
+                            "size": 8229,
+                            "hash": "4dfae0A5WDfvVlepTYu3EGwpbrA=",
+                            "title": "Test PDF",
+                            "creation": "2025-10-06T15:30:36+02:00"
+                        },
+                        "format": {
+                            "system": "urn:oid:2.16.756.5.30.1.127.3.10.10",
+                            "code": "urn:che:epr:EPR_Unstructured_Document"
+                        }
+                    }
+                ],
+                "context": {
+                    "facilityType": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "264358009"
+                            }
+                        ]
+                    },
+                    "practiceSetting": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "394802001"
+                            }
+                        ]
+                    },
+                    "sourcePatientInfo": {
+                        "reference": "#dcd424f8-f07d-4201-8407-9b700b279b1c"
+                    }
+                }
+            }
+        }
+    ]
+}

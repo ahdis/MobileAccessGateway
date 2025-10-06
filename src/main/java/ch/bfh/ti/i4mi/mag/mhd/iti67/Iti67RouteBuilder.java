@@ -67,7 +67,7 @@ class Iti67RouteBuilder extends MagRouteBuilder {
         this.iti18Endpoint = this.buildOutgoingEndpoint("xds-iti18",
                                                         this.xdsProps.getIti18(),
                                                         this.xdsProps.isHttps());
-        this.xca38Endpoint = this.buildOutgoingEndpoint("xca-iti38",
+        this.xca38Endpoint = this.buildOutgoingEndpoint("xds-iti18",
                                                         this.xdsProps.getXca38(),
                                                         this.xdsProps.isHttps());
     }
@@ -206,7 +206,11 @@ class Iti67RouteBuilder extends MagRouteBuilder {
             response18.getSubmissionSets().addAll(response38.getSubmissionSets());
             return response18;
         } else if (response18 != null) {
-            response18.getErrors().add(this.communityNotReached("external communities"));
+// FIXME Caused by: java.lang.UnsupportedOperationException: null
+//         at java.base/java.util.ImmutableCollections.uoe(ImmutableCollections.java:159) ~[na:na]
+//         at java.base/java.util.ImmutableCollections$AbstractImmutableCollection.add(ImmutableCollections.java:164) ~[na:na]
+//         at ch.bfh.ti.i4mi.mag.mhd.iti67.Iti67RouteBuilder.mergeResponses(Iti67RouteBuilder.java:209) ~[classes/:na]
+//                     response18.getErrors().add(this.communityNotReached("external communities"));
             return response18;
         } else if (response38 != null) {
             response38.getErrors().add(this.communityNotReached("internal community"));
