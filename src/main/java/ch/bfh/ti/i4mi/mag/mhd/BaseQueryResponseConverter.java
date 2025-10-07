@@ -269,22 +269,24 @@ public abstract class BaseQueryResponseConverter extends BaseResponseConverter i
         final var result = new Organization();
         result.setName(org.getOrganizationName());
         String id = org.getIdNumber();
-        if (isUnprefixedOid(id)) {
-            id = "urn:oid:" + id;
-        } else if (isUnprefixedUuid(id)) {
-            id = "urn:uuid:" + id;
-        }
-
-        if (org.getAssigningAuthority() != null) {
-            String system = org.getAssigningAuthority().getUniversalId();
-            if (isUnprefixedOid(system)) {
-                system = "urn:oid:" + system;
+        if (id !=null) {
+            if (isUnprefixedOid(id)) {
+                id = "urn:oid:" + id;
+            } else if (isUnprefixedUuid(id)) {
+                id = "urn:uuid:" + id;
             }
-            result.addIdentifier().setSystem(system).setValue(id);
-        } else {
-            final var identifier = result.addIdentifier().setValue(id);
-            if (id.startsWith("urn:")) {
-                identifier.setSystem("urn:ietf:rfc:3986");
+
+            if (org.getAssigningAuthority() != null) {
+                String system = org.getAssigningAuthority().getUniversalId();
+                if (isUnprefixedOid(system)) {
+                    system = "urn:oid:" + system;
+                }
+                result.addIdentifier().setSystem(system).setValue(id);
+            } else {
+                final var identifier = result.addIdentifier().setValue(id);
+                if (id.startsWith("urn:")) {
+                    identifier.setSystem("urn:ietf:rfc:3986");
+                }
             }
         }
         return result;

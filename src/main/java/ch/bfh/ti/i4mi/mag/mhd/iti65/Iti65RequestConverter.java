@@ -558,48 +558,52 @@ public class Iti65RequestConverter extends BaseRequestConverter {
                                                     new AssigningAuthority(noPrefix(coding.getSystem())));
                 }
             }
-            submissionSet.setAuthor(transformAuthor(author, manifest.getContained(), identifiable));
+            submissionSet.setAuthor(transformAuthor(author, identifiable));
         }
         // recipient	SubmissionSet.intendedRecipient
 
-        List<Extension> recipients = manifest.getExtensionsByUrl(
+        final List<Extension> recipients = manifest.getExtensionsByUrl(
                 "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-intendedRecipient");
-        if (recipients.isEmpty()) recipients = manifest.getExtensionsByUrl(
-                "http://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-intendedRecipient");
+        for (final Extension recipientExt : recipients) {
+            final Reference recipientRef = Optional.ofNullable(recipientExt.getValue())
+                    .filter(Reference.class::isInstance)
+                    .map(Reference.class::cast)
+                    .orElseThrow(() -> new InvalidRequestException("Invalid intendedRecipient extension: no Reference found"));
+            final Resource res = (Resource) recipientRef.getResource();
 
-        for (Extension recipientExt : recipients) {
-            Reference recipientRef = (Reference) recipientExt.getValue();
-            Resource res = findResource(recipientRef, manifest.getContained());
-
-            if (res instanceof Practitioner) {
-                Recipient recipient = new Recipient();
-                recipient.setPerson(transform((Practitioner) res));
-                recipient.setTelecom(transform(((Practitioner) res).getTelecomFirstRep()));
-                submissionSet.getIntendedRecipients().add(recipient);
-            } else if (res instanceof Organization) {
-                Recipient recipient = new Recipient();
-                recipient.setOrganization(transform((Organization) res));
-                recipient.setTelecom(transform(((Organization) res).getTelecomFirstRep()));
-                submissionSet.getIntendedRecipients().add(recipient);
-            } else if (res instanceof PractitionerRole) {
-                Recipient recipient = new Recipient();
-                PractitionerRole role = (PractitionerRole) res;
-                recipient.setOrganization(transform((Organization) findResource(role.getOrganization(),
-                                                                                manifest.getContained())));
-                recipient.setPerson(transform((Practitioner) findResource(role.getPractitioner(),
-                                                                          manifest.getContained())));
-                recipient.setTelecom(transform(role.getTelecomFirstRep()));
-                submissionSet.getIntendedRecipients().add(recipient);
-            } else if (res instanceof Patient) {
-                Recipient recipient = new Recipient();
-                recipient.setPerson(transform((Patient) res));
-                recipient.setTelecom(transform(((Patient) res).getTelecomFirstRep()));
-            } else if (res instanceof RelatedPerson) {
-                Recipient recipient = new Recipient();
-                recipient.setPerson(transform((RelatedPerson) res));
-                recipient.setTelecom(transform(((RelatedPerson) res).getTelecomFirstRep()));
+            Recipient recipient = null;
+            if (res instanceof final Practitioner practitioner) {
+                recipient = new Recipient();
+                recipient.setPerson(transform(practitioner));
+                recipient.setTelecom(transform((practitioner).getTelecomFirstRep()));
+            } else if (res instanceof final Organization organization) {
+                recipient = new Recipient();
+                recipient.setOrganization(transform(organization));
+                recipient.setTelecom(transform((organization).getTelecomFirstRep()));
+            } else if (res instanceof final PractitionerRole practitionerRole) {
+                recipient = new Recipient();
+                if (practitionerRole.getOrganization().getResource() instanceof final Organization org) {
+                    recipient.setOrganization(transform(org));
+                }
+                if (practitionerRole.getPractitioner().getResource() instanceof final Practitioner pract) {
+                    recipient.setPerson(transform(pract));
+                }
+                recipient.setTelecom(transform(practitionerRole.getTelecomFirstRep()));
+            } else if (res instanceof final Patient patient) {
+                recipient = new Recipient();
+                recipient.setPerson(transform(patient));
+                recipient.setTelecom(transform((patient).getTelecomFirstRep()));
+            } else if (res instanceof final RelatedPerson relatedPerson) {
+                recipient = new Recipient();
+                recipient.setPerson(transform(relatedPerson));
+                recipient.setTelecom(transform((relatedPerson).getTelecomFirstRep()));
+            } else {
+                log.warn("Intended recipient of type {} not supported", res.getClass().getSimpleName());
             }
 
+            if (recipient != null) {
+                submissionSet.getIntendedRecipients().add(recipient);
+            }
         }
 
         Extension source = getExtensionByUrl(manifest,
@@ -700,21 +704,22 @@ public class Iti65RequestConverter extends BaseRequestConverter {
         // authorSpeciality, authorTelecommunication -> author Reference(Practitioner|
         // PractitionerRole| Organization| Device| Patient| RelatedPerson) [0..*]   		
         for (Reference authorRef : reference.getAuthor()) {
-            entry.getAuthors().add(transformAuthor(authorRef, reference.getContained(), null));
+            entry.getAuthors().add(transformAuthor(authorRef, null));
         }
 
         // legalAuthenticator -> authenticator Note 1
 
         if (reference.hasAuthenticator()) {
-            Reference authenticatorRef = reference.getAuthenticator();
-            Resource authenticator = findResource(authenticatorRef, reference.getContained());
-            if (authenticator instanceof Practitioner) {
-                entry.setLegalAuthenticator(transform((Practitioner) authenticator));
-            } else if (authenticator instanceof PractitionerRole) {
-                Practitioner practitioner = (Practitioner) findResource(((PractitionerRole) authenticator).getPractitioner(),
-                                                                        reference.getContained());
-                if (practitioner != null) entry.setLegalAuthenticator(transform(practitioner));
-            } else throw new InvalidRequestException("No authenticator of type Organization supported.");
+            final Resource authenticator = (Resource) reference.getAuthenticator().getResource();
+            if (authenticator instanceof final Practitioner practitioner) {
+                entry.setLegalAuthenticator(transform(practitioner));
+            } else if (authenticator instanceof final PractitionerRole practitionerRole) {
+                if (practitionerRole.getPractitioner().getResource() instanceof final Practitioner practitioner) {
+                    entry.setLegalAuthenticator(transform(practitioner));
+                }
+            } else {
+                throw new InvalidRequestException("No authenticator of type Organization supported.");
+            }
         }
 
         // comments -> description string [0..1]
@@ -840,20 +845,6 @@ public class Iti65RequestConverter extends BaseRequestConverter {
             entry.setSourcePatientInfo(transformReferenceToPatientInfo(context.getSourcePatientInfo(), reference));
         }
 
-    }
-
-    /**
-     * search a referenced resource from a list of (contained) resources.
-     *
-     * @param ref
-     * @param contained
-     * @return
-     */
-    public Resource findResource(Reference ref, List<Resource> contained) {
-        for (Resource res : contained) {
-            if (res.getId().equals(ref.getReference())) return res;
-        }
-        return null;
     }
 
     /**
@@ -1010,10 +1001,9 @@ public class Iti65RequestConverter extends BaseRequestConverter {
      * FHIR Reference to Author -> XDS Author
      *
      * @param author
-     * @param contained
      * @return
      */
-    public Author transformAuthor(Reference author, List<Resource> contained, Identifiable authorRole) {
+    public Author transformAuthor(Reference author, Identifiable authorRole) {
         if (author == null || author.getReference() == null) {
             if (authorRole != null) {
                 Author result = new Author();
@@ -1028,44 +1018,50 @@ public class Iti65RequestConverter extends BaseRequestConverter {
             }
             return null;
         }
-        Resource authorObj = findResource(author, contained);
-        if (authorObj instanceof Practitioner) {
-            Practitioner practitioner = (Practitioner) authorObj;
-            Author result = new Author();
-            result.setAuthorPerson(transform((Practitioner) authorObj));
-            for (ContactPoint contactPoint : practitioner.getTelecom())
-                result.getAuthorTelecom().add(transform(contactPoint));
-            if (authorRole == null) {
-                authorRole = new Identifiable("HCP", new AssigningAuthority("2.16.756.5.30.1.127.3.10.6"));
+        switch (author.getResource()) {
+            case final Practitioner practitioner -> {
+                final var result = new Author();
+                result.setAuthorPerson(transform(practitioner));
+                for (ContactPoint contactPoint : practitioner.getTelecom())
+                    result.getAuthorTelecom().add(transform(contactPoint));
+                if (authorRole == null) {
+                    authorRole = new Identifiable("HCP", new AssigningAuthority("2.16.756.5.30.1.127.3.10.6"));
+                }
+                result.getAuthorRole().add(authorRole);
+                return result;
             }
-            result.getAuthorRole().add(authorRole);
-            return result;
-        } else if (authorObj instanceof Patient) {
-            Patient patient = (Patient) authorObj;
-            Author result = new Author();
-            result.setAuthorPerson(transform(patient));
-            for (ContactPoint contactPoint : patient.getTelecom())
-                result.getAuthorTelecom().add(transform(contactPoint));
-            if (authorRole == null) {
-                authorRole = new Identifiable("PAT", new AssigningAuthority("2.16.756.5.30.1.127.3.10.6"));
+            case final Patient patient -> {
+                final var result = new Author();
+                result.setAuthorPerson(transform(patient));
+                for (final ContactPoint contactPoint : patient.getTelecom())
+                    result.getAuthorTelecom().add(transform(contactPoint));
+                if (authorRole == null) {
+                    authorRole = new Identifiable("PAT", new AssigningAuthority("2.16.756.5.30.1.127.3.10.6"));
+                }
+                result.getAuthorRole().add(authorRole);
+                return result;
             }
-            result.getAuthorRole().add(authorRole);
-            return result;
-        } else if (authorObj instanceof PractitionerRole) {
-            Author result = new Author();
-            PractitionerRole role = (PractitionerRole) authorObj;
-            Practitioner practitioner = (Practitioner) findResource(role.getPractitioner(), contained);
-            if (practitioner != null) result.setAuthorPerson(transform(practitioner));
-            Organization org = (Organization) findResource(role.getOrganization(), contained);
-            if (org != null) result.getAuthorInstitution().add(transform(org));
-            for (CodeableConcept code : role.getCode()) result.getAuthorRole().add(transformToIdentifiable(code));
-            for (CodeableConcept speciality : role.getSpecialty())
-                result.getAuthorSpecialty().add(transformToIdentifiable(speciality));
-            for (ContactPoint contactPoint : role.getTelecom()) result.getAuthorTelecom().add(transform(contactPoint));
-            return result;
-        } else throw new InvalidRequestException("Author role not supported.");
-
-        //return null;
+            case final PractitionerRole practitionerRole -> {
+                final var result = new Author();
+                if (practitionerRole.getPractitioner().getResource() instanceof final Practitioner pract) {
+                    result.setAuthorPerson(transform(pract));
+                }
+                if (practitionerRole.getOrganization().getResource() instanceof final Organization org) {
+                    result.getAuthorInstitution().add(transform(org));
+                }
+                for (final CodeableConcept code : practitionerRole.getCode()) {
+                    result.getAuthorRole().add(transformToIdentifiable(code));
+                }
+                for (final CodeableConcept speciality : practitionerRole.getSpecialty()) {
+                    result.getAuthorSpecialty().add(transformToIdentifiable(speciality));
+                }
+                for (final ContactPoint contactPoint : practitionerRole.getTelecom()) {
+                    result.getAuthorTelecom().add(transform(contactPoint));
+                }
+                return result;
+            }
+            case null, default -> throw new InvalidRequestException("Author role not supported.");
+        }
     }
 
     @Nullable
