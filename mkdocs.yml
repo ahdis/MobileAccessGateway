@@ -29,3 +29,8 @@ markdown_extensions:
       base_path: ["docs/snippets"]
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: ahdis
+      repo: MobileAccessGateway
+

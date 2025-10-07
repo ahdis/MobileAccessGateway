@@ -2,7 +2,7 @@
 
 ## v2.0.3 - unreleased
 
-- Add STS/TCU support for emedo [#24](https://github.com/ahdis/MobileAccessGateway/issues/24)).
+- Add STS/TCU support for emedo (#24).
 - Update Postman collection for emedo.
 - Remove the configuration parameter `mag.auth.sts-issuer` (#27).
 - Remove the configuration parameter `mag.auth.tcu.template-path` (#26).
@@ -12,17 +12,16 @@
 
 ## v2.0.2 - 2025/10/01
 
-- Enable https with client certificates and without ([#19](https://github.com/ahdis/MobileAccessGateway/issues/19)).
-- Fix startup issue when XCA endpoints are not defined ([#18](https://github.com/ahdis/MobileAccessGateway/issues/18)). 
+- Enable https with client certificates and without (#19).
+- Fix startup issue when XCA endpoints are not defined (#18). 
 
 ## v2.0.1 - 2025/09/30
 
-- Simplify the patient identifier feed ([#15](https://github.com/ahdis/MobileAccessGateway/issues/15)).
+- Simplify the patient identifier feed (#15).
   The `Patient.managingOrganization` isn't needed anymore.
 - Create the configuration parameter `mag.organization-name`.
-- Fix the URN-encoding of `DocumentEntry.entryUUID` ([#16](https://github.com/ahdis/MobileAccessGateway/issues/16)).
-- Don't return an OperationOutcome in ITI-119 when there are no matches
-  ([#17](https://github.com/ahdis/MobileAccessGateway/issues/17)).
+- Fix the URN-encoding of `DocumentEntry.entryUUID` (#16).
+- Don't return an OperationOutcome in ITI-119 when there are no matches (#17).
 
 ## v2.0.0 - 2025/09/26
 
