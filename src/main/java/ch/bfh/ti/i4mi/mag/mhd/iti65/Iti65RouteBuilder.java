@@ -24,6 +24,7 @@ import ch.bfh.ti.i4mi.mag.mhd.Utils;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Code;
+import org.openehealth.ipf.commons.ihe.xds.core.metadata.LocalizedString;
 import org.openehealth.ipf.commons.ihe.xds.core.requests.ProvideAndRegisterDocumentSet;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.ErrorCode;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.ErrorInfo;
@@ -210,6 +211,7 @@ class Iti65RouteBuilder extends MagRouteBuilder {
             final Code code = body.getDocuments().getFirst().getDocumentEntry().getConfidentialityCodes().getFirst();
             code.setCode(currentCode.getCode());
             code.setSchemeName(currentCode.getSystem());
+            code.setDisplayName(new LocalizedString(currentCode.getDisplay()));
         };
     }
 
