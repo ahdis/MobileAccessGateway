@@ -127,7 +127,7 @@ public class Iti67RequestUpdateConverter extends Iti65RequestConverter {
             if (coding != null) {
                 Identifiable identifiable = new Identifiable(coding.getCode(),
                                                              new AssigningAuthority(noPrefix(coding.getSystem())));
-                submissionSet.setAuthor(transformAuthor(null, null, identifiable));
+                submissionSet.setAuthor(transformAuthor(null, identifiable));
             }
         }
     }
