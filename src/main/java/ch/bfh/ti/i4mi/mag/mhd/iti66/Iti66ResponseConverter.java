@@ -151,7 +151,7 @@ public class Iti66ResponseConverter extends BaseQueryResponseConverter {
                         Person person = recipient.getPerson();
                         ContactPoint contact = transform(recipient.getTelecom());
                         var organization = transform(org);
-                        Practitioner practitioner = transformPractitioner(person);
+                        Practitioner practitioner = transformPractitioner(person, null);
                         if (organization != null && practitioner == null) {
                             if (contact != null) organization.addTelecom(contact);
                             documentManifest

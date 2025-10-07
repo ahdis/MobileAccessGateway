@@ -1018,9 +1018,9 @@ public class Iti65RequestConverter extends BaseRequestConverter {
             }
             return null;
         }
+        final var result = new Author();
         switch (author.getResource()) {
             case final Practitioner practitioner -> {
-                final var result = new Author();
                 result.setAuthorPerson(transform(practitioner));
                 for (ContactPoint contactPoint : practitioner.getTelecom())
                     result.getAuthorTelecom().add(transform(contactPoint));
@@ -1028,10 +1028,8 @@ public class Iti65RequestConverter extends BaseRequestConverter {
                     authorRole = new Identifiable("HCP", new AssigningAuthority("2.16.756.5.30.1.127.3.10.6"));
                 }
                 result.getAuthorRole().add(authorRole);
-                return result;
             }
             case final Patient patient -> {
-                final var result = new Author();
                 result.setAuthorPerson(transform(patient));
                 for (final ContactPoint contactPoint : patient.getTelecom())
                     result.getAuthorTelecom().add(transform(contactPoint));
@@ -1039,10 +1037,8 @@ public class Iti65RequestConverter extends BaseRequestConverter {
                     authorRole = new Identifiable("PAT", new AssigningAuthority("2.16.756.5.30.1.127.3.10.6"));
                 }
                 result.getAuthorRole().add(authorRole);
-                return result;
             }
             case final PractitionerRole practitionerRole -> {
-                final var result = new Author();
                 if (practitionerRole.getPractitioner().getResource() instanceof final Practitioner pract) {
                     result.setAuthorPerson(transform(pract));
                 }
@@ -1058,10 +1054,11 @@ public class Iti65RequestConverter extends BaseRequestConverter {
                 for (final ContactPoint contactPoint : practitionerRole.getTelecom()) {
                     result.getAuthorTelecom().add(transform(contactPoint));
                 }
-                return result;
             }
+            case final Organization organization -> result.getAuthorInstitution().add(transform(organization));
             case null, default -> throw new InvalidRequestException("Author role not supported.");
         }
+        return result;
     }
 
     @Nullable

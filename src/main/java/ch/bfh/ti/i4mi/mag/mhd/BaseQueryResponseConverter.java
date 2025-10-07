@@ -19,20 +19,9 @@ import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ch.bfh.ti.i4mi.mag.common.PatientIdMappingService;
 import ch.bfh.ti.i4mi.mag.common.UnknownPatientException;
 import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
-import org.hl7.fhir.r4.model.CodeableConcept;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.ContactPoint;
+import jakarta.annotation.Nullable;
+import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
-import org.hl7.fhir.r4.model.DateTimeType;
-import org.hl7.fhir.r4.model.DateType;
-import org.hl7.fhir.r4.model.HumanName;
-import org.hl7.fhir.r4.model.Identifier;
-import org.hl7.fhir.r4.model.Narrative;
-import org.hl7.fhir.r4.model.Organization;
-import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.Practitioner;
-import org.hl7.fhir.r4.model.PractitionerRole;
-import org.hl7.fhir.r4.model.Reference;
 import org.openehealth.ipf.commons.ihe.fhir.translation.ToFhirTranslator;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Address;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.AssigningAuthority;
@@ -226,15 +215,23 @@ public abstract class BaseQueryResponseConverter extends BaseResponseConverter i
      * @param person
      * @return
      */
-    public Practitioner transformPractitioner(Person person) {
-        if (person == null) return null;
-        Practitioner practitioner = new Practitioner();
-        Name name = person.getName();
+    public Practitioner transformPractitioner(
+            final Person person,
+            final @Nullable List<Telecom> telecoms
+    ) {
+        final var practitioner = new Practitioner();
+        final Name<?> name = person.getName();
         if (name != null) {
             practitioner.addName(transform(name));
         }
-        if (person.getId() != null) practitioner.addIdentifier(transformToIdentifier(person.getId()));
-
+        if (person.getId() != null) {
+            practitioner.addIdentifier(transformToIdentifier(person.getId()));
+        }
+        if (telecoms != null) {
+            for (final var telecom : telecoms) {
+                practitioner.addTelecom(transform(telecom));
+            }
+        }
         return practitioner;
     }
 
@@ -244,16 +241,34 @@ public abstract class BaseQueryResponseConverter extends BaseResponseConverter i
      * @param person
      * @return
      */
-    public Patient transformPatient(Person person) {
-        if (person == null) return null;
-        Patient patient = new Patient();
-        Name name = person.getName();
+    public Patient transformPatient(final Person person, final List<Telecom> telecoms) {
+        final var patient = new Patient();
+        final var name = person.getName();
         if (name != null) {
             patient.addName(transform(name));
         }
-        if (person.getId() != null) patient.addIdentifier(transformToIdentifier(person.getId()));
-
+        if (person.getId() != null) {
+            patient.addIdentifier(transformToIdentifier(person.getId()));
+        }
+        for (final var telecom : telecoms) {
+            patient.addTelecom(transform(telecom));
+        }
         return patient;
+    }
+
+    public RelatedPerson transformRelatedPerson(final Person person, final List<Telecom> telecoms) {
+        final var relatedPerson = new RelatedPerson();
+        final var name = person.getName();
+        if (name != null) {
+            relatedPerson.addName(transform(name));
+        }
+        if (person.getId() != null) {
+            relatedPerson.addIdentifier(transformToIdentifier(person.getId()));
+        }
+        for (final var telecom : telecoms) {
+            relatedPerson.addTelecom(transform(telecom));
+        }
+        return relatedPerson;
     }
 
     /**
@@ -450,70 +465,64 @@ public abstract class BaseQueryResponseConverter extends BaseResponseConverter i
         return result;
     }
 
-    private boolean isPatientAuthor(Author author) {
-        if (author == null) return false;
-        if (author.getAuthorRole() == null) return false;
-        for (Identifiable roles : author.getAuthorRole()) {
-            if ("PAT".equals(roles.getId()) && "2.16.756.5.30.1.127.3.10.6".equals(roles.getAssigningAuthority().getUniversalId()))
-                return true;
-            if ("REP".equals(roles.getId()) && "2.16.756.5.30.1.127.3.10.6".equals(roles.getAssigningAuthority().getUniversalId()))
-                return true;
-        }
-        return false;
-    }
-
     /**
      * XDS Author -> FHIR Reference
-     *
-     * @param author
-     * @return
      */
-    public Reference transformAuthor(Author author) {
-        Person person = author.getAuthorPerson();
+    public Reference transformAuthor(final Author xdsAuthor) {
+        Resource resource = null;
 
-        if (isPatientAuthor(author)) {
-            Patient patient = transformPatient(person);
-            Reference result = new Reference();
-            List<Telecom> telecoms = author.getAuthorTelecom();
-            for (Telecom telecom : telecoms) patient.addTelecom(transform(telecom));
-            result.setResource(patient);
-            return result;
+        // Extracting the data from the XDS Author object
+        final var xdsRole = (!xdsAuthor.getAuthorRole().isEmpty())
+                ? xdsAuthor.getAuthorRole().getFirst().getId()
+                : null;
+        final var xdsInstitution = (!xdsAuthor.getAuthorInstitution().isEmpty())
+                ? xdsAuthor.getAuthorInstitution().getFirst()
+                : null;
+        final var xdsPerson = xdsAuthor.getAuthorPerson();
+
+        if (xdsPerson == null && xdsInstitution != null) {
+            // It's an organization
+            final var organization = transform(xdsInstitution);
+            for (final var telecom : xdsAuthor.getAuthorTelecom()) {
+                organization.addTelecom(transform(telecom));
+            }
+            resource = organization;
+        } else if (xdsPerson != null && xdsInstitution != null) {
+            final var practitionerRole = new PractitionerRole();
+            final var practitioner = transformPractitioner(xdsPerson, null);
+            practitionerRole.setPractitioner(new Reference(practitioner));
+            practitionerRole.setOrganization(new Reference(transform(xdsInstitution)));
+            for (final var telecom : xdsAuthor.getAuthorTelecom()) {
+                practitionerRole.addTelecom(transform(telecom));
+            }
+            for (final var specialty : xdsAuthor.getAuthorSpecialty()) {
+                practitionerRole.addSpecialty(transform(specialty));
+            }
+            resource = practitionerRole;
         }
-
-        Practitioner containedPerson = transformPractitioner(person);
-        PractitionerRole role = null;
-
-        List<org.openehealth.ipf.commons.ihe.xds.core.metadata.Organization> orgs = author.getAuthorInstitution();
-        List<Identifiable> roles = author.getAuthorRole();
-        List<Identifiable> specialities = author.getAuthorSpecialty();
-
-        if (!orgs.isEmpty() || !roles.isEmpty() || !specialities.isEmpty()) {
-            role = new PractitionerRole();
-            if (containedPerson != null) role.setPractitioner((Reference) new Reference().setResource(containedPerson));
+        // From here, we may have a person, but we don't have an organization
+        else if (xdsPerson != null) {
+            switch (xdsRole) {
+                case "PAT" -> resource = transformPatient(xdsPerson, xdsAuthor.getAuthorTelecom());
+                case "REP" -> resource = transformRelatedPerson(xdsPerson, xdsAuthor.getAuthorTelecom());
+                case "HCP", "TCU" -> resource = transformPractitioner(xdsPerson, xdsAuthor.getAuthorTelecom());
+                case null, default -> {
+                    final var name = xdsPerson.getName();
+                    if (name != null) {
+                        final var reference = new Reference();
+                        reference.setDisplay(name.toString());
+                        return reference;
+                    }
+                }
+            }
         }
+        // Else: we only have telecoms or specialty or role. What can we do with that?
 
-        for (org.openehealth.ipf.commons.ihe.xds.core.metadata.Organization org : orgs) {
-            role.setOrganization((Reference) new Reference().setResource(transform(org)));
+        if (resource != null) {
+            return new Reference(resource);
         }
-
-        for (Identifiable roleId : roles) {
-            role.addCode(transform(roleId));
-        }
-
-        for (Identifiable specId : specialities) {
-            role.addSpecialty(transform(specId));
-        }
-
-        Reference result = new Reference();
-        List<Telecom> telecoms = author.getAuthorTelecom();
-        if (role == null) {
-            for (Telecom telecom : telecoms) containedPerson.addTelecom(transform(telecom));
-            result.setResource(containedPerson);
-        } else {
-            for (Telecom telecom : telecoms) role.addTelecom(transform(telecom));
-            result.setResource(role);
-        }
-        return result;
+        final var reference = new Reference();
+        reference.setDisplay("Unmappable author");
+        return reference;
     }
-
 }

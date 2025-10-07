@@ -227,7 +227,7 @@ public class Iti67ResponseConverter extends BaseQueryResponseConverter {
         // Reference(Practitioner|Practition erRole|Organization [0..1]
         Person person = documentEntry.getLegalAuthenticator();
         if (person != null) {
-            Practitioner practitioner = transformPractitioner(person);
+            Practitioner practitioner = transformPractitioner(person, null);
             documentReference.setAuthenticator((Reference) new Reference().setResource(practitioner));
         }
 
