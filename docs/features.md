@@ -41,3 +41,11 @@ mag:
 
 Furthermore, the parameter `mag.ch-epr-fhir.epr-spid-as-patientid` allows to set the patient EPR-SPID as the FHIR 
 Patient id. The mapping will automatically be changed to support that.
+
+## 2.3 Auto looping on CH:EPR confidentiality codes
+
+When publishing a document via ITI-65, the MAG will automatically loop on the confidentiality codes defined in the 
+Swiss EPR if the request fails, and the failure code/reason may indicate that the confidentiality code is not 
+supported.
+
+The MAG will start at the confidentiality code defined in the request, and go up to `SECRET`.
