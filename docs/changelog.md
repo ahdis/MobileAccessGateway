@@ -8,6 +8,7 @@
 - Remove the configuration parameter `mag.auth.tcu.template-path` (#26).
 - Add the configuration parameter `mag.auth.tcu.oid` (#26).
 - Add author support in publication (#31).
+- Implement the automatic loop on confidentiality codes when publishing a document (#22).
 
 ## v2.0.2 - 2025/10/01
 
