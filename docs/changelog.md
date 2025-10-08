@@ -1,6 +1,6 @@
 # 7. Changelog
 
-## v2.0.3 - unreleased
+## v2.0.3 - 2025/10/08
 
 - Add STS/TCU support for emedo (#24).
 - Update Postman collection for emedo.
