@@ -1,5 +1,9 @@
 # 7. Changelog
 
+## v2.0.4 - Unreleased
+
+- Fix the ATNA TLS initialization (#37).
+
 ## v2.0.3 - 2025/10/08
 
 - Add STS/TCU support for emedo (#24).
