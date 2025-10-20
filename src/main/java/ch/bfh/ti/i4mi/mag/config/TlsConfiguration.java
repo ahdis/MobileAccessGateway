@@ -1,6 +1,8 @@
 package ch.bfh.ti.i4mi.mag.config;
 
 import ch.bfh.ti.i4mi.mag.config.props.MagClientSslProps;
+import org.apache.camel.CamelContext;
+import org.apache.camel.CamelContextAware;
 import org.apache.camel.support.jsse.KeyManagersParameters;
 import org.apache.camel.support.jsse.KeyStoreParameters;
 import org.apache.camel.support.jsse.SSLContextParameters;
@@ -11,9 +13,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class TlsConfiguration {
+public class TlsConfiguration implements CamelContextAware {
 
     public static final String BEAN_TLS_CONTEXT_WS = "wsTlsContext";
+    private CamelContext camelContext;
 
     @Bean(name = BEAN_TLS_CONTEXT_WS)
     public SSLContextParameters getWsTlsContext(final MagClientSslProps magProps) {
@@ -68,10 +71,20 @@ public class TlsConfiguration {
         scp.setCertAlias(magProps.getCertAlias());
         return b -> {
             try {
-                return scp.createSSLContext(scp.getCamelContext());
+                return scp.createSSLContext(this.camelContext);
             } catch (final Exception e) {
                 throw new RuntimeException(e);
             }
         };
+    }
+
+    @Override
+    public void setCamelContext(final CamelContext camelContext) {
+        this.camelContext = camelContext;
+    }
+
+    @Override
+    public CamelContext getCamelContext() {
+        return this.camelContext;
     }
 }
