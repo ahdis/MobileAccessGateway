@@ -1,6 +1,6 @@
 # 7. Changelog
 
-## v2.0.4 - Unreleased
+## v2.0.4 - 2025/11/03
 
 - Fix the ATNA TLS initialization (#37).
 

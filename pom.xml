@@ -6,7 +6,7 @@
 
     <groupId>ch.ahdis</groupId>
     <artifactId>mobile-access-gateway</artifactId>
-    <version>2.0.1</version>
+    <version>2.0.4</version>
     <description>FHIR Gateway supporting the PIXm/PDQm and MHD server actors and uses XDS/PIXv3/PDQv3 to communicate
         with the Swiss EPR
     </description>
