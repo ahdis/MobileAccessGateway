@@ -19,6 +19,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.filter.CorsFilter;
 
@@ -77,11 +78,13 @@ public class MagConfiguration {
 
     // see https://oehf.github.io/ipf-docs/docs/ihe/wsPayloadLogging
     @Bean
+    @Lazy
     public OutPayloadLoggerInterceptor soapRequestLogger() {
         return new OutPayloadLoggerInterceptor("./logs/[date('yyyyMMdd-HH00')]/[sequenceId]-soap-request.txt");
     }
 
     @Bean
+    @Lazy
     public InPayloadLoggerInterceptor soapResponseLogger() {
         return new InPayloadLoggerInterceptor("./logs/[date('yyyyMMdd-HH00')]/[sequenceId]-soap-response.txt");
     }
