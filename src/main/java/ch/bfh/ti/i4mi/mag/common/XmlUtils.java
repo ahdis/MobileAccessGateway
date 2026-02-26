@@ -16,6 +16,28 @@ import java.io.ByteArrayOutputStream;
 
 public class XmlUtils {
 
+    private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newDefaultInstance();
+    private static final TransformerFactory TRANSFORMER_FACTORY = TransformerFactory.newDefaultInstance();
+
+    static {
+        try {
+            DOCUMENT_BUILDER_FACTORY.setNamespaceAware(true);
+            DOCUMENT_BUILDER_FACTORY.setFeature("http://javax.xml.XMLConstants/feature/secure-processing", true);
+            DOCUMENT_BUILDER_FACTORY.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            DOCUMENT_BUILDER_FACTORY.setFeature("http://apache.org/xml/features/xinclude", false);
+            DOCUMENT_BUILDER_FACTORY.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            DOCUMENT_BUILDER_FACTORY.setXIncludeAware(false);
+            DOCUMENT_BUILDER_FACTORY.setExpandEntityReferences(false);
+            DOCUMENT_BUILDER_FACTORY.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            DOCUMENT_BUILDER_FACTORY.setFeature("http://xml.org/sax/features/external-general-entities", false);
+
+            TRANSFORMER_FACTORY.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            TRANSFORMER_FACTORY.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * This class is not instantiable.
      */
@@ -32,18 +54,8 @@ public class XmlUtils {
      * href="https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html#jaxp-documentbuilderfactory-saxparserfactory-and-dom4j">XML
      * External Entity Prevention Cheat Sheet</a>
      */
-    public static DocumentBuilder newSafeDocumentBuilder() throws ParserConfigurationException {
-        final var factory = DocumentBuilderFactory.newDefaultInstance();
-        factory.setNamespaceAware(true);
-        factory.setFeature("http://javax.xml.XMLConstants/feature/secure-processing", true);
-        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-        factory.setFeature("http://apache.org/xml/features/xinclude", false);
-        factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-        factory.setXIncludeAware(false);
-        factory.setExpandEntityReferences(false);
-        factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-        factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-        return factory.newDocumentBuilder();
+    public static synchronized DocumentBuilder newSafeDocumentBuilder() throws ParserConfigurationException {
+        return DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
     }
 
     /**
@@ -52,11 +64,8 @@ public class XmlUtils {
      * @return a configured {@link Transformer}.
      * @throws TransformerConfigurationException if it is not possible to create a {@link Transformer} instance.
      */
-    public static Transformer newTransformer() throws TransformerConfigurationException {
-        final var transformerFactory = TransformerFactory.newDefaultInstance();
-        transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
-        return transformerFactory.newTransformer();
+    public static synchronized Transformer newTransformer() throws TransformerConfigurationException {
+        return TRANSFORMER_FACTORY.newTransformer();
     }
 
     public static String serialize(final Node inputNode) throws Exception {
