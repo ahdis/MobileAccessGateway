@@ -6,6 +6,7 @@
 - Improve the logging in the application, especially at the DEBUG and TRACE levels.
 - Update dependencies.
 - Disable AuditMessage generation on application start and stop events.
+- Fix mapping of empty HL7v3 elements in PIXm or PDQm transactions.
 
 ## v2.0.4 - 2025/11/03
 

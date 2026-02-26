@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static ch.bfh.ti.i4mi.mag.common.JavaUtils.firstOrNull;
 import static ch.bfh.ti.i4mi.mag.mpi.common.FhirExceptions.*;
 
 public class Hl7v3Mappers {
@@ -107,11 +108,15 @@ public class Hl7v3Mappers {
         addr.setPostalCode(val(address.getPostalCode()));
         addr.setState(val(address.getState()));
         for (AdxpStreetName street : address.getStreetName()) {
-            addr.addLine(val(street));
+            final var streetValue = val(street);
+            if (streetValue != null)
+                addr.addLine(streetValue);
         }
         // TODO Missing: type, use
         for (AdxpStreetAddressLine line : address.getStreetAddressLine()) {
-            addr.addLine(val(line));
+            final var lineValue = val(line);
+            if (lineValue != null)
+                addr.addLine(lineValue);
         }
         if (address.getUseablePeriod() != null) {
             //addr.setPeriod(transform(address.getUseablePeriod().get(0)));
@@ -202,17 +207,25 @@ public class Hl7v3Mappers {
         }
     }
 
+    @Nullable
     public static String val(final ST in) {
-        return in.getListStringValues().get(0);
+        return firstOrNull(in.getListStringValues());
     }
 
     @Nullable
     public static String val(final @Nullable List<? extends ST> in) {
         if (in == null || in.isEmpty()) return null;
-        String result = null;
-        for (ST value : in) {
-            if (result == null) result = val(value); else result+=" "+val(value);
+        final var sb = new StringBuilder();
+        for (final ST st : in) {
+            final var stValue = val(st);
+            if (stValue != null) {
+                if (!sb.isEmpty())
+                    sb.append(" ");
+                sb.append(stValue);
+            }
         }
-        return result;
+        if (sb.isEmpty())
+            return null;
+        return sb.toString();
     }
 }
