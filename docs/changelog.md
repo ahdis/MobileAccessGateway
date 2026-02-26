@@ -1,6 +1,6 @@
 # 7. Changelog
 
-## v2.0.5 - Unreleased
+## v2.0.5 - 2026/02/26
 
 - Inject a random traceparent header in the outgoing requests if it's not provided in the request.
 - Improve the logging in the application, especially at the DEBUG and TRACE levels.
