@@ -3,6 +3,7 @@ package ch.bfh.ti.i4mi.mag.common;
 
 import java.util.Objects;
 import java.util.Random;
+import java.util.random.RandomGenerator;
 
 /**
  * A class representing a traceparent.
@@ -61,11 +62,11 @@ public class Traceparent {
 
     /**
      * Generates a random traceparent, with version 0 and flags 0.
-     *
+     */
     public static Traceparent random() {
         final var random = RandomGenerator.getDefault();
         return new Traceparent((byte) 0, random.nextLong(), random.nextLong(), random.nextLong(), (byte) 0);
-    }*/
+    }
 
     /**
      * Parses a traceparent from a string.
