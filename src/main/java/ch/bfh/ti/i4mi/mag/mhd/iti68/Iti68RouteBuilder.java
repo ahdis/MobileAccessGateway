@@ -21,6 +21,7 @@ import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
 import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagXdsProps;
+import org.apache.camel.LoggingLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -44,12 +45,11 @@ class Iti68RouteBuilder extends MagRouteBuilder {
         this.xdsProps = magProps.getXds();
         this.isChMhdConstraints = xdsProps.isChMhdConstraints();
         this.localHomeCommunityId = magProps.getHomeCommunityId();
-        log.debug("Iti68RouteBuilder initialized");
     }
 
     @Override
     public void configure() throws Exception {
-        log.debug("Iti68RouteBuilder configure");
+        log.debug("Configuring ITI-68 route");
         final String xds43Endpoint = this.buildOutgoingEndpoint("xds-iti43",
                                                                 this.xdsProps.getIti43(),
                                                                 this.xdsProps.isHttps());
@@ -57,10 +57,13 @@ class Iti68RouteBuilder extends MagRouteBuilder {
                                                                 this.xdsProps.getXca39(),
                                                                 this.xdsProps.isHttps());
 
+        // @formatter:off
         from("mhd-iti68:camel/xdsretrieve?audit=false")
                 .routeId("in-mhd-iti68")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
+                .log(LoggingLevel.INFO, log, "Received ITI-68 request")
+                .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
                 .doTry()
                     //.process(RequestHeadersForwarder.checkAuthorization(this.isChMhdConstraints))
                     .process(RequestHeadersForwarder.forward())
@@ -69,16 +72,27 @@ class Iti68RouteBuilder extends MagRouteBuilder {
                     .bean(Iti68RequestConverter.class)
                     .choice()
                         .when(header("homeCommunityId").isEqualTo(this.localHomeCommunityId))
+                            .log(LoggingLevel.DEBUG, log, "Sending an ITI-43 request to " + xds43Endpoint)
+                            .log(LoggingLevel.TRACE, log, "${body}")
                             .to(xds43Endpoint)
+                            .log(LoggingLevel.DEBUG, log, "Got a response")
+                            .log(LoggingLevel.TRACE, log, "${body}")
                         .otherwise()
+                            .log(LoggingLevel.DEBUG, log, "Sending an ITI-XCA-43 request to " + xca39Endpoint)
+                            .log(LoggingLevel.TRACE, log, "${body}")
                             .to(xca39Endpoint)
+                            .log(LoggingLevel.DEBUG, log, "Got a response")
+                            .log(LoggingLevel.TRACE, log, "${body}")
                     .endDoTry()
                     .process(TraceparentHandler.updateHeaderForFhir())
                     .bean(Iti68ResponseConverter.class, "retrievedDocumentSetToHttResponse")
+                    .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-68 response")
+                    .process(loggingResponseProcessor(LoggingLevel.TRACE, log))
                 .doCatch(Exception.class)
                     .setBody(simple("${exception}"))
                     .process(this.errorFromException())
                 .end();
+        // @formatter:on
         // if removing retrievedDocumentSetToHttResponse its given an AmbiguousMethodCallException with two same methods??
         // public java.lang.Object ch.bfh.ti.i4mi.mag.mhd.iti68.Iti68ResponseConverter.retrievedDocumentSetToHttResponse(org.openehealth.ipf.commons.ihe.xds.core.responses.RetrievedDocumentSet,java.util.Map) throws java.io.IOException,
         // public java.lang.Object ch.bfh.ti.i4mi.mag.mhd.iti68.Iti68ResponseConverter.retrievedDocumentSetToHttResponse(org.openehealth.ipf.commons.ihe.xds.core.responses.RetrievedDocumentSet,java.util.Map) throws java.io.IOException]

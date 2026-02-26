@@ -25,6 +25,7 @@ import ch.bfh.ti.i4mi.mag.mhd.Utils;
 import ch.bfh.ti.i4mi.mag.mpi.common.Iti47ResponseToFhirConverter;
 import ch.bfh.ti.i4mi.mag.mpi.pdqm.iti78.Iti78RequestConverter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.LoggingLevel;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -50,7 +51,7 @@ class Iti104RouteBuilder extends MagRouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        log.debug("Iti104RouteBuilder configure");
+        log.debug("Configuring ITI-104 route");
 
         final String xds44Endpoint = this.buildOutgoingEndpoint("pixv3-iti44",
                                                                 this.mpiProps.getIti44(),
@@ -59,16 +60,23 @@ class Iti104RouteBuilder extends MagRouteBuilder {
                                                                 this.mpiProps.getIti47(),
                                                                 this.mpiProps.isHttps());
 
+        // @formatter:off
         from("pixm-iti104:patient-identity-feed-fhir?audit=false")
                 .routeId("in-pixm-iti104")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
+                .log(LoggingLevel.INFO, log, "Received ITI-104 request")
+                .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
                 //.process(RequestHeadersForwarder.checkAuthorization(this.mpiProps.isChPdqmConstraints()))
                 .process(RequestHeadersForwarder.forward())
                 .process(Utils.keepBody())
                 .bean(Iti104RequestConverter.class)
                 .doTry()
+                    .log(LoggingLevel.DEBUG, log, "Sending an ITI-44 request to " + xds44Endpoint)
+                    .log(LoggingLevel.TRACE, log, "${body}")
                     .to(xds44Endpoint)
+                    .log(LoggingLevel.DEBUG, log, "Got a response")
+                    .log(LoggingLevel.TRACE, log, "${body}")
                     .process(Utils.keptBodyToHeader())
                     .process(Utils.storePreferHeader())
                     .process(translateToFhir(this.response104Converter, byte[].class))
@@ -78,17 +86,23 @@ class Iti104RouteBuilder extends MagRouteBuilder {
                             .process(Utils.keepBody())
                             .bean(Iti78RequestConverter.class, "fromMethodOutcome")
                             .process(TraceparentHandler.updateHeaderForSoap())
+                            .log(LoggingLevel.DEBUG, log, "Sending an ITI-47 request to " + xds44Endpoint)
+                            .log(LoggingLevel.TRACE, log, "${body}")
                             .to(xds47Endpoint)
+                            .log(LoggingLevel.DEBUG, log, "Got a response")
+                            .log(LoggingLevel.TRACE, log, "${body}")
                             .bean(Iti47ResponseToFhirConverter.class, "convertForIti104")
                             .process(TraceparentHandler.updateHeaderForFhir())
                             .process(Iti104ResponseConverter.addPatientToOutcome())
                         .endChoice()
                     .end()
+                    .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-104 response")
+                    .process(loggingResponseProcessor(LoggingLevel.TRACE, log))
                 .endDoTry()
                 .doCatch(Exception.class)
                     .setBody(simple("${exception}"))
                     .process(this.errorFromException())
                 .end();
-
+        // @formatter:on
     }
 }

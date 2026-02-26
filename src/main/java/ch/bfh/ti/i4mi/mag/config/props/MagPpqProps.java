@@ -32,4 +32,13 @@ public class MagPpqProps {
     public void setChPpqmConstraints(final boolean chPpqmConstraints) {
         this.chPpqmConstraints = chPpqmConstraints;
     }
+
+    @Override
+    public String toString() {
+        return "MagPpqProps{" +
+                "pp1='" + pp1 + '\'' +
+                ", pp2='" + pp2 + '\'' +
+                ", chPpqmConstraints=" + chPpqmConstraints +
+                '}';
+    }
 }

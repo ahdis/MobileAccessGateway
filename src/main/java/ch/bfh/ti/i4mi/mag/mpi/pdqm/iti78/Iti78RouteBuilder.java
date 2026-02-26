@@ -24,6 +24,7 @@ import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.mpi.common.Iti47ResponseToFhirConverter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.LoggingLevel;
 import org.openehealth.ipf.commons.ihe.fhir.Constants;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -45,16 +46,19 @@ public class Iti78RouteBuilder extends MagRouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        log.debug("Iti78RouteBuilder configure");
+        log.debug("Configuring ITI-78 route");
 
         final String xds47Endpoint = this.buildOutgoingEndpoint("pdqv3-iti47",
                                                                 this.mpiProps.getIti47(),
                                                                 this.mpiProps.isHttps());
 
+        // @formatter:off
         from("pdqm-iti78:mobile-patient-demographics-query?audit=false")
                 .routeId("in-pdqm-iti78")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
+                .log(LoggingLevel.INFO, log, "Received ITI-78 request")
+                .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
                 //.process(RequestHeadersForwarder.checkAuthorization(this.mpiProps.isChPdqmConstraints()))
                 .process(RequestHeadersForwarder.forward())
                 .choice()
@@ -66,13 +70,20 @@ public class Iti78RouteBuilder extends MagRouteBuilder {
                     .endChoice()
                 .end()
                 .doTry()
+                    .log(LoggingLevel.DEBUG, log, "Sending an ITI-47 request to " + xds47Endpoint)
+                    .log(LoggingLevel.TRACE, log, "${body}")
                     .to(xds47Endpoint)
+                    .log(LoggingLevel.DEBUG, log, "Got a response")
+                    .log(LoggingLevel.TRACE, log, "${body}")
                     .process(TraceparentHandler.updateHeaderForFhir())
                     .bean(Iti47ResponseToFhirConverter.class, "convertForIti78")
                     .bean(PatientIdInterceptor.class, "interceptBundleOfPatients")
+                    .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-78 response")
+                    .process(loggingResponseProcessor(LoggingLevel.TRACE, log))
                 .doCatch(Exception.class)
                     .setBody(simple("${exception}"))
                     .process(this.errorFromException())
                 .end();
+        // @formatter:on
     }
 }

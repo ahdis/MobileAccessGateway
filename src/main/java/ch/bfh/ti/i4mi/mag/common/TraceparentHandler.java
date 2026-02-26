@@ -44,7 +44,7 @@ public class TraceparentHandler {
             // We need to update the parentId value before forwarding it
             final var newTraceparent = traceparent.withRandomParentId();
 
-            log.debug("Forwarding Traceparent header: {} | The original was: {}", newTraceparent, traceparent);
+            log.debug("Forwarding traceparent header: {} | The original was: {}", newTraceparent, traceparent);
             SoapExchanges.writeResponseHttpHeader(TRACEPARENT_HEADER, newTraceparent.toString(), exchange);
         };
     }
@@ -60,7 +60,7 @@ public class TraceparentHandler {
             // We need to update the parentId value before forwarding it
             final var newTraceparent = traceparent.withRandomParentId();
 
-            log.debug("Forwarding Traceparent header: {} | The original was: {}", newTraceparent, traceparent);
+            log.debug("Forwarding traceparent header: {} | The original was: {}", newTraceparent, traceparent);
             FhirExchanges.writeResponseHttpHeader(TRACEPARENT_HEADER, newTraceparent.toString(), exchange);
         };
     }

@@ -73,20 +73,26 @@ public class PatientIdMappingService implements CamelContextAware {
                 .findAny()
                 .map(Map.Entry::getKey);
         if (maybeXadPid.isPresent()) {
+            log.trace("PatientIdMappingService: cache hit for EPR-SPID={}: XAD-PID={}", eprSpid, maybeXadPid.get());
             return maybeXadPid.get();
         }
 
+        log.trace("PatientIdMappingService: cache miss for EPR-SPID={}", eprSpid);
         final var xadPid = this.query(new II(EPR_SPID_OID, eprSpid), this.xadMpiOid);
+        log.trace("PatientIdMappingService: caching XAD-PID={} with EPR-SPID={}", xadPid, eprSpid);
         this.cache.put(xadPid, eprSpid);
         return xadPid;
     }
 
     public String getEprSpid(final String xadPid) throws Exception {
         if (this.cache.containsKey(xadPid)) {
+            log.trace("PatientIdMappingService: cache hit for XAD-PID={}: EPR-SPID={}", xadPid, this.cache.get(xadPid));
             return this.cache.get(xadPid);
         }
 
+        log.trace("PatientIdMappingService: cache miss for XAD-PID={}", xadPid);
         final var eprSpid = this.query(new II(this.xadMpiOid, xadPid), EPR_SPID_OID);
+        log.trace("PatientIdMappingService: caching EPR-SPID={} with XAD-PID={}", eprSpid, xadPid);
         this.cache.put(xadPid, eprSpid);
         return eprSpid;
     }
@@ -96,12 +102,14 @@ public class PatientIdMappingService implements CamelContextAware {
             log.warn("Trying to save null patient identifier");
             return;
         }
-        log.debug("PatientIdMappingService: caching {} with {}", xadPid, eprSpid);
+        log.trace("PatientIdMappingService: caching XAD-PID={} with EPR-SPID={}", xadPid, eprSpid);
         this.cache.put(xadPid, eprSpid);
     }
 
     private String query(final II queriedIdentifier,
                          final String wantedSystem) throws Exception {
+        log.debug("PatientIdMappingService: sending PIX query for identifier {}|{} to retrieve identifier with system {}",
+                  queriedIdentifier.getRoot(), queriedIdentifier.getExtension(), wantedSystem);
         final var pixQuery = new PixV3QueryRequest();
         pixQuery.setQueryPatientId(queriedIdentifier);
         pixQuery.getDataSourceOids().add(EPR_SPID_OID);
@@ -114,15 +122,21 @@ public class PatientIdMappingService implements CamelContextAware {
 
         final var exchange = new DefaultExchange(getCamelContext());
         exchange.getIn().setBody(pixQuery);
+        log.trace("PatientIdMappingService: sending PIX query to endpoint {}", this.pixv3Endpoint);
+        log.trace(exchange.getIn().getBody(String.class));
 
         final Exchange result = this.producerTemplate.send(this.pixv3Endpoint, exchange);
         if (result.getException() != null) {
             log.warn("Error during PIX query", result.getException());
             throw result.getException();
         }
+        log.trace("PatientIdMappingService: received PIX query response");
+        log.trace(result.getMessage().getBody(String.class));
         final var pixResponse = result.getMessage().getBody(PixV3QueryResponse.class);
         for (final var identifier : pixResponse.getPatientIds()) {
             if (wantedSystem.equals(identifier.getRoot())) {
+                log.trace("PatientIdMappingService: found identifier {}|{} for system {} in PIX query response",
+                          identifier.getRoot(), identifier.getExtension(), wantedSystem);
                 return identifier.getExtension();
             }
         }

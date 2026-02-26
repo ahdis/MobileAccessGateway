@@ -41,4 +41,14 @@ public class MagClientSslProps {
     public void setCertAlias(final String certAlias) {
         this.certAlias = certAlias;
     }
+
+    @Override
+    public String toString() {
+        return "MagClientSslProps{" +
+                "enabled=" + enabled +
+                ", keyStore=" + keyStore +
+                ", truststore=" + truststore +
+                ", certAlias='" + certAlias + '\'' +
+                '}';
+    }
 }

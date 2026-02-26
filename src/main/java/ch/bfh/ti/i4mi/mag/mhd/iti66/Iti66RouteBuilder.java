@@ -22,6 +22,7 @@ import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagXdsProps;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
+import org.apache.camel.LoggingLevel;
 import org.openehealth.ipf.commons.ihe.fhir.Constants;
 import org.openehealth.ipf.commons.ihe.xds.core.responses.QueryResponse;
 import org.slf4j.Logger;
@@ -46,20 +47,22 @@ class Iti66RouteBuilder extends MagRouteBuilder {
         super(magProps);
         this.xdsProps = magProps.getXds();
         this.iti66ResponseConverter = iti66ResponseConverter;
-        log.debug("Iti66RouteBuilder initialized");
     }
 
     @Override
     public void configure() throws Exception {
-        log.debug("Iti66RouteBuilder configure");
+        log.debug("Configuring ITI-66 route");
         final String xds18Endpoint = this.buildOutgoingEndpoint("xds-iti18",
                                                                 this.xdsProps.getIti18(),
                                                                 this.xdsProps.isHttps());
 
+        // @formatter:off
         from("mhd-iti66:find-document-lists?audit=false")
                 .routeId("in-mhd-iti66")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
+                .log(LoggingLevel.INFO, log, "Received ITI-66 request")
+                .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
                 //.process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
                 .process(RequestHeadersForwarder.forward())
                 .choice()
@@ -72,13 +75,20 @@ class Iti66RouteBuilder extends MagRouteBuilder {
                     .endChoice()
                 .end()
                 .doTry()
+                    .log(LoggingLevel.DEBUG, log, "Sending an ITI-18 request to " + xds18Endpoint)
+                    .log(LoggingLevel.TRACE, log, "${body}")
                     .to(xds18Endpoint)
+                    .log(LoggingLevel.DEBUG, log, "Got a response")
+                    .log(LoggingLevel.TRACE, log, "${body}")
                     .bean(Iti66ResponseBugfix.class)
                     .process(TraceparentHandler.updateHeaderForFhir())
                     .process(translateToFhir(this.iti66ResponseConverter, QueryResponse.class))
+                    .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-66 response")
+                    .process(loggingResponseProcessor(LoggingLevel.TRACE, log))
                 .doCatch(Exception.class)
                     .setBody(simple("${exception}"))
                     .process(this.errorFromException())
                 .end();
+        // @formatter:on
     }
 }

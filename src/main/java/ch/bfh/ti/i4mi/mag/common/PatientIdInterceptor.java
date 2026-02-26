@@ -33,6 +33,7 @@ public class PatientIdInterceptor {
 
     @SuppressWarnings("unchecked")
     public void interceptBundleOfPatients(final Message message) {
+        log.trace("interceptBundleOfPatients: Intercepting message with body of type {}", message.getBody().getClass().getName());
         final var bundle = message.getBody(Bundle.class);
         if (bundle != null) {
             bundle.getEntry().stream()
@@ -54,6 +55,7 @@ public class PatientIdInterceptor {
     }
 
     public void interceptIti83Parameters(final Message message) {
+        log.trace("interceptIti83Parameters: Intercepting message with body of type {}", message.getBody().getClass().getName());
         final var parameters = message.getBody(Parameters.class);
         if (parameters == null) {
             log.warn("interceptIti83Parameters: Unable to read a Parameters instance");
@@ -71,6 +73,7 @@ public class PatientIdInterceptor {
     }
 
     public void interceptIdentifiers(final List<Identifier> identifiers) {
+        log.trace("interceptIdentifiers: Intercepting list of identifiers with size {}", identifiers.size());
         String eprSpid = null;
         String xadPid = null;
         for (final var identifier : identifiers) {

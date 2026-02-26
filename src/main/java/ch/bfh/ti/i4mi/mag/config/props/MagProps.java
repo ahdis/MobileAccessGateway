@@ -1,5 +1,6 @@
 package ch.bfh.ti.i4mi.mag.config.props;
 
+import jakarta.annotation.Nullable;
 import org.openehealth.ipf.boot.atna.IpfAtnaConfigurationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -112,5 +113,47 @@ public class MagProps {
 
     public String getFhirBaseUrl() {
         return this.baseUrl + "/fhir";
+    }
+
+    @Override
+    public String toString() {
+        return "MagProps{" +
+                "homeCommunityId='" + homeCommunityId + '\'' +
+                ", baseUrl='" + baseUrl + '\'' +
+                ", documentSourceId='" + documentSourceId + '\'' +
+                ", organizationName='" + organizationName + '\'' +
+                ", clientSsl=" + clientSsl +
+                ", xds=" + xds +
+                ", mpi=" + mpi +
+                ", ppq=" + ppq +
+                ", hpd=" + hpd +
+                ", auth=" + auth +
+                ", atna=" + atnaToString(atna) +
+                '}';
+    }
+
+    private static String atnaToString(final @Nullable IpfAtnaConfigurationProperties atna) {
+        if (atna == null) {
+            return "null";
+        }
+        return "IpfAtnaConfigurationProperties{" +
+                "auditEnabled=" + atna.isAuditEnabled() +
+                ", auditSourceType='" + atna.getAuditSourceType() + '\'' +
+                ", auditSourceId='" + atna.getAuditSourceId() + '\'' +
+                ", auditSendingApplication='" + atna.getAuditSendingApplication() + '\'' +
+                ", auditRepositoryTransport='" + atna.getAuditRepositoryTransport() + '\'' +
+                ", auditRepositoryHost='" + atna.getAuditRepositoryHost() + '\'' +
+                ", auditRepositoryPort=" + atna.getAuditRepositoryPort() +
+                ", auditEnterpriseSiteId='" + atna.getAuditEnterpriseSiteId() + '\'' +
+                ", auditQueueClass='" + atna.getAuditQueueClass() + '\'' +
+                ", auditMessagePostProcessorClass='" + atna.getAuditMessagePostProcessorClass() + '\'' +
+                ", auditSenderClass='" + atna.getAuditSenderClass() + '\'' +
+                ", auditExceptionHandlerClass='" + atna.getAuditExceptionHandlerClass() + '\'' +
+                ", includeParticipantsFromResponse=" + atna.isIncludeParticipantsFromResponse() +
+                ", auditValueIfMissing='" + atna.getAuditValueIfMissing() + '\'' +
+                ", wsAuditDatasetEnricherClass='" + atna.getWsAuditDatasetEnricherClass() + '\'' +
+                ", fhirAuditDatasetEnricherClass='" + atna.getFhirAuditDatasetEnricherClass() + '\'' +
+                ", balp='" + atna.getBalp() + '\'' +
+                '}';
     }
 }

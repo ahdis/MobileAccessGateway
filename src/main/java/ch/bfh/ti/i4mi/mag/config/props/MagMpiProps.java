@@ -87,6 +87,21 @@ public class MagMpiProps {
         this.localPatientIdAssigningAuthority = localPatientIDAssigningAuthority;
     }
 
+    @Override
+    public String toString() {
+        return "MagMpiProps{" +
+                "https=" + https +
+                ", iti44='" + iti44 + '\'' +
+                ", iti45='" + iti45 + '\'' +
+                ", iti47='" + iti47 + '\'' +
+                ", oids=" + oids +
+                ", chPixmConstraints=" + chPixmConstraints +
+                ", chPdqmConstraints=" + chPdqmConstraints +
+                ", chEprspidAsPatientId=" + chEprspidAsPatientId +
+                ", localPatientIdAssigningAuthority='" + localPatientIdAssigningAuthority + '\'' +
+                '}';
+    }
+
     @ConfigurationProperties(prefix = "mag.mpi.oids")
     public static class MagMpiOidsProps {
 
@@ -125,6 +140,16 @@ public class MagMpiProps {
 
         public void setMpiPid(final String mpiPid) {
             this.mpiPid = mpiPid;
+        }
+
+        @Override
+        public String toString() {
+            return "MagMpiOidsProps{" +
+                    "sender='" + sender + '\'' +
+                    ", receiver='" + receiver + '\'' +
+                    ", custodian='" + custodian + '\'' +
+                    ", mpiPid='" + mpiPid + '\'' +
+                    '}';
         }
     }
 }

@@ -24,6 +24,7 @@ import ch.bfh.ti.i4mi.mag.config.props.MagXdsProps;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
 import jakarta.annotation.Nullable;
 import org.apache.camel.CamelContext;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.DocumentReference;
@@ -74,7 +75,7 @@ class Iti67RouteBuilder extends MagRouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        log.debug("Iti67RouteBuilder configure");
+        log.debug("Configuring ITI-67 route");
         final String iti57Endpoint = this.buildOutgoingEndpoint("xds-iti57",
                                                                 this.xdsProps.getIti57(),
                                                                 this.xdsProps.isHttps());
@@ -88,11 +89,19 @@ class Iti67RouteBuilder extends MagRouteBuilder {
                 .choice()
                     // It is a search request with parameters
                     .when(header(Constants.FHIR_REQUEST_PARAMETERS).isNotNull())
+                        .log(LoggingLevel.INFO, log, "Received ITI-67 request")
+                        .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
                         .bean(Utils.class, "searchParameterToBody")
                         .bean(Iti67RequestConverter.class)
+                        .log(LoggingLevel.DEBUG, log, "Sending an ITI-18 request to " + xca38Endpoint)
+                        .log(LoggingLevel.TRACE, log, "${body}")
                         .process(sendToIti18Endpoints())
+                        .log(LoggingLevel.DEBUG, log, "Got a response")
+                        .log(LoggingLevel.TRACE, log, "${body}")
                         .process(TraceparentHandler.updateHeaderForFhir())
                         .process(translateToFhir(iti67ResponseConverter, QueryResponse.class))
+                        .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-67 response")
+                        .log(LoggingLevel.TRACE, log, "${body}")
                     // It is a read request for a specific resource. Disabled for now
                     /*
                     .when(PredicateBuilder.and(header("FhirHttpUri").isNotNull(),
@@ -104,15 +113,24 @@ class Iti67RouteBuilder extends MagRouteBuilder {
                      */
                     // It is an update request: CH:MHD-1
                     .when(and(header("FhirHttpUri").isNotNull(), header("FhirHttpMethod").isEqualTo("PUT")))
+                        .log(LoggingLevel.INFO, log, "Received CH:MHD-1 request")
+                        .log(LoggingLevel.TRACE, log, "Request search parameters: ${headers}")
+                        .log(LoggingLevel.TRACE, log, "Request body: ${body}")
                         .process(exchange -> {
                             DocumentReference documentReference = exchange.getIn().getMandatoryBody(DocumentReference.class);
                             SubmitObjectsRequest submitObjectsRequest = iti67RequestUpdateConverter.createMetadataUpdateRequest(
                                     documentReference);
                             exchange.getMessage().setBody(submitObjectsRequest);
                         })
+                        .log(LoggingLevel.DEBUG, log, "Sending an ITI-57 request to " + iti57Endpoint)
+                        .log(LoggingLevel.TRACE, log, "${body}")
                         .to(iti57Endpoint)
+                        .log(LoggingLevel.DEBUG, log, "Got a response")
+                        .log(LoggingLevel.TRACE, log, "${body}")
                         .process(TraceparentHandler.updateHeaderForFhir())
                         .process(translateToFhir(iti67FromIti57ResponseConverter, Response.class))
+                        .log(LoggingLevel.DEBUG, log, "Finished generating the CH:MHD-1 response")
+                        .process(loggingResponseProcessor(LoggingLevel.TRACE, log))
                     // It is a delete request. Disabled for now
                     /*
                     .when(PredicateBuilder.and(header("FhirHttpUri").isNotNull(),

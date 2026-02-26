@@ -22,6 +22,7 @@ import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagXdsProps;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.Code;
 import org.openehealth.ipf.commons.ihe.xds.core.metadata.LocalizedString;
@@ -71,7 +72,7 @@ class Iti65RouteBuilder extends MagRouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        log.debug("Iti65RouteBuilder configure");
+        log.trace("Configuring ITI-65 route");
 
         final String xds41Endpoint = this.buildOutgoingEndpoint("xds-iti41",
                                                                 this.xdsProps.getIti41(),
@@ -83,6 +84,8 @@ class Iti65RouteBuilder extends MagRouteBuilder {
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
                 .doTry()
+                    .log(LoggingLevel.INFO, log, "Received ITI-65 Provide Document Bundle request")
+                .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
                     //.process(itiRequestValidator())
                     //.process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
                     // translate, forward, translate back
@@ -98,33 +101,48 @@ class Iti65RouteBuilder extends MagRouteBuilder {
 
                     // Determine the confidentiality code requested
                     .setProperty(REQUESTED_CONF_CODE).exchange(this::findConfidentialityCode)
+                    .log(LoggingLevel.DEBUG, log, "Initial confidentiality code for publication: ${exchangeProperty." + REQUESTED_CONF_CODE + "}")
 
                     // Let's loop on all possible confidentiality codes, and change the current code if a publication is
                     // refused with an error message compatible with a confidentiality code mismatch
                     .choice().when().simple(CONF_CODE_IS_NORMAL)
-                        .log("In ITI-65 route, confidentiality code is NORMAL")
+                        .log(LoggingLevel.DEBUG, log, "Setting the confidentiality code for publication to NORMAL")
+                        .log(LoggingLevel.DEBUG, log, "Sending an ITI-41 request to " + xds41Endpoint)
+                        .log(LoggingLevel.TRACE, log, "${body}")
                         .to(xds41Endpoint)
+                        .log(LoggingLevel.DEBUG, log, "Got a response")
+                        .log(LoggingLevel.TRACE, log, "${body}")
                         .convertBodyTo(Response.class)
                         .process(this.changeConfidentialityCodeIfNeeded())
                     .endDoTry()
 
                     .choice().when().simple(CONF_CODE_IS_RESTRICTED)
-                        .log("In ITI-65 route, confidentiality code is RESTRICTED")
+                        .log(LoggingLevel.DEBUG, log, "Setting the confidentiality code for publication to RESTRICTED")
+                        .log(LoggingLevel.DEBUG, log, "Sending an ITI-41 request to " + xds41Endpoint)
+                        .log(LoggingLevel.TRACE, log, "${body}")
                         .process(Utils.restoreKeptBody())
                         .process(forceConfidentialityCode())
                         .to(xds41Endpoint)
+                        .log(LoggingLevel.DEBUG, log, "Got a response")
+                        .log(LoggingLevel.TRACE, log, "${body}")
                         .process(this.changeConfidentialityCodeIfNeeded())
                     .endDoTry()
 
                     .choice().when().simple(CONF_CODE_IS_SECRET)
-                        .log("In ITI-65 route, confidentiality code is SECRET")
+                        .log(LoggingLevel.DEBUG, log, "Setting the confidentiality code for publication to SECRET")
+                        .log(LoggingLevel.DEBUG, log, "Sending an ITI-41 request to " + xds41Endpoint)
+                        .log(LoggingLevel.TRACE, log, "${body}")
                         .process(Utils.restoreKeptBody())
                         .process(forceConfidentialityCode())
                         .to(xds41Endpoint)
+                        .log(LoggingLevel.DEBUG, log, "Got a response")
+                        .log(LoggingLevel.TRACE, log, "${body}")
                     .endDoTry()
 
                     .process(TraceparentHandler.updateHeaderForFhir())
                     .process(translateToFhir(this.iti65ResponseConverter, Response.class))
+                    .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-65 response")
+                    .process(loggingResponseProcessor(LoggingLevel.TRACE, log))
                 .doCatch(Exception.class)
                     .setBody(simple("${exception}"))
                     .process(this.errorFromException())
