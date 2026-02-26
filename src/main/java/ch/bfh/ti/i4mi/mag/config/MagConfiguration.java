@@ -8,6 +8,10 @@ import ch.bfh.ti.i4mi.mag.common.TcpSyslogSender;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.fhir.MagCapabilityStatementProvider;
 import jakarta.servlet.Filter;
+import lombok.NonNull;
+import org.openehealth.ipf.boot.atna.ApplicationStartEventListener;
+import org.openehealth.ipf.boot.atna.ApplicationStopEventListener;
+import org.openehealth.ipf.commons.audit.AuditContext;
 import org.openehealth.ipf.commons.audit.WsAuditDatasetEnricher;
 import org.openehealth.ipf.commons.audit.protocol.AuditTransmissionProtocol;
 import org.openehealth.ipf.commons.ihe.ws.cxf.audit.SwissEprWsAuditDatasetEnricher;
@@ -20,6 +24,8 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.filter.CorsFilter;
 
@@ -92,6 +98,26 @@ public class MagConfiguration {
     @Bean
     public WsAuditDatasetEnricher wsAuditDatasetEnricher() {
         return new SwissEprWsAuditDatasetEnricher();
+    }
+
+    @Bean
+    public ApplicationStartEventListener applicationStartEventListener(final AuditContext auditContext) {
+        return new ApplicationStartEventListener(auditContext) {
+            @Override
+            public void onApplicationEvent(@NonNull ContextRefreshedEvent contextRefreshedEvent) {
+                // No audit on application start
+            }
+        };
+    }
+
+    @Bean
+    public ApplicationStopEventListener applicationStopEventListener(final AuditContext auditContext) {
+        return new ApplicationStopEventListener(auditContext) {
+            @Override
+            public void onApplicationEvent(@NonNull ContextClosedEvent contextClosedEvent) {
+                // No audit on application stop
+            }
+        };
     }
 
 
