@@ -5,6 +5,7 @@
 - Inject a random traceparent header in the outgoing requests if it's not provided in the request.
 - Improve the logging in the application, especially at the DEBUG and TRACE levels.
 - Update dependencies.
+- Disable AuditMessage generation on application start and stop events.
 
 ## v2.0.4 - 2025/11/03
 
