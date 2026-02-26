@@ -192,6 +192,8 @@ class Iti67RouteBuilder extends MagRouteBuilder {
     /**
      * This processor sends the same ITI-18 request to the ITI-18 and XCA-38 endpoints asynchronously,
      * then merges the responses.
+     *
+     * TODO: why do we still have two requests here? The XCA endpoint should contain all results
      */
     private Processor sendToIti18Endpoints() {
         return exchange -> {
