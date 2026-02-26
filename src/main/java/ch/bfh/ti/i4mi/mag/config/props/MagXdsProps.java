@@ -95,4 +95,20 @@ public class MagXdsProps {
     public void setChMhdConstraints(final boolean chMhdConstraints) {
         this.chMhdConstraints = chMhdConstraints;
     }
+
+    @Override
+    public String toString() {
+        return "MagXdsProps{" +
+                "https=" + https +
+                ", repositoryUniqueId='" + repositoryUniqueId + '\'' +
+                ", iti18='" + iti18 + '\'' +
+                ", xca38='" + xca38 + '\'' +
+                ", xca39='" + xca39 + '\'' +
+                ", iti41='" + iti41 + '\'' +
+                ", iti43='" + iti43 + '\'' +
+                ", iti57='" + iti57 + '\'' +
+                ", retrieve='" + retrieve + '\'' +
+                ", chMhdConstraints=" + chMhdConstraints +
+                '}';
+    }
 }

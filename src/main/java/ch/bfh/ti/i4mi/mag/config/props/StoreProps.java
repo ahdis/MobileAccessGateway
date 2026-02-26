@@ -1,5 +1,7 @@
 package ch.bfh.ti.i4mi.mag.config.props;
 
+import static ch.bfh.ti.i4mi.mag.common.JavaUtils.hidePasswordInToString;
+
 public class StoreProps {
 
     private String path;
@@ -20,4 +22,13 @@ public class StoreProps {
     public void setPassword(final String password) {
         this.password = password;
     }
+
+    @Override
+    public String toString() {
+        return "StoreProps{" +
+                "path='" + path + '\'' +
+                ", password='" + hidePasswordInToString(password) + '\'' +
+                '}';
+    }
+
 }

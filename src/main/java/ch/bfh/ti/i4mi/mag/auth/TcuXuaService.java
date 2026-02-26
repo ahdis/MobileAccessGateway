@@ -40,9 +40,11 @@ public class TcuXuaService {
 
     public String getXuaToken(final String eprSpid) {
         if (this.cachedTokens.containsKey(eprSpid)) {
+            log.trace("Using cached XUA token for EPR-SPID {}: {}", eprSpid, this.cachedTokens.get(eprSpid));
             return this.cachedTokens.get(eprSpid);
         }
 
+        log.trace("No cached XUA token for EPR-SPID {}, fetching new one", eprSpid);
         final String tcuToken;
         try {
             tcuToken = this.tcuAssertionGenerator.generateNew();
@@ -50,6 +52,7 @@ public class TcuXuaService {
             log.debug("Failed to generate TCU token", e);
             throw new RuntimeException("Failed to generate TCU token", e);
         }
+        log.trace("Generated TCU token for EPR-SPID {}: {}", eprSpid, tcuToken);
 
         final String xuaToken;
         try {
@@ -64,7 +67,7 @@ public class TcuXuaService {
         } catch (final Exception e) {
             throw new RuntimeException("Failed to fetch XUA token", e);
         }
-        log.trace("Got XUA token for EPR-SPID {}: {}", eprSpid, xuaToken);
+        log.trace("Caching XUA token for EPR-SPID {}: {}", eprSpid, xuaToken);
 
         this.cachedTokens.put(eprSpid, xuaToken);
         return xuaToken;

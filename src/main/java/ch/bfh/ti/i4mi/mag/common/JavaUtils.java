@@ -18,4 +18,13 @@ public class JavaUtils {
         }
         return list.getFirst();
     }
+
+    public static String hidePasswordInToString(final @Nullable String password) {
+        if (password == null) {
+            return "null";
+        } else if (password.isBlank()) {
+            return "<empty string>";
+        }
+        return "********";
+    }
 }

@@ -16,44 +16,57 @@
 
 package ch.bfh.ti.i4mi.mag.sts;
 
+import ch.bfh.ti.i4mi.mag.common.MagRouteBuilder;
+import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AssertionFromIdpTokenRouteBuilder extends RouteBuilder {
+public class AssertionFromIdpTokenRouteBuilder extends MagRouteBuilder {
 
     private final StsUtils utils;
 
-    public AssertionFromIdpTokenRouteBuilder(final StsUtils utils) {
+    public AssertionFromIdpTokenRouteBuilder(final MagProps magProps, final StsUtils utils) {
+        super(magProps);
         this.utils = utils;
     }
 
     @Override
     public void configure() throws Exception {
+        log.debug("Configuring IUA-STS route");
+
+        // @formatter:off
         from("servlet://assertion?httpMethodRestrict=POST&matchOnUriPrefix=true")
                 .routeId("iua-sts")
+                // pass back errors to the endpoint
+                .errorHandler(noErrorHandler())
+                .log(LoggingLevel.INFO, log, "Received IUA-STS request")
+                .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
                 .doTry()
-                // end spring security session in order to prevent use of already expired
-                // identity provider assertions cached in spring security session
-                // this is unrelated to the IDP provider cookie set by the IDP itself
-                .process(Utils.endHttpSession())
-                .setProperty("oauthrequest").method(this.utils, "emptyAuthRequest")
-                .bean(this.utils, "buildAssertionRequestFromIdp")
-                .bean(this.utils, "keepIdpAssertion")
-                .bean(Iti40RequestGenerator.class, "buildAssertion")
-                .removeHeaders("*", "scope")
-                .to("direct:sts")
-                .bean(this.utils, "generateOAuth2TokenResponse")
-
+                    // end spring security session in order to prevent use of already expired
+                    // identity provider assertions cached in spring security session
+                    // this is unrelated to the IDP provider cookie set by the IDP itself
+                    .process(Utils.endHttpSession())
+                    .setProperty("oauthrequest").method(this.utils, "emptyAuthRequest")
+                    .bean(this.utils, "buildAssertionRequestFromIdp")
+                    .bean(this.utils, "keepIdpAssertion")
+                    .bean(Iti40RequestGenerator.class, "buildAssertion")
+                    .removeHeaders("*", "scope")
+                    .to("direct:sts")
+                    .bean(this.utils, "generateOAuth2TokenResponse")
+                    .log(LoggingLevel.DEBUG, log, "Finished generating the IUA-STS response")
+                    .process(loggingResponseProcessor(LoggingLevel.TRACE, log))
                 .doCatch(AuthException.class)
-                .setBody(simple("${exception}"))
-                .bean(this.utils, "handleError")
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, simple("${exception.status}"))
+                    .setBody(simple("${exception}"))
+                    .bean(this.utils, "handleError")
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, simple("${exception.status}"))
                 .end()
                 .removeHeaders("*")
                 .marshal().json();
+        // @formatter:on
     }
 
 }

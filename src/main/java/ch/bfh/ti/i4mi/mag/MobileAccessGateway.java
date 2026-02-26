@@ -16,6 +16,8 @@
 package ch.bfh.ti.i4mi.mag;
 
 import ch.bfh.ti.i4mi.mag.config.props.*;
+import org.apache.camel.CamelContext;
+import org.apache.camel.Exchange;
 import org.opensaml.core.config.InitializationException;
 import org.opensaml.core.config.InitializationService;
 import org.springframework.boot.SpringApplication;
@@ -47,7 +49,7 @@ public class MobileAccessGateway {
      * @param args The list of CLI parameters.
      */
     public static void main(final String[] args) throws InitializationException {
-        log.debug("Configuring Mobile Access Gateway");
+        log.info("Configuring Mobile Access Gateway");
         InitializationService.initialize();
         final SpringApplication application = new SpringApplication(MobileAccessGateway.class);
         addApplicationStartupHook(application);
@@ -61,7 +63,14 @@ public class MobileAccessGateway {
      */
     public static void addApplicationStartupHook(final SpringApplication application) {
         application.addListeners((ApplicationListener<ApplicationReadyEvent>) event -> {
+            final var camelContext = event.getApplicationContext().getBean(CamelContext.class);
+            camelContext.getGlobalOptions().put(Exchange.LOG_EIP_NAME, "ch.bfh.ti.i4mi.mag.camel.routes");
+
             log.info("Mobile Access Gateway has been configured and has started");
+            if (log.isTraceEnabled()) {
+                final var props = event.getApplicationContext().getBean(MagProps.class);
+                log.trace("Current configuration: {}", props);
+            }
         });
     }
 }

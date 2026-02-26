@@ -2,6 +2,8 @@ package ch.bfh.ti.i4mi.mag.config.props;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import static ch.bfh.ti.i4mi.mag.common.JavaUtils.hidePasswordInToString;
+
 @ConfigurationProperties(prefix = "mag.auth")
 public class MagAuthProps {
 
@@ -31,6 +33,15 @@ public class MagAuthProps {
 
     public void setTcu(final MagAuthTcuProps tcu) {
         this.tcu = tcu;
+    }
+
+    @Override
+    public String toString() {
+        return "MagAuthProps{" +
+                "sts='" + sts + '\'' +
+                ", stsIssuer='" + stsIssuer + '\'' +
+                ", tcu=" + tcu +
+                '}';
     }
 
     public static class MagAuthTcuProps {
@@ -97,6 +108,19 @@ public class MagAuthProps {
 
         public void setAutoInjectInIti65(final boolean autoInjectInIti65) {
             this.autoInjectInIti65 = autoInjectInIti65;
+        }
+
+        @Override
+        public String toString() {
+            return "MagAuthTcuProps{" +
+                    "principalName='" + principalName + '\'' +
+                    ", principalGln='" + principalGln + '\'' +
+                    ", keystorePath='" + keystorePath + '\'' +
+                    ", keystorePassword='" + hidePasswordInToString(keystorePassword) + '\'' +
+                    ", keystoreAlias='" + keystoreAlias + '\'' +
+                    ", oid='" + oid + '\'' +
+                    ", autoInjectInIti65=" + autoInjectInIti65 +
+                    '}';
         }
     }
 }

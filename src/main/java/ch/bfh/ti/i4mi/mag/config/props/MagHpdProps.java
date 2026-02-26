@@ -29,4 +29,13 @@ public class MagHpdProps {
     public void setChMcsdConstraints(final boolean chMcsdConstraints) {
         this.chMcsdConstraints = chMcsdConstraints;
     }
+
+    @Override
+    public String toString() {
+        return "MagHpdProps{" +
+                "https=" + https +
+                ", iti58='" + iti58 + '\'' +
+                ", chMcsdConstraints=" + chMcsdConstraints +
+                '}';
+    }
 }

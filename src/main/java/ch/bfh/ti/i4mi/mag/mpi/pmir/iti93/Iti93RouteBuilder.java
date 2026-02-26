@@ -22,6 +22,7 @@ import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
 import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
+import org.apache.camel.LoggingLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Conditional;
@@ -46,29 +47,38 @@ class Iti93RouteBuilder extends MagRouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        log.debug("Iti93RouteBuilder configure");
+        log.debug("Configuring ITI-93 route");
 
         final String xds44Endpoint = this.buildOutgoingEndpoint("pixv3-iti44",
                                                                 this.mpiProps.getIti44(),
                                                                 this.mpiProps.isHttps());
 
+        // @formatter:off
         from("pmir-iti93:mobile-patient-identity-feed?audit=false")
                 .routeId("in-pmir-iti93")
                 // pass back errors to the endpoint
                 .errorHandler(noErrorHandler())
+                .log(LoggingLevel.INFO, log, "Received ITI-93 request")
+                .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
                 //.process(RequestHeadersForwarder.checkAuthorization(this.mpiProps.isChPixmConstraints()))
                 .process(RequestHeadersForwarder.forward())
                 .process(Utils.keepBody())
                 .bean(Iti93RequestConverter.class)
                 .doTry()
+                    .log(LoggingLevel.DEBUG, log, "Sending an ITI-44 request to " + xds44Endpoint)
+                    .log(LoggingLevel.TRACE, log, "${body}")
                     .to(xds44Endpoint)
+                    .log(LoggingLevel.DEBUG, log, "Got a response")
+                    .log(LoggingLevel.TRACE, log, "${body}")
                     .process(Utils.keptBodyToHeader())
                     .process(TraceparentHandler.updateHeaderForFhir())
                     .process(translateToFhir(responseConverter, byte[].class))
+                    .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-93 response")
+                    .process(loggingResponseProcessor(LoggingLevel.TRACE, log))
                 .doCatch(Exception.class)
                     .setBody(simple("${exception}"))
                     .process(this.errorFromException())
                 .end();
-
+        // @formatter:on
     }
 }
