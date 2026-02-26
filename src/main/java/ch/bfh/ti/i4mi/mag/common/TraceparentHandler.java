@@ -6,6 +6,8 @@ import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.openehealth.ipf.platform.camel.ihe.ws.HeaderUtils.addOutgoingHttpHeaders;
+
 /**
  * MobileAccessGateway
  *
@@ -45,7 +47,7 @@ public class TraceparentHandler {
             final var newTraceparent = traceparent.withRandomParentId();
 
             log.debug("Forwarding traceparent header: {} | The original was: {}", newTraceparent, traceparent);
-            SoapExchanges.writeResponseHttpHeader(TRACEPARENT_HEADER, newTraceparent.toString(), exchange);
+            addOutgoingHttpHeaders(exchange, TRACEPARENT_HEADER, newTraceparent.toString());
         };
     }
 
@@ -61,7 +63,7 @@ public class TraceparentHandler {
             final var newTraceparent = traceparent.withRandomParentId();
 
             log.debug("Forwarding traceparent header: {} | The original was: {}", newTraceparent, traceparent);
-            FhirExchanges.writeResponseHttpHeader(TRACEPARENT_HEADER, newTraceparent.toString(), exchange);
+            addOutgoingHttpHeaders(exchange, TRACEPARENT_HEADER, newTraceparent.toString());
         };
     }
 }
