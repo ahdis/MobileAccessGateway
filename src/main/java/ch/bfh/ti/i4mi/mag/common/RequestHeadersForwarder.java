@@ -1,13 +1,10 @@
 package ch.bfh.ti.i4mi.mag.common;
 
-import static org.openehealth.ipf.platform.camel.ihe.ws.AbstractWsEndpoint.OUTGOING_SOAP_HEADERS;
+import static org.openehealth.ipf.platform.camel.ihe.ws.HeaderUtils.addOutgoingSoapHeaders;
 import static org.opensaml.saml.common.xml.SAMLConstants.SAML20_NS;
 
 import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collection;
-import java.util.Map;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
@@ -80,16 +77,7 @@ public class RequestHeadersForwarder {
         final var newHeader = new SoapHeader(new QName(OASIS_WSSECURITY_NS, "Security"), security);
         newHeader.setDirection(Header.Direction.DIRECTION_OUT);
 
-        Object soapHeaders = exchange.getIn().getHeader(OUTGOING_SOAP_HEADERS);
-        if (soapHeaders instanceof final Collection collection) {
-            ((Collection<SoapHeader>) collection).add(newHeader);
-        } else if (soapHeaders instanceof final Map map) {
-            ((Map<QName, SoapHeader>) map).put(newHeader.getName(), newHeader);
-        } else if (soapHeaders == null) {
-            soapHeaders = new ArrayList<>(1);
-            ((ArrayList<SoapHeader>) soapHeaders).add(newHeader);
-            exchange.getMessage().setHeader(OUTGOING_SOAP_HEADERS, soapHeaders);
-        }
+        addOutgoingSoapHeaders(exchange, newHeader);
     }
 
     /**

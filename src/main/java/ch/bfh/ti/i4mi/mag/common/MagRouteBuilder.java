@@ -29,7 +29,6 @@ public abstract class MagRouteBuilder extends RouteBuilder {
     private static final String UNEXPECTED_HTML_PART = "Incoming portion of HTML stream";
 
     protected final MagProps magProps;
-    protected final FhirContext fhirContext = FhirContext.forR4Cached();
 
     protected MagRouteBuilder(final MagProps magProps) {
         super();
