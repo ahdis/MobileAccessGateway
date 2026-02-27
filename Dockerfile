@@ -37,7 +37,7 @@ LABEL org.opencontainers.image.vendor="ahdis ag"
 LABEL org.opencontainers.image.documentation="https://ahdis.github.io/MobileAccessGateway/"
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
-RUN apk --no-cache add libstdc++ && apk --purge del apk-tools
+RUN apk --no-cache add libstdc++ zlib && apk --purge del apk-tools
 
 RUN addgroup -S mag && adduser -S mag -G mag
 USER mag:mag
