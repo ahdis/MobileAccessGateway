@@ -1,5 +1,9 @@
 # 7. Changelog
 
+## v2.0.6 - 2026/02/27
+
+- Add the missing `zlib` package in the Docker image.
+
 ## v2.0.5 - 2026/02/26
 
 - Inject a random traceparent header in the outgoing requests if it's not provided in the request.
