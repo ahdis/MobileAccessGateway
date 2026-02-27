@@ -72,7 +72,7 @@ class Iti65RouteBuilder extends MagRouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        log.trace("Configuring ITI-65 route");
+        log.debug("Configuring ITI-65 route");
 
         final String xds41Endpoint = this.buildOutgoingEndpoint("xds-iti41",
                                                                 this.xdsProps.getIti41(),
@@ -85,7 +85,7 @@ class Iti65RouteBuilder extends MagRouteBuilder {
                 .errorHandler(noErrorHandler())
                 .doTry()
                     .log(LoggingLevel.INFO, log, "Received ITI-65 Provide Document Bundle request")
-                .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
+                    .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
                     //.process(itiRequestValidator())
                     //.process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
                     // translate, forward, translate back

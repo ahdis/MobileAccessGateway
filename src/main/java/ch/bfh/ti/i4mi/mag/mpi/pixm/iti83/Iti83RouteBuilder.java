@@ -28,8 +28,6 @@ import org.apache.camel.LoggingLevel;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import java.util.function.Function;
-
 import static org.openehealth.ipf.platform.camel.ihe.fhir.core.FhirCamelTranslators.translateToFhir;
 
 /**
@@ -53,13 +51,6 @@ class Iti83RouteBuilder extends MagRouteBuilder {
     @Override
     public void configure() throws Exception {
         log.debug("Configuring ITI-83 route");
-
-        getContext().getRegistry().bind("myFunction", new Function<String, String>() {
-            @Override
-            public String apply(String input) {
-                return input.toUpperCase();
-            }
-        });
 
         final String xds45Endpoint = this.buildOutgoingEndpoint("pixv3-iti45",
                                                                 this.mpiProps.getIti45(),
