@@ -9,6 +9,7 @@ import org.hl7.fhir.r4.model.*;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -93,31 +94,34 @@ public class Hl7v3Mappers {
     }
 
     public static <T extends ENXP> StringType withQualifier(T namePart, StringType fhirNamePart) {
+        final String thePartValue = val(namePart);
+        if (thePartValue == null) {
+            // We return it empty, the serializer will ignore it.
+            return fhirNamePart;
+        }
         if (namePart.getQualifier() != null) {
             fhirNamePart.addExtension("http://hl7.org/fhir/StructureDefinition/iso21090-EN-qualifier", new StringType(namePart.getQualifier()));
         }
-        fhirNamePart.setValue(val(namePart));
+        fhirNamePart.setValue(thePartValue);
         return fhirNamePart;
     }
 
     public static Address transform(final AD address) {
-        Address addr = new Address();
+        final var addr = new Address();
         addr.setCity(val(address.getCity()));
         addr.setCountry(val(address.getCountry()));
         addr.setDistrict(val(address.getCounty()));
         addr.setPostalCode(val(address.getPostalCode()));
         addr.setState(val(address.getState()));
-        for (AdxpStreetName street : address.getStreetName()) {
-            final var streetValue = val(street);
-            if (streetValue != null)
-                addr.addLine(streetValue);
-        }
+        address.getStreetName().stream()
+                .map(Hl7v3Mappers::val)
+                .filter(Objects::nonNull)
+                .forEach(addr::addLine);
         // TODO Missing: type, use
-        for (AdxpStreetAddressLine line : address.getStreetAddressLine()) {
-            final var lineValue = val(line);
-            if (lineValue != null)
-                addr.addLine(lineValue);
-        }
+        address.getStreetAddressLine().stream()
+                .map(Hl7v3Mappers::val)
+                .filter(Objects::nonNull)
+                .forEach(addr::addLine);
         if (address.getUseablePeriod() != null) {
             //addr.setPeriod(transform(address.getUseablePeriod().get(0)));
         }
@@ -154,6 +158,7 @@ public class Hl7v3Mappers {
         return humanName;
     }
 
+    @Nullable
     public static ContactPoint transform(TEL telecom) {
         ContactPoint contactPoint = new ContactPoint();
 
