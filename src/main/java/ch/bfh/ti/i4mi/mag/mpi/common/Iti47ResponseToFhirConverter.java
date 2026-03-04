@@ -31,7 +31,6 @@ import net.ihe.gazelle.hl7v3.datatypes.CS;
 import net.ihe.gazelle.hl7v3.datatypes.EN;
 import net.ihe.gazelle.hl7v3.datatypes.INT;
 import net.ihe.gazelle.hl7v3.datatypes.PN;
-import net.ihe.gazelle.hl7v3.datatypes.TEL;
 import net.ihe.gazelle.hl7v3.datatypes.TS;
 import net.ihe.gazelle.hl7v3.prpain201306UV02.PRPAIN201306UV02MFMIMT700711UV01ControlActProcess;
 import net.ihe.gazelle.hl7v3.prpain201306UV02.PRPAIN201306UV02MFMIMT700711UV01Subject1;
@@ -61,10 +60,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static ca.uhn.fhir.model.api.ResourceMetadataKeyEnum.ENTRY_SEARCH_MODE;
@@ -163,7 +159,7 @@ public class Iti47ResponseToFhirConverter {
         final List<Resource> patients = new ArrayList<>(subjects.size());
 
         // Iterate over all subjects (patients) and convert them
-        for (PRPAIN201306UV02MFMIMT700711UV01Subject1 subject : subjects) {
+        for (final PRPAIN201306UV02MFMIMT700711UV01Subject1 subject : subjects) {
             final PRPAMT201310UV02Patient patient = subject.getRegistrationEvent().getSubject1().getPatient();
             final PRPAMT201310UV02Person patientPerson = patient.getPatientPerson();
 
@@ -208,7 +204,7 @@ public class Iti47ResponseToFhirConverter {
                 result.addName(transform(name));
             }
 
-            CE gender = patientPerson.getAdministrativeGenderCode();
+            final CE gender = patientPerson.getAdministrativeGenderCode();
             if (gender != null) {
                 switch (gender.getCode()) {
                     case "M":
@@ -225,61 +221,69 @@ public class Iti47ResponseToFhirConverter {
                         break;
                 }
             }
-            TS birthTime = patientPerson.getBirthTime();
+            final TS birthTime = patientPerson.getBirthTime();
             if (birthTime != null) {
                 result.setBirthDateElement(transform(birthTime));
             }
-            for (AD ad : patientPerson.getAddr()) {
+            for (final AD ad : patientPerson.getAddr()) {
                 result.addAddress(transform(ad));
             }
-            for (TEL tel : patientPerson.getTelecom()) {
-                result.addTelecom(transform(tel));
-            }
-            for (PRPAMT201310UV02LanguageCommunication lang : patientPerson.getLanguageCommunication()) {
-                CE langCode = lang.getLanguageCode();
-                PatientCommunicationComponent pcc = new PatientCommunicationComponent();
+            patientPerson.getTelecom().stream()
+                    .filter(tel -> tel.getValue() != null)
+                    .map(Hl7v3Mappers::transform)
+                    .filter(Objects::nonNull)
+                    .forEach(result::addTelecom);
+            for (final PRPAMT201310UV02LanguageCommunication lang : patientPerson.getLanguageCommunication()) {
+                final CE langCode = lang.getLanguageCode();
+                final PatientCommunicationComponent pcc = new PatientCommunicationComponent();
                 pcc.setLanguage(this.transformCe(langCode));
-                BL preferred = lang.getPreferenceInd();
+                final BL preferred = lang.getPreferenceInd();
                 if (preferred != null && preferred.getValue().booleanValue()) pcc.setPreferred(true);
                 result.addCommunication(pcc);
             }
 
-            TS deceasedTime = patientPerson.getDeceasedTime();
+            final TS deceasedTime = patientPerson.getDeceasedTime();
             if (deceasedTime != null) result.setDeceased(transform(deceasedTime));
             else {
-                BL deceased = patientPerson.getDeceasedInd();
+                final BL deceased = patientPerson.getDeceasedInd();
                 if (deceased != null) result.setDeceased(new BooleanType(deceased.getValue().booleanValue()));
             }
 
-            INT multiBirthOrder = patientPerson.getMultipleBirthOrderNumber();
+            final INT multiBirthOrder = patientPerson.getMultipleBirthOrderNumber();
             if (multiBirthOrder != null) {
                 result.setMultipleBirth(new IntegerType(multiBirthOrder.getValue()));
             } else {
-                BL multipleBirth = patientPerson.getMultipleBirthInd();
+                final BL multipleBirth = patientPerson.getMultipleBirthInd();
                 if (multipleBirth != null)
                     result.setMultipleBirth(new BooleanType(multipleBirth.getValue().booleanValue()));
             }
 
-            CE maritalStatus = patientPerson.getMaritalStatusCode();
+            final CE maritalStatus = patientPerson.getMaritalStatusCode();
             result.setMaritalStatus(this.transformCe(maritalStatus));
 
-            for (PRPAMT201310UV02PersonalRelationship relationShip : patientPerson.getPersonalRelationship()) {
-                CE code = relationShip.getCode();
+            for (final PRPAMT201310UV02PersonalRelationship relationShip : patientPerson.getPersonalRelationship()) {
+                final CE code = relationShip.getCode();
                 if (code != null && "MTH".equals(code.getCode()) && "2.16.840.1.113883.12.63".equals(code.getCodeSystem())) {
-                    COCTMT030007UVPerson holder = relationShip.getRelationshipHolder1();
+                    final COCTMT030007UVPerson holder = relationShip.getRelationshipHolder1();
                     if (holder != null && !holder.getName().isEmpty()) {
-                        EN name = holder.getName().getFirst();
+                        final EN name = holder.getName().getFirst();
                         if (!name.getFamily().isEmpty()) {
-                            String familyName = val(name.getFamily());
+                            final String familyName = val(name.getFamily());
                             result.addExtension(MOTHERS_MAIDEN_NAME, new StringType(familyName));
                         }
                     }
                 }
             }
 
-            final float score = Optional.ofNullable(patient.getSubjectOf1()).map(JavaUtils::firstOrNull).map(
-                    PRPAMT201310UV02Subject::getQueryMatchObservation).map(PRPAMT201310UV02QueryMatchObservation::getValue).filter(
-                    INT.class::isInstance).map(INT.class::cast).map(INT::getValue).map(i -> i / 100f).orElse(1.0f);
+            final float score = Optional.ofNullable(patient.getSubjectOf1())
+                    .map(JavaUtils::firstOrNull)
+                    .map(PRPAMT201310UV02Subject::getQueryMatchObservation)
+                    .map(PRPAMT201310UV02QueryMatchObservation::getValue)
+                    .filter(INT.class::isInstance)
+                    .map(INT.class::cast)
+                    .map(INT::getValue)
+                    .map(i -> i / 100f)
+                    .orElse(1.0f);
             final MatchGrade scoreCode;
             if (score >= 0.75) {
                 scoreCode = MatchGrade.CERTAIN;
@@ -302,9 +306,9 @@ public class Iti47ResponseToFhirConverter {
     }
 
     public OperationOutcome error(IssueType type, String diagnostics) {
-        OperationOutcome result = new OperationOutcome();
+        final var result = new OperationOutcome();
 
-        OperationOutcomeIssueComponent issue = result.addIssue();
+        final OperationOutcomeIssueComponent issue = result.addIssue();
         issue.setSeverity(OperationOutcome.IssueSeverity.ERROR);
         issue.setCode(type);
         issue.setDiagnostics(diagnostics);
