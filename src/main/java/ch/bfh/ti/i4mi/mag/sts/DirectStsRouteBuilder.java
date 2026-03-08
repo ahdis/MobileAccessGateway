@@ -27,10 +27,10 @@ public class DirectStsRouteBuilder extends RouteBuilder {
 
         final String assertionEndpoint = String.format(
                 "cxf://%s?dataFormat=CXF_MESSAGE&wsdlURL=%s&loggingFeatureEnabled=true" +
-                        "&inInterceptors=#soapResponseLogger" +
+                        /*"&inInterceptors=#soapResponseLogger" +
                         "&inFaultInterceptors=#soapResponseLogger" +
                         "&outInterceptors=#soapRequestLogger" +
-                        "&outFaultInterceptors=#soapRequestLogger" +
+                        "&outFaultInterceptors=#soapRequestLogger" +*/
                         (clientSsl ? "&sslContextParameters=#wsTlsContext" : ""),
                 this.authProps.getSts(),
                 "classpath:local-WSDL/wsdl/ws-trust-raw.wsdl");
