@@ -1,6 +1,6 @@
 # 7. Changelog
 
-## v2.0.7 - unreleased
+## v2.0.7 - 2026/03/09
 
 - Fix an error in the ITI-78 response conversion when an ITI-47 response is malformed (#45).
 - Improve logging practices (#46). 
