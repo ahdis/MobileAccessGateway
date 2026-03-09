@@ -86,105 +86,111 @@ class Iti67RouteBuilder extends MagRouteBuilder {
                 .errorHandler(noErrorHandler())
                 //.process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
                 .process(RequestHeadersForwarder.forward())
-                .choice()
-                    // It is a search request with parameters
-                    .when(header(Constants.FHIR_REQUEST_PARAMETERS).isNotNull())
-                        .log(LoggingLevel.INFO, log, "Received ITI-67 request")
-                        .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
-                        .bean(Utils.class, "searchParameterToBody")
-                        .bean(Iti67RequestConverter.class)
-                        .log(LoggingLevel.DEBUG, log, "Sending an ITI-18 request to " + xca38Endpoint)
-                        .log(LoggingLevel.TRACE, log, "${body}")
-                        .process(sendToIti18Endpoints())
-                        .log(LoggingLevel.DEBUG, log, "Got a response")
-                        .log(LoggingLevel.TRACE, log, "${body}")
-                        .process(TraceparentHandler.updateHeaderForFhir())
-                        .process(translateToFhir(iti67ResponseConverter, QueryResponse.class))
-                        .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-67 response")
-                        .log(LoggingLevel.TRACE, log, "${body}")
-                    // It is a read request for a specific resource. Disabled for now
-                    /*
-                    .when(PredicateBuilder.and(header("FhirHttpUri").isNotNull(),
-                                           header("FhirHttpMethod").isEqualTo("GET")))
-                        .bean(IdRequestConverter.class)
-                        .to(metadataQueryEndpoint)
-                        .process(TraceparentHandler.updateHeaderForFhir())
-                        .process(translateToFhir(iti67ResponseConverter, QueryResponse.class))
-                     */
-                    // It is an update request: CH:MHD-1
-                    .when(and(header("FhirHttpUri").isNotNull(), header("FhirHttpMethod").isEqualTo("PUT")))
-                        .log(LoggingLevel.INFO, log, "Received CH:MHD-1 request")
-                        .log(LoggingLevel.TRACE, log, "Request search parameters: ${headers}")
-                        .log(LoggingLevel.TRACE, log, "Request body: ${body}")
-                        .process(exchange -> {
-                            DocumentReference documentReference = exchange.getIn().getMandatoryBody(DocumentReference.class);
-                            SubmitObjectsRequest submitObjectsRequest = iti67RequestUpdateConverter.createMetadataUpdateRequest(
-                                    documentReference);
-                            exchange.getMessage().setBody(submitObjectsRequest);
-                        })
-                        .log(LoggingLevel.DEBUG, log, "Sending an ITI-57 request to " + iti57Endpoint)
-                        .log(LoggingLevel.TRACE, log, "${body}")
-                        .to(iti57Endpoint)
-                        .log(LoggingLevel.DEBUG, log, "Got a response")
-                        .log(LoggingLevel.TRACE, log, "${body}")
-                        .process(TraceparentHandler.updateHeaderForFhir())
-                        .process(translateToFhir(iti67FromIti57ResponseConverter, Response.class))
-                        .log(LoggingLevel.DEBUG, log, "Finished generating the CH:MHD-1 response")
-                        .process(loggingResponseProcessor(LoggingLevel.TRACE, log))
-                    // It is a delete request. Disabled for now
-                    /*
-                    .when(PredicateBuilder.and(header("FhirHttpUri").isNotNull(),
-                                           header("FhirHttpMethod").isEqualTo("DELETE")))
-                        .process(exchange -> {
-                            exchange.setProperty("DOCUMENT_ENTRY_LOGICAL_ID",
-                                                 IdRequestConverter.extractId(exchange.getIn().getHeader("FhirHttpUri",
-                                                                                                         String.class)));
-                        })
-                        .bean(IdRequestConverter.class)
-                        .to(metadataQueryEndpoint)
-                        .process(TraceparentHandler.updateHeaderForFhir())
-                        .process(exchange -> {
-                            QueryResponse queryResponse = exchange.getIn().getMandatoryBody(QueryResponse.class);
-                            if (queryResponse.getStatus() != Status.SUCCESS) {
-                                iti67FromIti57ResponseConverter.processError(queryResponse);
-                            }
-                            if (queryResponse.getDocumentEntries().isEmpty()) {
-                                throw new ResourceNotFoundException(exchange.getProperty("DOCUMENT_ENTRY_LOGICAL_ID",
-                                                                                         String.class));
-                            }
-                            if (queryResponse.getDocumentEntries().size() > 1) {
-                                throw new InternalErrorException("Expected at most one Document Entry, got " + queryResponse.getDocumentEntries().size());
-                            }
+                .doTry()
+                    .choice()
+                        // It is a search request with parameters
+                        .when(header(Constants.FHIR_REQUEST_PARAMETERS).isNotNull())
+                            .log(LoggingLevel.INFO, log, "Received ITI-67 request")
+                            .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
+                            .bean(Utils.class, "searchParameterToBody")
+                            .bean(Iti67RequestConverter.class)
+                            .log(LoggingLevel.DEBUG, log, "Sending an ITI-18 request to " + xca38Endpoint)
+                            .log(LoggingLevel.TRACE, log, "${body}")
+                            .process(sendToIti18Endpoints())
+                            .log(LoggingLevel.DEBUG, log, "Got a response")
+                            .log(LoggingLevel.TRACE, log, "${body}")
+                            .process(TraceparentHandler.updateHeaderForFhir())
+                            .process(translateToFhir(iti67ResponseConverter, QueryResponse.class))
+                            .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-67 response")
+                            .log(LoggingLevel.TRACE, log, "${body}")
+                        // It is a read request for a specific resource. Disabled for now
+                        /*
+                        .when(PredicateBuilder.and(header("FhirHttpUri").isNotNull(),
+                                               header("FhirHttpMethod").isEqualTo("GET")))
+                            .bean(IdRequestConverter.class)
+                            .to(metadataQueryEndpoint)
+                            .process(TraceparentHandler.updateHeaderForFhir())
+                            .process(translateToFhir(iti67ResponseConverter, QueryResponse.class))
+                         */
+                        // It is an update request: CH:MHD-1
+                        .when(and(header("FhirHttpUri").isNotNull(), header("FhirHttpMethod").isEqualTo("PUT")))
+                            .log(LoggingLevel.INFO, log, "Received CH:MHD-1 request")
+                            .log(LoggingLevel.TRACE, log, "Request search parameters: ${headers}")
+                            .log(LoggingLevel.TRACE, log, "Request body: ${body}")
+                            .process(exchange -> {
+                                DocumentReference documentReference = exchange.getIn().getMandatoryBody(DocumentReference.class);
+                                SubmitObjectsRequest submitObjectsRequest = iti67RequestUpdateConverter.createMetadataUpdateRequest(
+                                        documentReference);
+                                exchange.getMessage().setBody(submitObjectsRequest);
+                            })
+                            .log(LoggingLevel.DEBUG, log, "Sending an ITI-57 request to " + iti57Endpoint)
+                            .log(LoggingLevel.TRACE, log, "${body}")
+                            .to(iti57Endpoint)
+                            .log(LoggingLevel.DEBUG, log, "Got a response")
+                            .log(LoggingLevel.TRACE, log, "${body}")
+                            .process(TraceparentHandler.updateHeaderForFhir())
+                            .process(translateToFhir(iti67FromIti57ResponseConverter, Response.class))
+                            .log(LoggingLevel.DEBUG, log, "Finished generating the CH:MHD-1 response")
+                            .process(loggingResponseProcessor(LoggingLevel.TRACE, log))
+                        // It is a delete request. Disabled for now
+                        /*
+                        .when(PredicateBuilder.and(header("FhirHttpUri").isNotNull(),
+                                               header("FhirHttpMethod").isEqualTo("DELETE")))
+                            .process(exchange -> {
+                                exchange.setProperty("DOCUMENT_ENTRY_LOGICAL_ID",
+                                                     IdRequestConverter.extractId(exchange.getIn().getHeader("FhirHttpUri",
+                                                                                                             String.class)));
+                            })
+                            .bean(IdRequestConverter.class)
+                            .to(metadataQueryEndpoint)
+                            .process(TraceparentHandler.updateHeaderForFhir())
+                            .process(exchange -> {
+                                QueryResponse queryResponse = exchange.getIn().getMandatoryBody(QueryResponse.class);
+                                if (queryResponse.getStatus() != Status.SUCCESS) {
+                                    iti67FromIti57ResponseConverter.processError(queryResponse);
+                                }
+                                if (queryResponse.getDocumentEntries().isEmpty()) {
+                                    throw new ResourceNotFoundException(exchange.getProperty("DOCUMENT_ENTRY_LOGICAL_ID",
+                                                                                             String.class));
+                                }
+                                if (queryResponse.getDocumentEntries().size() > 1) {
+                                    throw new InternalErrorException("Expected at most one Document Entry, got " + queryResponse.getDocumentEntries().size());
+                                }
 
-                            DocumentEntry documentEntry = queryResponse.getDocumentEntries().get(0);
-                            if (documentEntry.getExtraMetadata() == null) {
-                                documentEntry.setExtraMetadata(new HashMap<>());
-                            }
-                            documentEntry.getExtraMetadata().put(MagConstants.XdsExtraMetadataSlotNames.CH_DELETION_STATUS,
-                                                                 List.of(MagConstants.DeletionStatuses.REQUESTED));
-                            if (documentEntry.getLogicalUuid() == null) {
-                                documentEntry.setLogicalUuid(documentEntry.getEntryUuid());
-                            }
-                            documentEntry.assignEntryUuid();
-                            if (documentEntry.getVersion() == null) {
-                                documentEntry.setVersion(new Version("1"));
-                            }
+                                DocumentEntry documentEntry = queryResponse.getDocumentEntries().get(0);
+                                if (documentEntry.getExtraMetadata() == null) {
+                                    documentEntry.setExtraMetadata(new HashMap<>());
+                                }
+                                documentEntry.getExtraMetadata().put(MagConstants.XdsExtraMetadataSlotNames.CH_DELETION_STATUS,
+                                                                     List.of(MagConstants.DeletionStatuses.REQUESTED));
+                                if (documentEntry.getLogicalUuid() == null) {
+                                    documentEntry.setLogicalUuid(documentEntry.getEntryUuid());
+                                }
+                                documentEntry.assignEntryUuid();
+                                if (documentEntry.getVersion() == null) {
+                                    documentEntry.setVersion(new Version("1"));
+                                }
 
-                            SubmissionSet submissionSet = iti67RequestUpdateConverter.createSubmissionSet();
-                            SubmitObjectsRequest updateRequest = iti67RequestUpdateConverter.createMetadataUpdateRequest(
-                                    submissionSet,
-                                    documentEntry);
-                            exchange.getMessage().setBody(updateRequest);
-                            log.debug("Prepared document metadata update request");
-                        })
-                        .choice()
-                            .when(exchange -> exchange.getIn().getBody() instanceof SubmitObjectsRequest)
-                                .to(metadataUpdateEndpoint)
-                                .process(TraceparentHandler.updateHeaderForFhir())
-                                .process(translateToFhir(new Iti67FromIti57ResponseConverter(), Response.class))
-                        .endChoice()
+                                SubmissionSet submissionSet = iti67RequestUpdateConverter.createSubmissionSet();
+                                SubmitObjectsRequest updateRequest = iti67RequestUpdateConverter.createMetadataUpdateRequest(
+                                        submissionSet,
+                                        documentEntry);
+                                exchange.getMessage().setBody(updateRequest);
+                                log.debug("Prepared document metadata update request");
+                            })
+                            .choice()
+                                .when(exchange -> exchange.getIn().getBody() instanceof SubmitObjectsRequest)
+                                    .to(metadataUpdateEndpoint)
+                                    .process(TraceparentHandler.updateHeaderForFhir())
+                                    .process(translateToFhir(new Iti67FromIti57ResponseConverter(), Response.class))
+                            .endChoice()
+                        .end()
+                         */
                     .end()
-                     */
+                .endDoTry()
+                .doCatch(Exception.class)
+                    .setBody(simple("${exception}"))
+                    .process(this.errorFromException())
                 .end();
         // @formatter:on
     }

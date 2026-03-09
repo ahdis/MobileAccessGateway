@@ -52,14 +52,19 @@ public abstract class MagRouteBuilder extends RouteBuilder {
 //        "&outInterceptors=#soapRequestLogger" +
 //        "&outFaultInterceptors=#soapRequestLogger";
         final var endpoint = builder.build().toUriString().replace(":/", "://");
-        log.info("Built endpoint: {}", endpoint);
+        log.trace("Built endpoint: {}", endpoint);
         return endpoint;
     }
 
     protected Processor errorFromException() {
         return exchange -> {
             final var e = exchange.getIn().getBody(Exception.class);
-            log.debug("Generating response for exception", e);
+
+            if (e instanceof final BaseServerResponseException hapiException) {
+                log.debug("HAPI response: {} {}", hapiException.getStatusCode(), hapiException.getMessage());
+            } else {
+                log.debug("Generating response for exception", e);
+            }
 
             final String message;
             final String diagnostics;
@@ -141,7 +146,7 @@ public abstract class MagRouteBuilder extends RouteBuilder {
                 if (body == null) {
                     sb.append("<empty body>");
                 } else if (body instanceof final Resource fhirResource) {
-                    sb.append("Body:\n").append(FhirContext.forR4Cached().newJsonParser().setPrettyPrint(true).encodeResourceToString(
+                    sb.append("Body:\n").append(serializeFhirResource(
                             fhirResource));
                 } else {
                     sb.append("Body:\n").append(exchange.getMessage().getBody(String.class));
@@ -156,6 +161,7 @@ public abstract class MagRouteBuilder extends RouteBuilder {
         final var level = convertLoggingLevel(camelLoggingLevel);
         if (!logger.isEnabledForLevel(level)) {
             return _ -> {
+                // Return a no-op processor
             };
         } else {
             return exchange -> {
@@ -166,14 +172,12 @@ public abstract class MagRouteBuilder extends RouteBuilder {
                 }
                 final String bodyString;
                 if (body instanceof final Resource fhirResource) {
-                    bodyString = FhirContext.forR4Cached().newJsonParser().setPrettyPrint(true).encodeResourceToString(
-                            fhirResource);
+                    bodyString = serializeFhirResource(fhirResource);
                 } else if (body instanceof final Collection<?> collection) {
                     bodyString = "[" + collection.stream()
                             .map(item -> {
                                 if (item instanceof final Resource itemResource) {
-                                    return FhirContext.forR4Cached().newJsonParser().setPrettyPrint(true).encodeResourceToString(
-                                            itemResource);
+                                    return serializeFhirResource(itemResource);
                                 } else {
                                     return item.toString();
                                 }
@@ -185,6 +189,14 @@ public abstract class MagRouteBuilder extends RouteBuilder {
                 logger.atLevel(level).log(bodyString);
             };
         }
+    }
+
+    private static String serializeFhirResource(final Resource resource) {
+        return FhirContext.forR4Cached()
+                .newJsonParser()
+                .setPrettyPrint(false)
+                .setSuppressNarratives(true)
+                .encodeResourceToString(resource);
     }
 
     private static Level convertLoggingLevel(LoggingLevel loggingLevel) {
