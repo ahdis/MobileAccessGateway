@@ -40,6 +40,9 @@ server:
 logging:
   level:
     root: info
+    org.openehealth.ipf.commons.audit.protocol: warn
+    org.openehealth.ipf.commons.ihe.ws.cxf.audit: warn
+    org.openehealth.ipf.commons.core.config: warn
 
 camel:
   springboot:

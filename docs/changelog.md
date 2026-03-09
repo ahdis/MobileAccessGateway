@@ -3,6 +3,7 @@
 ## v2.0.7 - unreleased
 
 - Fix an error in the ITI-78 response conversion when an ITI-47 response is malformed (#45).
+- Improve logging practices (#46). 
 
 ## v2.0.6 - 2026/02/27
 
