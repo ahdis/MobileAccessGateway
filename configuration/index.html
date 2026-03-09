@@ -1,0 +1,694 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../changelog/">
+      
+      
+      
+      <link rel="icon" href="../assets/favicon-256x256.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
+    
+    
+      
+        <title>8. Configuration - Mobile Access Gateway</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="mag" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#8-configuration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Mobile Access Gateway" class="md-header__button md-logo" aria-label="Mobile Access Gateway" data-md-component="logo">
+      
+  <img src="../assets/mag_logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Mobile Access Gateway
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              8. Configuration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahdis/MobileAccessGateway" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Mobile Access Gateway" class="md-nav__button md-logo" aria-label="Mobile Access Gateway" data-md-component="logo">
+      
+  <img src="../assets/mag_logo.png" alt="logo">
+
+    </a>
+    Mobile Access Gateway
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahdis/MobileAccessGateway" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    1. Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2. Features
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../endpoints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    3. Endpoints
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../integration-primary-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    4. EPR Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    5. Testing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6. Container
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7. Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    8. Configuration
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    8. Configuration
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#publish-as-tcu-without-xua-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      Publish as TCU without XUA token
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-a-pkcs12-keystore" class="md-nav__link">
+    <span class="md-ellipsis">
+      Create a PKCS#12 keystore
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-a-pkcs12-truststore" class="md-nav__link">
+    <span class="md-ellipsis">
+      Create a PKCS#12 truststore
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#publish-as-tcu-without-xua-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      Publish as TCU without XUA token
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-a-pkcs12-keystore" class="md-nav__link">
+    <span class="md-ellipsis">
+      Create a PKCS#12 keystore
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-a-pkcs12-truststore" class="md-nav__link">
+    <span class="md-ellipsis">
+      Create a PKCS#12 truststore
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="8-configuration">8. Configuration</h1>
+<p>This page details how to configure the MobileAccessGateway application.</p>
+<h2 id="publish-as-tcu-without-xua-token">Publish as TCU without XUA token</h2>
+<p>The MAG can automatically inject a technical user (TCU) XUA token into ITI-65 requests when no <code>Authorization</code> 
+header is present. To do that, the following configuration parameters must be set:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">mag</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">auth</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">sts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://${host}/STS/services/SecurityTokenService</span>
+<span class="w">        </span><span class="nt">sts-issuer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://test.ahdis.ch/mag-cara</span>
+<span class="w">        </span><span class="nt">tcu</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">principal-name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Gregory House</span>
+<span class="w">            </span><span class="nt">principal-gln</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2000040030826</span>
+<span class="w">            </span><span class="nt">oid</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.16.756.5.30.1.999.9.1.1.1</span>
+<span class="w">            </span><span class="nt">keystore-path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">file:secret/tcu.p12</span>
+<span class="w">            </span><span class="nt">keystore-password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MySecretPassword</span>
+<span class="w">            </span><span class="nt">keystore-alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mykeyalias</span>
+<span class="w">            </span><span class="nt">auto-inject-in-iti65</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div>
+<p>Details of the parameters:</p>
+<ul>
+<li><code>mag.auth.sts</code>: The URL of the STS service (for the Get X-User Assertion request).</li>
+<li><code>mag.auth.sts-issuer</code>: The <code>Assertion/Issuer</code> value of the TCU SAML Assertion.</li>
+<li><code>mag.auth.tcu.principal-name</code>: The <code>Subject/NameID</code> value of the TCU SAML Assertion.</li>
+<li><code>mag.auth.tcu.principal-gln</code>: The <code>Subject/SubjectConfirmation/Data/Recipient</code> value of the TCU SAML Assertion.</li>
+<li><code>mag.auth.tcu.oid</code>: The OID of the TCU, as registered in the EPR community.</li>
+<li><code>mag.auth.tcu.keystore-path</code>: The path to the keystore containing the private key to sign the SAML Assertion. It 
+  should begin with <code>file:</code> and be a <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/ahdis/PKCS/issues/12" title="GitHub Issue: ahdis/PKCS #12">PKCS#12</a> file (<code>.p12</code> or <code>.pfx</code>).</li>
+<li><code>mag.auth.tcu.keystore-password</code>: The password of the keystore.</li>
+<li><code>mag.auth.tcu.keystore-alias</code>: The alias of the private key in the keystore.</li>
+<li><code>mag.auth.tcu.auto-inject-in-iti65</code>: Set to <code>true</code> to enable the automatic injection of the TCU token in ITI-65 
+  requests.</li>
+</ul>
+<h2 id="create-a-pkcs12-keystore">Create a <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/ahdis/PKCS/issues/12" title="GitHub Issue: ahdis/PKCS #12">PKCS#12</a> keystore</h2>
+<p>You need a <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/ahdis/PKCS/issues/12" title="GitHub Issue: ahdis/PKCS #12">PKCS#12</a> keystore for using mTLS with the EPR service, and for signing the TCU SAML Assertion (if you 
+enabled that option).
+To create a <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/ahdis/PKCS/issues/12" title="GitHub Issue: ahdis/PKCS #12">PKCS#12</a> keystore, you need a private key and a certificate that you may have generated yourself, or that 
+you received from a certificate authority/EPR community.
+They will usually be in the PEM format (files usually ending with <code>.pem</code>, <code>.crt</code>, <code>.cer</code> or <code>.key</code>); the certificate 
+should start with <code>-----BEGIN CERTIFICATE-----</code> and the private key with <code>-----BEGIN PRIVATE KEY-----</code>,
+<code>BEGIN ENCRYPTED PRIVATE KEY</code> or <code>BEGIN RSA PRIVATE KEY</code>.</p>
+<p>In a terminal with <a href="https://www.openssl.org/">OpenSSL</a>:
+1. To create a new keystore:
+   <code>openssl pkcs12 -export -in cert.pem -inkey private_pkcs8.pem -out keystore.p12 -name mykeyalias</code>. OpenSSL will take
+   care of any type of private key (<a class="magiclink magiclink-github magiclink-issue" href="https://github.com/ahdis/PKCS/issues/1" title="GitHub Issue: ahdis/PKCS #1">PKCS#1</a>, <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/ahdis/PKCS/issues/8" title="GitHub Issue: ahdis/PKCS #8">PKCS#8</a>, encrypted or not).
+2. Optional: fill the private key password (<em>Enter pass phrase for private.pem</em>).
+3. Fill the keystore password (<em>Enter Export Password</em>).</p>
+<p>To add one key pair from one <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/ahdis/PKCS/issues/12" title="GitHub Issue: ahdis/PKCS #12">PKCS#12</a> keystore to another <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/ahdis/PKCS/issues/12" title="GitHub Issue: ahdis/PKCS #12">PKCS#12</a> keystore:
+1. <code>keytool -importkeystore -deststorepass:file destKeyStorePasswordFile -destkeystore destination.p12 -srckeystore source.p12 -deststoretype PKCS12 -srcstoretype PKCS12 -srcstorepass:file myOutPasswordFile -alias mykeyalias</code></p>
+<p>In a GUI with <a href="https://keystore-explorer.org/">KeyStore Explorer</a>:
+1. Open KeyStore Explorer, click on <code>Create a new KeyStore</code> and choose <code>PKCS#12</code>, or open an existing <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/ahdis/PKCS/issues/12" title="GitHub Issue: ahdis/PKCS #12">PKCS#12</a> keystore.
+2. Right-click in the empty area and choose <code>Import Key Pair</code>.
+3. Select <code>Import from PEM encoded files</code>.
+4. If your private key had <code>RSA PRIVATE KEY</code>, select <code>OpenSSL</code>. Otherwise (<code>PRIVATE KEY</code> and <code>ENCRYPTED PRIVATE KEY</code>),
+   select <code>PKCS#8</code>.
+5. Select your private key file and your certificate file; specify the password of the private key if needed.
+6. Enter an alias for the key pair. You will fill it in the configuration properties <code>mag.auth.tcu.keystore-alias</code> or 
+   <code>mag.client-ssl.cert-alias</code>.
+7. Leave the key pair password fields empty.
+8. Save your keystore.</p>
+<p>It should look like:
+<a href="../assets/keystore_result.png"><img alt="KeyStore Explorer screenshot" src="../assets/keystore_result.png" /></a></p>
+<h2 id="create-a-pkcs12-truststore">Create a <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/ahdis/PKCS/issues/12" title="GitHub Issue: ahdis/PKCS #12">PKCS#12</a> truststore</h2>
+<p>You need a <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/ahdis/PKCS/issues/12" title="GitHub Issue: ahdis/PKCS #12">PKCS#12</a> truststore for using mTLS with the EPR service. To create a <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/ahdis/PKCS/issues/12" title="GitHub Issue: ahdis/PKCS #12">PKCS#12</a> truststore, you need the 
+certificate(s) to trust. – it can be the leaf certificate, any intermediate certificate(s) and/or the CA certificate.
+The choice of the certificate to trust is yours:</p>
+<ol>
+<li>The leaf certificate is the safer to trust, because only the owner of the private key of that certificate will be 
+   trusted. But when the leaf certificate is renewed (usually every year), you will need to update your truststore. 
+   The MAG won't work anymore until you do that, so it is not very convenient.</li>
+<li>The intermediate certificate(s) or the CA certificate are more convenient, because they usually have a longer validity 
+   (many years). But they are less safe, because any leaf certificate issued by that CA will be trusted – although 
+   CAs trusted by your browser should be very strict when issuing a certificate for a given domain.</li>
+</ol>
+<p>When finding the certificate(s) to trust, both OpenSSL and your browser will show you the validity period of each 
+certificate in the chain.</p>
+<p>To find the certificates of a TLS host:</p>
+<p>In a terminal with <a href="https://www.openssl.org/">OpenSSL</a>: <code>openssl s_client -connect www.epr.ch:443 -showcerts</code>.
+You will find the leaf, intermediate and root certificates in the output, each starting with 
+<code>-----BEGIN CERTIFICATE-----</code> and ending with <code>-----END CERTIFICATE-----</code>. Copy the certificate you want, including 
+the boundaries (<code>-----BEGIN CERTIFICATE-----</code> and <code>-----END CERTIFICATE-----</code>), into a <code>.pem</code> file.</p>
+<p>In a GUI with Chrome:
+1. Click on the <em>View site information</em> icon on the left of the address bar:
+   <a href="../assets/chrome_info_button.png"><img alt="KeyStore Explorer screenshot" src="../assets/chrome_info_button.png" /></a>
+2. Click on <em>Connection is secure</em>.
+3. Click on <em>Certificate is valid</em>.
+4. In the <em>Details</em> tab, select the certificate you want to trust. At the top is the CA, at the bottom is the
+   leaf certificate.
+5. Click on the <em>Export</em> button (bottom right) and save the certificate in the <code>.pem</code> format.</p>
+<p>Then, add it to a <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/ahdis/PKCS/issues/12" title="GitHub Issue: ahdis/PKCS #12">PKCS#12</a> truststore – it can be the same file as the keystore.</p>
+<p>In a terminal with OpenSSL to create a new keystore:
+<code>openssl pkcs12 -export -in trusted_cert.pem -nokeys -out truststore.p12 -name trustalias</code></p>
+<p>In a terminal with keytool to add one certificate to an existing keystore:
+<code>keytool -import -trustcacerts -keystore existing.p12 -storetype PKCS12 -storepass yourKeystorePassword -alias trustalias -file trusted_cert.pem</code></p>
+<p>In a GUI with KeyStore Explorer:
+1. Open KeyStore Explorer, click on <code>Create a new KeyStore</code> and choose <code>PKCS#12</code>, or open an existing <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/ahdis/PKCS/issues/12" title="GitHub Issue: ahdis/PKCS #12">PKCS#12</a> keystore.
+2. Right-click in the empty area and choose <code>Import Trusted Certificate</code>.
+3. Select the certificate file you created above.
+4. Enter an alias for the certificate. This alias won't be used in the configuration, so choose an alias that helps you 
+   remember what certificate it is.
+5. Save your truststore.</p>
+<p>It should look like:
+<a href="../assets/truststore_result.png"><img alt="KeyStore Explorer screenshot" src="../assets/truststore_result.png" /></a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>
