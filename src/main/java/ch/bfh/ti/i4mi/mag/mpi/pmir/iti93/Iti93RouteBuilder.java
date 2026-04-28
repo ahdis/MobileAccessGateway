@@ -39,8 +39,10 @@ class Iti93RouteBuilder extends MagRouteBuilder {
     private final MagMpiProps mpiProps;
 
     public Iti93RouteBuilder(final Iti93ResponseConverter responseConverter,
-                             final MagProps magProps) {
-        super(magProps);
+                             final MagProps magProps,
+                             final RequestHeadersForwarder requestHeadersForwarder,
+                             final TraceparentHandler traceparentHandler) {
+        super(magProps, requestHeadersForwarder, traceparentHandler);
         this.responseConverter = responseConverter;
         this.mpiProps = magProps.getMpi();
     }
@@ -60,8 +62,8 @@ class Iti93RouteBuilder extends MagRouteBuilder {
                 .errorHandler(noErrorHandler())
                 .log(LoggingLevel.INFO, log, "Received ITI-93 request")
                 .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
-                //.process(RequestHeadersForwarder.checkAuthorization(this.mpiProps.isChPixmConstraints()))
-                .process(RequestHeadersForwarder.forward())
+                //.process(this.requestHeadersForwarder.checkAuthorization(this.mpiProps.isChPixmConstraints()))
+                .process(this.requestHeadersForwarder.forward())
                 .process(Utils.keepBody())
                 .bean(Iti93RequestConverter.class)
                 .doTry()
@@ -71,7 +73,7 @@ class Iti93RouteBuilder extends MagRouteBuilder {
                     .log(LoggingLevel.DEBUG, log, "Got a response")
                     .log(LoggingLevel.TRACE, log, "${body}")
                     .process(Utils.keptBodyToHeader())
-                    .process(TraceparentHandler.updateHeaderForFhir())
+                    .process(this.traceparentHandler.updateHeaderForFhir())
                     .process(translateToFhir(responseConverter, byte[].class))
                     .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-93 response")
                     .process(loggingResponseProcessor(LoggingLevel.TRACE, log))

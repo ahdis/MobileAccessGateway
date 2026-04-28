@@ -42,8 +42,10 @@ class Iti83RouteBuilder extends MagRouteBuilder {
     private final Iti83ResponseConverter responseConverter;
 
     public Iti83RouteBuilder(final MagProps magProps,
-                             final Iti83ResponseConverter responseConverter) {
-        super(magProps);
+                             final Iti83ResponseConverter responseConverter,
+                             final RequestHeadersForwarder requestHeadersForwarder,
+                             final TraceparentHandler traceparentHandler) {
+        super(magProps, requestHeadersForwarder, traceparentHandler);
         this.mpiProps = magProps.getMpi();
         this.responseConverter = responseConverter;
     }
@@ -63,8 +65,8 @@ class Iti83RouteBuilder extends MagRouteBuilder {
                 .errorHandler(noErrorHandler())
                 .log(LoggingLevel.INFO, log, "Received ITI-83 request")
                 .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
-                //.process(RequestHeadersForwarder.checkAuthorization(this.mpiProps.isChPixmConstraints()))
-                .process(RequestHeadersForwarder.forward())
+                //.process(this.requestHeadersForwarder.checkAuthorization(this.mpiProps.isChPixmConstraints()))
+                .process(this.requestHeadersForwarder.forward())
                 .process(Utils.keepBody())
                 .bean(Iti83RequestConverter.class)
                 .doTry()
@@ -74,7 +76,7 @@ class Iti83RouteBuilder extends MagRouteBuilder {
                     .log(LoggingLevel.DEBUG, log, "Got a response")
                     .log(LoggingLevel.TRACE, log, "${body}")
                     .process(Utils.keptBodyToHeader())
-                    .process(TraceparentHandler.updateHeaderForFhir())
+                    .process(this.traceparentHandler.updateHeaderForFhir())
                     .process(translateToFhir(responseConverter, byte[].class))
                     .bean(PatientIdInterceptor.class, "interceptIti83Parameters")
                     .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-83 response")

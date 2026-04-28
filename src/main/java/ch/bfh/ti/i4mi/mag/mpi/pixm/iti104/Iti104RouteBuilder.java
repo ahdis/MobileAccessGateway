@@ -43,8 +43,10 @@ class Iti104RouteBuilder extends MagRouteBuilder {
     private final Iti104ResponseConverter response104Converter;
 
     public Iti104RouteBuilder(final MagProps magProps,
-                              final Iti104ResponseConverter response104Converter) {
-        super(magProps);
+                              final Iti104ResponseConverter response104Converter,
+                              final RequestHeadersForwarder requestHeadersForwarder,
+                              final TraceparentHandler traceparentHandler) {
+        super(magProps, requestHeadersForwarder, traceparentHandler);
         this.mpiProps = magProps.getMpi();
         this.response104Converter = response104Converter;
     }
@@ -67,8 +69,8 @@ class Iti104RouteBuilder extends MagRouteBuilder {
                 .errorHandler(noErrorHandler())
                 .log(LoggingLevel.INFO, log, "Received ITI-104 request")
                 .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
-                //.process(RequestHeadersForwarder.checkAuthorization(this.mpiProps.isChPdqmConstraints()))
-                .process(RequestHeadersForwarder.forward())
+                //.process(this.requestHeadersForwarder.checkAuthorization(this.mpiProps.isChPdqmConstraints()))
+                .process(this.requestHeadersForwarder.forward())
                 .process(Utils.keepBody())
                 .bean(Iti104RequestConverter.class)
                 .doTry()
@@ -80,19 +82,19 @@ class Iti104RouteBuilder extends MagRouteBuilder {
                     .process(Utils.keptBodyToHeader())
                     .process(Utils.storePreferHeader())
                     .process(translateToFhir(this.response104Converter, byte[].class))
-                    .process(TraceparentHandler.updateHeaderForFhir())
+                    .process(this.traceparentHandler.updateHeaderForFhir())
                     .choice()
                         .when(header("Prefer").isEqualToIgnoreCase("return=Representation"))
                             .process(Utils.keepBody())
                             .bean(Iti78RequestConverter.class, "fromMethodOutcome")
-                            .process(TraceparentHandler.updateHeaderForSoap())
+                            .process(this.traceparentHandler.updateHeaderForSoap())
                             .log(LoggingLevel.DEBUG, log, "Sending an ITI-47 request to " + xds44Endpoint)
                             .log(LoggingLevel.TRACE, log, "${body}")
                             .to(xds47Endpoint)
                             .log(LoggingLevel.DEBUG, log, "Got a response")
                             .log(LoggingLevel.TRACE, log, "${body}")
                             .bean(Iti47ResponseToFhirConverter.class, "convertForIti104")
-                            .process(TraceparentHandler.updateHeaderForFhir())
+                            .process(this.traceparentHandler.updateHeaderForFhir())
                             .process(Iti104ResponseConverter.addPatientToOutcome())
                         .endChoice()
                     .end()

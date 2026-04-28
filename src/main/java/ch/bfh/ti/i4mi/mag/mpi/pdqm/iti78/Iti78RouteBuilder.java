@@ -39,8 +39,10 @@ public class Iti78RouteBuilder extends MagRouteBuilder {
 
     private final MagMpiProps mpiProps;
 
-    public Iti78RouteBuilder(final MagProps magProps) {
-        super(magProps);
+    public Iti78RouteBuilder(final MagProps magProps,
+                             final RequestHeadersForwarder requestHeadersForwarder,
+                             final TraceparentHandler traceparentHandler) {
+        super(magProps, requestHeadersForwarder, traceparentHandler);
         this.mpiProps = magProps.getMpi();
     }
 
@@ -60,7 +62,7 @@ public class Iti78RouteBuilder extends MagRouteBuilder {
                 .log(LoggingLevel.INFO, log, "Received ITI-78 request")
                 .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
                 //.process(RequestHeadersForwarder.checkAuthorization(this.mpiProps.isChPdqmConstraints()))
-                .process(RequestHeadersForwarder.forward())
+                .process(this.requestHeadersForwarder.forward())
                 .choice()
                     .when(header(Constants.FHIR_REQUEST_PARAMETERS).isNotNull())
                         .bean(Iti78RequestConverter.class, "iti78ToIti47Converter")
@@ -75,7 +77,7 @@ public class Iti78RouteBuilder extends MagRouteBuilder {
                     .to(xds47Endpoint)
                     .log(LoggingLevel.DEBUG, log, "Got a response")
                     .log(LoggingLevel.TRACE, log, "${body}")
-                    .process(TraceparentHandler.updateHeaderForFhir())
+                    .process(this.traceparentHandler.updateHeaderForFhir())
                     .bean(Iti47ResponseToFhirConverter.class, "convertForIti78")
                     .bean(PatientIdInterceptor.class, "interceptBundleOfPatients")
                     .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-78 response")

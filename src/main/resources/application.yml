@@ -23,6 +23,8 @@ mag:
 #        redirect: https://developers.google.com/oauthplayground
   audit:
     audit-enabled: false
+  traceparent:
+    enabled: true
 
 # https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-application-properties.html#server-properties
 

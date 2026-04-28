@@ -19,8 +19,10 @@ public class Iti90RouteBuilder extends MagRouteBuilder {
 
     private final MagHpdProps hpdProps;
 
-    public Iti90RouteBuilder(final MagProps magProps) {
-        super(magProps);
+    public Iti90RouteBuilder(final MagProps magProps,
+                             final RequestHeadersForwarder requestHeadersForwarder,
+                             final TraceparentHandler traceparentHandler) {
+        super(magProps, requestHeadersForwarder, traceparentHandler);
         this.hpdProps = magProps.getHpd();
     }
 
@@ -39,8 +41,8 @@ public class Iti90RouteBuilder extends MagRouteBuilder {
                 .errorHandler(noErrorHandler())
                 .log(LoggingLevel.INFO, log, "Received ITI-90 request")
                 .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
-                .process(RequestHeadersForwarder.checkAuthorization(true))
-                .process(RequestHeadersForwarder.forward())
+                .process(this.requestHeadersForwarder.checkAuthorization(true))
+                .process(this.requestHeadersForwarder.forward())
                 .process(Utils.keepBody())
                 .doTry()
                     .bean(Iti90RequestConverter.class, "convert")
@@ -50,7 +52,7 @@ public class Iti90RouteBuilder extends MagRouteBuilder {
                     .log(LoggingLevel.DEBUG, log, "Got a response")
                     .log(LoggingLevel.TRACE, log, "${body}")
                     .process(Utils.keptBodyToHeader())
-                    .process(TraceparentHandler.updateHeaderForFhir())
+                    .process(this.traceparentHandler.updateHeaderForFhir())
                     .bean(Iti90ResponseConverter.class, "convert")
                     .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-90 response")
                     .process(loggingResponseProcessor(LoggingLevel.TRACE, log))

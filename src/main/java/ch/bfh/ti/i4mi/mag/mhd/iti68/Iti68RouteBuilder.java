@@ -40,8 +40,10 @@ class Iti68RouteBuilder extends MagRouteBuilder {
     private final boolean isChMhdConstraints;
     private final String localHomeCommunityId;
 
-    public Iti68RouteBuilder(final MagProps magProps) {
-        super(magProps);
+    public Iti68RouteBuilder(final MagProps magProps,
+                             final RequestHeadersForwarder requestHeadersForwarder,
+                             final TraceparentHandler traceparentHandler) {
+        super(magProps, requestHeadersForwarder, traceparentHandler);
         this.xdsProps = magProps.getXds();
         this.isChMhdConstraints = xdsProps.isChMhdConstraints();
         this.localHomeCommunityId = magProps.getHomeCommunityId();
@@ -65,8 +67,8 @@ class Iti68RouteBuilder extends MagRouteBuilder {
                 .log(LoggingLevel.INFO, log, "Received ITI-68 request")
                 .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
                 .doTry()
-                    //.process(RequestHeadersForwarder.checkAuthorization(this.isChMhdConstraints))
-                    .process(RequestHeadersForwarder.forward())
+                    //.process(this.requestHeadersForwarder.checkAuthorization(this.isChMhdConstraints))
+                    .process(this.requestHeadersForwarder.forward())
 
                     // translate, forward, translate back
                     .bean(Iti68RequestConverter.class)
@@ -84,7 +86,7 @@ class Iti68RouteBuilder extends MagRouteBuilder {
                             .log(LoggingLevel.DEBUG, log, "Got a response")
                             .log(LoggingLevel.TRACE, log, "${body}")
                     .endDoTry()
-                    .process(TraceparentHandler.updateHeaderForFhir())
+                    .process(this.traceparentHandler.updateHeaderForFhir())
                     .bean(Iti68ResponseConverter.class, "retrievedDocumentSetToHttResponse")
                     .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-68 response")
                     .process(loggingResponseProcessor(LoggingLevel.TRACE, log))

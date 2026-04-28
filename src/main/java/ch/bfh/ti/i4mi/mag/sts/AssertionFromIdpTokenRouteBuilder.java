@@ -17,6 +17,8 @@
 package ch.bfh.ti.i4mi.mag.sts;
 
 import ch.bfh.ti.i4mi.mag.common.MagRouteBuilder;
+import ch.bfh.ti.i4mi.mag.common.RequestHeadersForwarder;
+import ch.bfh.ti.i4mi.mag.common.TraceparentHandler;
 import ch.bfh.ti.i4mi.mag.config.props.MagProps;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
 import org.apache.camel.Exchange;
@@ -29,8 +31,11 @@ public class AssertionFromIdpTokenRouteBuilder extends MagRouteBuilder {
 
     private final StsUtils utils;
 
-    public AssertionFromIdpTokenRouteBuilder(final MagProps magProps, final StsUtils utils) {
-        super(magProps);
+    public AssertionFromIdpTokenRouteBuilder(final MagProps magProps,
+                                             final StsUtils utils,
+                                             final RequestHeadersForwarder requestHeadersForwarder,
+                                             final TraceparentHandler traceparentHandler) {
+        super(magProps, requestHeadersForwarder, traceparentHandler);
         this.utils = utils;
     }
 

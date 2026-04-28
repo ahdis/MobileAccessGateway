@@ -16,6 +16,7 @@ import org.apache.cxf.headers.Header;
 import org.apache.cxf.staxutils.StaxUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -28,23 +29,30 @@ import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
  *
  * @author Quentin Ligier
  **/
+@Service
 public class RequestHeadersForwarder {
     private static final Logger log = LoggerFactory.getLogger(RequestHeadersForwarder.class);
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String OASIS_WSSECURITY_NS = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
 
-    public static Processor forward() {
+    private final TraceparentHandler traceparentHandler;
+
+    public RequestHeadersForwarder(final TraceparentHandler traceparentHandler) {
+        this.traceparentHandler = traceparentHandler;
+    }
+
+    public Processor forward() {
         return exchange -> {
             // Forward the Authorization header if present
             forwardAuthToken(exchange);
 
             // Extract the traceparent header if present and update it for the next hop
-            TraceparentHandler.saveHeader(exchange);
-            TraceparentHandler.updateHeaderForSoap().process(exchange);
+            this.traceparentHandler.saveHeader(exchange);
+            this.traceparentHandler.updateHeaderForSoap().process(exchange);
         };
     }
 
-    public static Processor checkAuthorization(final boolean check) {
+    public Processor checkAuthorization(final boolean check) {
         return exchange -> {
             final var authorizationHeader = FhirExchanges.readRequestHttpHeader(AUTHORIZATION_HEADER, exchange, false);
             if (check && authorizationHeader == null) {
@@ -54,7 +62,7 @@ public class RequestHeadersForwarder {
         };
     }
 
-    public static void setWsseHeader(final Exchange exchange,
+    public void setWsseHeader(final Exchange exchange,
                                      final String assertion) throws XMLStreamException {
         String ns = "";
         if (assertion.startsWith("<saml:Assertion")) {
@@ -90,7 +98,7 @@ public class RequestHeadersForwarder {
      * If the Authorization header is a JWT or something else, it is forwarded as is.
      * </p>
      */
-    private static void forwardAuthToken(final Exchange exchange) throws XMLStreamException {
+    private void forwardAuthToken(final Exchange exchange) throws XMLStreamException {
         final var authorizationHeader = FhirExchanges.readRequestHttpHeader(AUTHORIZATION_HEADER, exchange, true);
         if (authorizationHeader == null) {
             return;

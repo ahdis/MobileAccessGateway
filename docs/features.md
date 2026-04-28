@@ -49,3 +49,13 @@ Swiss EPR if the request fails, and the failure code/reason may indicate that th
 supported.
 
 The MAG will start at the confidentiality code defined in the request, and go up to `SECRET`.
+
+## 2.4 Support of the Traceparent header
+
+If `mag.traceparent.enabled` is set to `true` (default value), the MAG will handle the `traceparent` header in the 
+incoming requests, and propagate it in the outgoing requests after randomizing the `trace-id` part.
+If the incoming request doesn't have a `traceparent` header, the MAG will generate a random one and propagate it in the
+outgoing requests.
+
+If the feature is disabled, the MAG will ignore any `traceparent` header in the incoming requests, and won't add any
+`traceparent` header in the outgoing requests.

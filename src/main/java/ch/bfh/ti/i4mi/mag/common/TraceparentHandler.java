@@ -1,25 +1,35 @@
 package ch.bfh.ti.i4mi.mag.common;
 
-import lombok.experimental.UtilityClass;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import static org.openehealth.ipf.platform.camel.ihe.ws.HeaderUtils.addOutgoingHttpHeaders;
 
-/**
- * MobileAccessGateway
- *
- * @author Quentin Ligier
- **/
-@UtilityClass
+@Service
 public class TraceparentHandler {
     private static final Logger log = LoggerFactory.getLogger(TraceparentHandler.class);
     public static final String TRACEPARENT_HEADER = "traceparent";
     public static final String TRACEPARENT_CAMEL_HEADER = "MAG.Traceparent";
 
-    public static void saveHeader(final Exchange exchange) {
+    private final boolean enabled;
+
+    public TraceparentHandler(@Value("${mag.traceparent.enabled:true}") final boolean enabled) {
+        this.enabled = enabled;
+        if (enabled) {
+            log.info("Traceparent header handling is enabled");
+        } else {
+            log.info("Traceparent header handling is disabled");
+        }
+    }
+
+    public void saveHeader(final Exchange exchange) {
+        if (!this.enabled) {
+            return;
+        }
         final var incomingTraceparent = FhirExchanges.readRequestHttpHeader(TRACEPARENT_HEADER, exchange, true);
         Traceparent parsedTraceparent = Traceparent.random();
         if (incomingTraceparent == null) {
@@ -35,7 +45,7 @@ public class TraceparentHandler {
         exchange.getMessage().setHeader(TRACEPARENT_CAMEL_HEADER, parsedTraceparent);
     }
 
-    public static Processor updateHeaderForSoap() {
+    public Processor updateHeaderForSoap() {
         return exchange -> {
             final var traceparent = exchange.getMessage().getHeader(TRACEPARENT_CAMEL_HEADER, Traceparent.class);
             if (traceparent == null) {
@@ -51,7 +61,7 @@ public class TraceparentHandler {
         };
     }
 
-    public static Processor updateHeaderForFhir() {
+    public Processor updateHeaderForFhir() {
         return exchange -> {
             final var traceparent = exchange.getMessage().getHeader(TRACEPARENT_CAMEL_HEADER, Traceparent.class);
             if (traceparent == null) {

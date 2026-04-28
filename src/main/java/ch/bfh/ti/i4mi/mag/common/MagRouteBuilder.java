@@ -29,10 +29,16 @@ public abstract class MagRouteBuilder extends RouteBuilder {
     private static final String UNEXPECTED_HTML_PART = "Incoming portion of HTML stream";
 
     protected final MagProps magProps;
+    protected final RequestHeadersForwarder requestHeadersForwarder;
+    protected final TraceparentHandler traceparentHandler;
 
-    protected MagRouteBuilder(final MagProps magProps) {
+    protected MagRouteBuilder(final MagProps magProps,
+                              final RequestHeadersForwarder requestHeadersForwarder,
+                              final TraceparentHandler traceparentHandler) {
         super();
         this.magProps = magProps;
+        this.requestHeadersForwarder = requestHeadersForwarder;
+        this.traceparentHandler = traceparentHandler;
     }
 
     protected String buildOutgoingEndpoint(final String scheme,

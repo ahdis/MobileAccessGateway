@@ -43,8 +43,10 @@ class Iti66RouteBuilder extends MagRouteBuilder {
     private final Iti66ResponseConverter iti66ResponseConverter;
 
     public Iti66RouteBuilder(final MagProps magProps,
-                             final Iti66ResponseConverter iti66ResponseConverter) {
-        super(magProps);
+                             final Iti66ResponseConverter iti66ResponseConverter,
+                             final RequestHeadersForwarder requestHeadersForwarder,
+                             final TraceparentHandler traceparentHandler) {
+        super(magProps, requestHeadersForwarder, traceparentHandler);
         this.xdsProps = magProps.getXds();
         this.iti66ResponseConverter = iti66ResponseConverter;
     }
@@ -64,7 +66,7 @@ class Iti66RouteBuilder extends MagRouteBuilder {
                 .log(LoggingLevel.INFO, log, "Received ITI-66 request")
                 .process(loggingRequestProcessor(LoggingLevel.TRACE, log))
                 //.process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
-                .process(RequestHeadersForwarder.forward())
+                .process(this.requestHeadersForwarder.forward())
                 .choice()
                     .when(header(Constants.FHIR_REQUEST_PARAMETERS).isNotNull())
                         .bean(Utils.class, "searchParameterToBody")
@@ -81,7 +83,7 @@ class Iti66RouteBuilder extends MagRouteBuilder {
                     .log(LoggingLevel.DEBUG, log, "Got a response")
                     .log(LoggingLevel.TRACE, log, "${body}")
                     .bean(Iti66ResponseBugfix.class)
-                    .process(TraceparentHandler.updateHeaderForFhir())
+                    .process(this.traceparentHandler.updateHeaderForFhir())
                     .process(translateToFhir(this.iti66ResponseConverter, QueryResponse.class))
                     .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-66 response")
                     .process(loggingResponseProcessor(LoggingLevel.TRACE, log))

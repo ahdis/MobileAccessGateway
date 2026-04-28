@@ -1,5 +1,9 @@
 # 7. Changelog
 
+# v2.0.8 - 2026/04/28
+
+- Add a configuration parameter `mag.traceparent.enabled` to enable/disable traceparent headers handling.
+
 ## v2.0.7 - 2026/03/09
 
 - Fix an error in the ITI-78 response conversion when an ITI-47 response is malformed (#45).

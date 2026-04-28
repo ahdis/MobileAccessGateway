@@ -62,8 +62,10 @@ class Iti65RouteBuilder extends MagRouteBuilder {
     public Iti65RouteBuilder(final MagProps magProps,
                              final Iti65ResponseConverter iti65ResponseConverter,
                              final Optional<TcuXuaService> tcuXuaService,
-                             final PatientIdMappingService patientIdMappingService) {
-        super(magProps);
+                             final PatientIdMappingService patientIdMappingService,
+                             final RequestHeadersForwarder requestHeadersForwarder,
+                             final TraceparentHandler traceparentHandler) {
+        super(magProps, requestHeadersForwarder, traceparentHandler);
         this.xdsProps = magProps.getXds();
         this.iti65ResponseConverter = iti65ResponseConverter;
         this.tcuXuaService = tcuXuaService.orElse(null);
@@ -92,7 +94,7 @@ class Iti65RouteBuilder extends MagRouteBuilder {
                     .process(Utils.storeBodyToHeader("BundleRequest"))
                     .bean(Iti65RequestConverter.class)
                     .process(maybeInjectTcuXuaProcessor())
-                    .process(RequestHeadersForwarder.forward())
+                    .process(this.requestHeadersForwarder.forward())
 
                     .convertBodyTo(ProvideAndRegisterDocumentSet.class)
                     .process(Utils.keepBody())
@@ -139,7 +141,7 @@ class Iti65RouteBuilder extends MagRouteBuilder {
                         .log(LoggingLevel.TRACE, log, "${body}")
                     .endDoTry()
 
-                    .process(TraceparentHandler.updateHeaderForFhir())
+                    .process(this.traceparentHandler.updateHeaderForFhir())
                     .process(translateToFhir(this.iti65ResponseConverter, Response.class))
                     .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-65 response")
                     .process(loggingResponseProcessor(LoggingLevel.TRACE, log))
@@ -166,7 +168,7 @@ class Iti65RouteBuilder extends MagRouteBuilder {
                 final var eprSpid = this.patientIdMappingService.getEprSpid(xadPid);
                 log.debug("EPR SPID: {}", eprSpid);
                 final var tcuXua = this.tcuXuaService.getXuaToken(eprSpid);
-                RequestHeadersForwarder.setWsseHeader(exchange, tcuXua);
+                this.requestHeadersForwarder.setWsseHeader(exchange, tcuXua);
             };
         }
         return _ -> {

@@ -58,8 +58,10 @@ class Iti67RouteBuilder extends MagRouteBuilder {
     public Iti67RouteBuilder(final MagProps magProps,
                              final Iti67ResponseConverter iti67ResponseConverter,
                              final Iti67RequestUpdateConverter iti67RequestUpdateConverter,
-                             final Iti67FromIti57ResponseConverter iti67FromIti57ResponseConverter) {
-        super(magProps);
+                             final Iti67FromIti57ResponseConverter iti67FromIti57ResponseConverter,
+                             final RequestHeadersForwarder requestHeadersForwarder,
+                             final TraceparentHandler traceparentHandler) {
+        super(magProps, requestHeadersForwarder, traceparentHandler);
         this.xdsProps = magProps.getXds();
         this.iti67ResponseConverter = iti67ResponseConverter;
         this.iti67RequestUpdateConverter = iti67RequestUpdateConverter;
@@ -84,8 +86,8 @@ class Iti67RouteBuilder extends MagRouteBuilder {
         from("mhd-iti67:find-document-references?audit=false")
                 .routeId("in-mhd-iti67")
                 .errorHandler(noErrorHandler())
-                //.process(RequestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
-                .process(RequestHeadersForwarder.forward())
+                //.process(this.requestHeadersForwarder.checkAuthorization(this.xdsProps.isChMhdConstraints()))
+                .process(this.requestHeadersForwarder.forward())
                 .doTry()
                     .choice()
                         // It is a search request with parameters
@@ -99,7 +101,7 @@ class Iti67RouteBuilder extends MagRouteBuilder {
                             .process(sendToIti18Endpoints())
                             .log(LoggingLevel.DEBUG, log, "Got a response")
                             .log(LoggingLevel.TRACE, log, "${body}")
-                            .process(TraceparentHandler.updateHeaderForFhir())
+                            .process(this.traceparentHandler.updateHeaderForFhir())
                             .process(translateToFhir(iti67ResponseConverter, QueryResponse.class))
                             .log(LoggingLevel.DEBUG, log, "Finished generating the ITI-67 response")
                             .log(LoggingLevel.TRACE, log, "${body}")
@@ -128,7 +130,7 @@ class Iti67RouteBuilder extends MagRouteBuilder {
                             .to(iti57Endpoint)
                             .log(LoggingLevel.DEBUG, log, "Got a response")
                             .log(LoggingLevel.TRACE, log, "${body}")
-                            .process(TraceparentHandler.updateHeaderForFhir())
+                            .process(this.traceparentHandler.updateHeaderForFhir())
                             .process(translateToFhir(iti67FromIti57ResponseConverter, Response.class))
                             .log(LoggingLevel.DEBUG, log, "Finished generating the CH:MHD-1 response")
                             .process(loggingResponseProcessor(LoggingLevel.TRACE, log))
@@ -143,7 +145,7 @@ class Iti67RouteBuilder extends MagRouteBuilder {
                             })
                             .bean(IdRequestConverter.class)
                             .to(metadataQueryEndpoint)
-                            .process(TraceparentHandler.updateHeaderForFhir())
+                            .process(this.traceparentHandler.updateHeaderForFhir())
                             .process(exchange -> {
                                 QueryResponse queryResponse = exchange.getIn().getMandatoryBody(QueryResponse.class);
                                 if (queryResponse.getStatus() != Status.SUCCESS) {
