@@ -124,6 +124,15 @@ public class TcpSyslogSender extends RFC5425Protocol implements AuditTransmissio
                     // re-throw the exception so caller knows what happened
                     throw exception;
                 }
+            } finally {
+                // Close the connection after each message so that the receiver's RFC 5425 decoder always
+                // starts with a fresh, compacted buffer. Some decoders (including IPF's Rfc5425Decoder)
+                // use ByteBuf.indexOf(0, readableBytes(), SP) which incorrectly treats readableBytes()
+                // as an absolute toIndex rather than a relative count. When the buffer is not compacted
+                // between messages this causes incorrect frame-length parsing and eventually an
+                // IndexOutOfBoundsException on the receiver side.
+                closeSocket(socket.get());
+                socket.set(null);
             }
         }
     }
