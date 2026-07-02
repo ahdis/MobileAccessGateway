@@ -20,7 +20,6 @@ import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ch.bfh.ti.i4mi.mag.config.props.MagMpiProps;
 import ch.bfh.ti.i4mi.mag.mhd.Utils;
-import ch.bfh.ti.i4mi.mag.mpi.pmir.BasePMIRResponseConverter;
 import jakarta.xml.bind.JAXBException;
 import net.ihe.gazelle.hl7v3.datatypes.CE;
 import net.ihe.gazelle.hl7v3.datatypes.CS;
@@ -51,7 +50,7 @@ import static ch.bfh.ti.i4mi.mag.mpi.common.Hl7v3Mappers.toText;
  *
  */
 @Component
-public class Iti104ResponseConverter extends BasePMIRResponseConverter implements ToFhirTranslator<byte[]> {
+public class Iti104ResponseConverter implements ToFhirTranslator<byte[]> {
 
     private final MagMpiProps mpiProps;
 

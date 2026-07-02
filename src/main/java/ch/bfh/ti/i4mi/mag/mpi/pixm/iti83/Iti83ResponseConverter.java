@@ -17,13 +17,8 @@
 package ch.bfh.ti.i4mi.mag.mpi.pixm.iti83;
 
 import ca.uhn.fhir.rest.server.exceptions.*;
-import ch.bfh.ti.i4mi.mag.mpi.pmir.BasePMIRResponseConverter;
 import jakarta.xml.bind.JAXBException;
-import lombok.val;
-import net.ihe.gazelle.hl7v3.datatypes.BIN;
 import net.ihe.gazelle.hl7v3.datatypes.II;
-import net.ihe.gazelle.hl7v3.mccimt000300UV01.MCCIMT000300UV01Acknowledgement;
-import net.ihe.gazelle.hl7v3.mccimt000300UV01.MCCIMT000300UV01AcknowledgementDetail;
 import net.ihe.gazelle.hl7v3.prpain201310UV02.PRPAIN201310UV02MFMIMT700711UV01ControlActProcess;
 import net.ihe.gazelle.hl7v3.prpain201310UV02.PRPAIN201310UV02MFMIMT700711UV01RegistrationEvent;
 import net.ihe.gazelle.hl7v3.prpain201310UV02.PRPAIN201310UV02MFMIMT700711UV01Subject1;
@@ -39,11 +34,9 @@ import org.springframework.stereotype.Component;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static ch.bfh.ti.i4mi.mag.mpi.common.FhirExceptions.*;
 import static ch.bfh.ti.i4mi.mag.mpi.common.Hl7v3Mappers.verifyAck;
 
 /**
@@ -52,7 +45,7 @@ import static ch.bfh.ti.i4mi.mag.mpi.common.Hl7v3Mappers.verifyAck;
  * @author alexander kreutz
  */
 @Component
-public class Iti83ResponseConverter extends BasePMIRResponseConverter implements ToFhirTranslator<byte[]> {
+public class Iti83ResponseConverter implements ToFhirTranslator<byte[]> {
 
 
     public Parameters translateToFhir(final byte[] input,

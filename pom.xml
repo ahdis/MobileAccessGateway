@@ -22,14 +22,14 @@
         <!-- plugins -->
         <compiler-plugin-version>3.15.0</compiler-plugin-version>
         <dockerfile-plugin-version>1.4.13</dockerfile-plugin-version>
-        <exec-plugin-version>3.5.0</exec-plugin-version>
-        <spring-boot-plugin-version>3.5.3</spring-boot-plugin-version>
-        <lombok-version>1.18.42</lombok-version>
+        <exec-plugin-version>3.6.3</exec-plugin-version>
+        <spring-boot-plugin-version>3.5.14</spring-boot-plugin-version>
+        <lombok-version>1.18.46</lombok-version>
 
         <!-- libraries -->
-        <ipf-version>5.2-rc1</ipf-version>
-        <camel-version>4.16.0</camel-version>
-        <opensaml-version>5.2.1</opensaml-version>
+        <ipf-version>5.2.0</ipf-version>
+        <camel-version>4.18.2</camel-version>
+        <opensaml-version>5.2.3</opensaml-version>
         <velocity-version>2.4.1</velocity-version>
 
         <start-class>ch.bfh.ti.i4mi.mag.MobileAccessGateway</start-class>
@@ -178,7 +178,7 @@
         <dependency>
             <groupId>com.sun.xml.messaging.saaj</groupId>
             <artifactId>saaj-impl</artifactId>
-            <version>3.0.4</version>
+            <version>3.0.6</version>
         </dependency>
 
         <dependency>
